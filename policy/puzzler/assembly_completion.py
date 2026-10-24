@@ -42,11 +42,12 @@ def planned_sites(board_pose, targets):
     return rows
 
 
-def evaluate(images, cameras, board_pose, targets, patch=2):
+def evaluate(images, cameras, board_pose, targets, patch=2, pieces=None):
     sites = planned_sites(board_pose, targets)
     points = np.array([p for _, p in sites])
     names_by_site = [n for n, _ in sites]
-    per_piece = {name: dict(visible=0, match=0, mismatch=0, unclear=0) for name in targets}
+    per_piece = {name: dict(visible=0, match=0, mismatch=0, unclear=0) for name in targets
+                 if pieces is None or name in pieces}
     views = []
     for key, rgb in images.items():
         camera = cameras[key]
@@ -58,6 +59,8 @@ def evaluate(images, cameras, board_pose, targets, patch=2):
         direction = offsets / distance[:, None]
         pixels = camera.project(points)
         for i, (name, point) in enumerate(sites):
+            if pieces is not None and name not in pieces:
+                continue
             u, v = pixels[i]
             if not (patch <= u < width - patch and patch <= v < height - patch):
                 continue
@@ -91,3 +94,15 @@ def evaluate(images, cameras, board_pose, targets, patch=2):
                 rule=f'each visible piece: matches >= {MIN_SHARE:g} of decisive views and >= 1; all pieces: '
                      f'mismatches <= {MAX_MISMATCH:g} of decisive views',
                 source='current RGB, calibrated cameras, RGB case pose, public CAD and pyramid plan')
+
+
+def goal_support(images, cameras, board_pose, targets, names):
+    """Do the current pixels at a piece's goal bead sites show that piece?
+
+    A fitted pose that disagrees with the goal is only a contradiction if the
+    goal pose fails to explain the image too. Occlusion uses the completed
+    plan, so a site that later layers would hide is never tested.
+    """
+    rows = evaluate(images, cameras, board_pose, targets, pieces=set(names))['per_piece']
+    return {name: dict(row, consistent=bool(row['match'] >= 1 and row['match'] >= MIN_SHARE * (row['match'] + row['mismatch'])))
+            for name, row in rows.items()}

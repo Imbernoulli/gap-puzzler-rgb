@@ -235,7 +235,12 @@ def observe(memory, observed, parameters) -> VisualMemory:
         moved = shape_displacement(piece, receipt['after']['poses'][piece], pose)
         outside = 'board' in poses and goal_error(piece, observed, parameters) >= .003
         track.update(last_measured_pose=pose, last_measured_timestamp=float(timestamp), last_frame_sha256=dict(hashes))
-        if moved >= .003 or outside:
+        if (moved >= .003 or outside) and observed.get('goal_pixel_support', {}).get(piece, {}).get('consistent'):
+            # The goal pose explains the pixels; this fit is an alias.
+            if not flagged:
+                track['status'] = 'remembered_static_conditional'
+            track['last_fit_alias'] = dict(timestamp=float(timestamp), moved_m=moved)
+        elif moved >= .003 or outside:
             track.update(status='unknown_or_conflicted', invalidation_reason=PIECE_CONFLICT,
                          conflict_evidence=dict(timestamp=float(timestamp), board_displacement_m=board_shift,
                              moved_m=moved, goal_error_m=goal_error(piece, observed, parameters) if 'board' in poses else None))

@@ -66,19 +66,27 @@ def segment_conditional_release(ctx,state:StageState)->StageResult:
     # precedence, so this chain cannot silently fall back to a historical
     # pre-open image.
     historical_preopen=bool(p.get('skip_preopen_rgb'))
-    if historical_preopen:
-        prior=p['historical_complete_rgb']
-        observed=dict(poses={},timestamp=prior['timestamp'],frame_sha256=prior['frame_sha256'],observation_source='historical_rgb_prior_for_planning',is_current_rgb=False)
-    else:observed=c.state(ctx,{name:belief['predicted_body_pose']})
-    raw=observed['poses'];measured=name in raw
-    body=np.asarray(raw[name] if measured else belief['predicted_body_pose'])
-    admission=check_bounded_release(name,belief,observed,p)
-    prior=p['historical_complete_rgb'];age=belief['current_timestamp']-prior['timestamp']
-    board_measured='board'in raw
-    if not board_measured and not p.get('allow_conditional_board_persistence'):raise StageRefusal('Fresh board unavailable and no explicit conditional persistence contract')
-    board=np.asarray(raw['board']if board_measured else prior['poses']['board']);br=Rotation.from_quat(board[3:]).as_matrix()
-    board_margin=0. if board_measured else .004
-    reference=select_reference(observed,prior,now=belief['current_timestamp'],max_age_s=p.get('historical_max_age_s',15.),board_limit_m=.0015,refusal=StageRefusal)
+    # A single occluded case fit can sit 1.5 mm off while nothing moved, so a
+    # board contradiction gets up to two more looks under the same limit.
+    for look in range(3):
+        if historical_preopen:
+            prior=p['historical_complete_rgb']
+            observed=dict(poses={},timestamp=prior['timestamp'],frame_sha256=prior['frame_sha256'],observation_source='historical_rgb_prior_for_planning',is_current_rgb=False)
+        else:observed=c.state(ctx,{name:belief['predicted_body_pose']})
+        raw=observed['poses'];measured=name in raw
+        body=np.asarray(raw[name] if measured else belief['predicted_body_pose'])
+        admission=check_bounded_release(name,belief,observed,p)
+        prior=p['historical_complete_rgb'];age=belief['current_timestamp']-prior['timestamp']
+        board_measured='board'in raw
+        if not board_measured and not p.get('allow_conditional_board_persistence'):raise StageRefusal('Fresh board unavailable and no explicit conditional persistence contract')
+        board=np.asarray(raw['board']if board_measured else prior['poses']['board']);br=Rotation.from_quat(board[3:]).as_matrix()
+        board_margin=0. if board_measured else .004
+        try:
+            reference=select_reference(observed,prior,now=belief['current_timestamp'],max_age_s=p.get('historical_max_age_s',15.),board_limit_m=.0015,refusal=StageRefusal)
+            break
+        except StageRefusal as error:
+            if historical_preopen or look==2 or not str(error).startswith('Fresh board contradicts'):raise
+            ctx.tool('robot.wait_steps',steps=10)
     occupancy={};historical_names=[]
     for item in model.CELLS:
         if reference['mode']=='current_complete_reference' and item in p.get('planning_prefix',p.get('actual_executed_prefix',[])) and state.get('belief_ledger',{}).get(item,{}).get('status')=='current_rgb_conflict_goal_envelope_invalidated':

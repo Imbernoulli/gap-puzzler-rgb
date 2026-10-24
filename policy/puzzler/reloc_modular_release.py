@@ -56,11 +56,37 @@ def camera_ray_observability_evidence(observed, name):
 from .release_admission import check_bounded_release, target_wrist_camera_guard
 
 
+def _propagate_held(ctx,p,arm):
+    """Public-FK held estimate at the robot's current proprioceptive epoch."""
+    return (ctx.tool('puzzle.propagate_conditional_attachment',attachment_id=p['conditional_attachment_id'],arm_id=arm)if p.get('conditional_attachment_id')else ctx.tool('puzzle.propagate_pyramid_held_belief',source=p['owned_held_belief_source'],arm_id=arm))
+
+
+def _hand_moved(start_tcp,start_q,tcp,q):
+    return bool(np.linalg.norm(np.asarray(tcp)-np.asarray(start_tcp))>.001
+                or (Rotation.from_quat(c.qarr(start_q)).inv()*Rotation.from_quat(c.qarr(q))).magnitude()>.01)
+
+
+def _return_from_inspection(ctx,inspection,arm):
+    """Retrace the executed inspection joint path back to the carry endpoint.
+
+    The release target is fixed from same-epoch RGB/FK at the inspection
+    pose; returning first keeps the final descent identical to the
+    uninspected release instead of sweeping the held part from the
+    inspection pose straight down to the board.
+    """
+    offset=0 if arm==0 else 8
+    current=ctx.tool('robot.read_proprioception',arm_id=arm)['robot_encoder_values'][offset:offset+6]
+    c.feed_joint_plan(ctx,dict(current=list(current),joints=list(inspection['start_joints'])),arm)
+    c.settle_motion(ctx,np.asarray(inspection['start_tcp']),inspection['start_rotation'],arm,False,.0025)
+    actual,actual_q=c.hand(ctx,arm)
+    return dict(actual_tcp=actual.tolist(),actual_rotation=actual_q)
+
+
 def segment_conditional_release(ctx,state:StageState)->StageResult:
     """One bounded conditional release; source priors never become RGB poses."""
     name=state['piece'];arm=state['arm'];p=_piece_parameters(state)
     mark=ctx.tool('robot.execution_journal_cursor')
-    belief=(ctx.tool('puzzle.propagate_conditional_attachment',attachment_id=p['conditional_attachment_id'],arm_id=arm)if p.get('conditional_attachment_id')else ctx.tool('puzzle.propagate_pyramid_held_belief',source=p['owned_held_belief_source'],arm_id=arm))
+    belief=_propagate_held(ctx,p,arm)
     # Generic release profiles may carry a legacy skip flag from an older
     # rehearsal.  A profile that explicitly requires current RGB takes
     # precedence, so this chain cannot silently fall back to a historical
@@ -73,11 +99,29 @@ def segment_conditional_release(ctx,state:StageState)->StageResult:
     # Active RGB inspection repairs the common held-object occlusion before
     # release-camera certification. It uses bounded robot motion plus a fresh
     # multi-view RGB/CAD fit; no pose is filled from the prediction.
+    inspection=None
     if name not in observed.get('poses',{}) or not observed.get('detections',{}).get(name,{}).get('visible',False):
+        offset=0 if arm==0 else 8
+        start_tcp,start_q=c.hand(ctx,arm)
+        inspection=dict(start_tcp=start_tcp.tolist(),start_rotation=start_q,
+                        start_joints=list(belief['current_robot_encoder_values'][offset:offset+6]),
+                        pre_inspection_held_belief=belief,inspection_rgb_accepted=False,hand_moved=False)
         try:
             observed=c.inspect_held(ctx,name,np.asarray(belief['predicted_body_pose'],dtype=float),arm,require_board=True,max_moves=3)
+            inspection['inspection_rgb_accepted']=True
         except RuntimeError:
             pass
+        tcp_now,q_now=c.hand(ctx,arm)
+        if _hand_moved(start_tcp,start_q,tcp_now,q_now):
+            # The inspection moved the hand, so the pre-inspection FK
+            # prediction is stale.  Re-propagate the same owned attachment at
+            # the current proprioceptive epoch: the RGB fit and the held
+            # estimate it is compared against must describe the same robot
+            # configuration.  The bound and contradiction gate are unchanged.
+            inspection['hand_moved']=True
+            belief=_propagate_held(ctx,p,arm)
+            if not inspection['inspection_rgb_accepted']:
+                observed=c.state(ctx,{name:belief['predicted_body_pose']})
     raw=observed['poses'];measured=name in raw
     body=np.asarray(raw[name] if measured else belief['predicted_body_pose'])
     admission=check_bounded_release(name,belief,observed,p)
@@ -86,7 +130,23 @@ def segment_conditional_release(ctx,state:StageState)->StageResult:
     if not board_measured and not p.get('allow_conditional_board_persistence'):raise StageRefusal('Fresh board unavailable and no explicit conditional persistence contract')
     board=np.asarray(raw['board']if board_measured else prior['poses']['board']);br=Rotation.from_quat(board[3:]).as_matrix()
     board_margin=0. if board_measured else .004
-    reference=select_reference(observed,prior,now=belief['current_timestamp'],max_age_s=p.get('historical_max_age_s',15.),board_limit_m=.0015,refusal=StageRefusal)
+    # A single occluded case fit can sit 1.5 mm off while nothing moved, so a
+    # board contradiction gets up to two more looks under the same limit.
+    for look in range(3):
+        try:
+            reference=select_reference(observed,prior,now=belief['current_timestamp'],max_age_s=p.get('historical_max_age_s',15.),board_limit_m=.0015,refusal=StageRefusal)
+            break
+        except StageRefusal as error:
+            if historical_preopen or look==2 or not str(error).startswith('Fresh board contradicts'):raise
+            ctx.tool('robot.wait_steps',steps=10)
+            observed=c.state(ctx,{name:belief['predicted_body_pose']})
+            raw=observed['poses'];measured=name in raw
+            body=np.asarray(raw[name] if measured else belief['predicted_body_pose'])
+            admission=check_bounded_release(name,belief,observed,p)
+            board_measured='board'in raw
+            if not board_measured and not p.get('allow_conditional_board_persistence'):raise StageRefusal('Fresh board unavailable and no explicit conditional persistence contract')
+            board=np.asarray(raw['board']if board_measured else prior['poses']['board']);br=Rotation.from_quat(board[3:]).as_matrix()
+            board_margin=0. if board_measured else .004
     occupancy={};historical_names=[]
     for item in model.CELLS:
         if reference['mode']=='current_complete_reference' and item in p.get('planning_prefix',p.get('actual_executed_prefix',[])) and state.get('belief_ledger',{}).get(item,{}).get('status')=='current_rgb_conflict_goal_envelope_invalidated':
@@ -161,6 +221,8 @@ def segment_conditional_release(ctx,state:StageState)->StageResult:
         target_guard=target_wrist_camera_guard(requested,hand_R,open_width,np.r_[target+[0,0,height],Rotation.from_matrix(desired).as_quat()],name,guard_parameters)
     if target_guard.get('status')!='passed':
         raise PlanningRefusal('Explicit target-to-wrist/camera guard '+target_guard.get('status','UNKNOWN')+': '+str(target_guard))
+    if inspection is not None and inspection['hand_moved']:
+        inspection['return_to_carry_endpoint']=_return_from_inspection(ctx,inspection,arm)
     c.move(ctx,requested,qtarget,arm,accuracy=.0025)
     actual,actual_q=c.hand(ctx,arm)
     opening=ctx.tool('robot.set_grip',arm_id=arm,width_m=open_width)
@@ -188,7 +250,7 @@ def segment_conditional_release(ctx,state:StageState)->StageResult:
         memory=visual_memory.mint_placement(memory,receipt,second,p)
     except visual_memory.MemoryRefusal as error:receipt_error=str(error)
     record=dict(bounded_release_admission=admission,contract='conditional_segment_release_execution_v1',execution_mark=mark,source=p['owned_held_belief_source'],
-        held_belief=belief,current_target_measured_at_preopen=measured,preopen_rgb=_observation(observed),preopen_rgb_role='historical_prior_only'if historical_preopen else'current_rgb',planning_scene=scene,
+        held_belief=belief,held_inspection=inspection,current_target_measured_at_preopen=measured,preopen_rgb=_observation(observed),preopen_rgb_role='historical_prior_only'if historical_preopen else'current_rgb',planning_scene=scene,
         original_historical_complete_rgb=prior,current_board_measured_at_preopen=board_measured,conditional_board_persistence_margin_m=board_margin,actual_preopen_width_m=actual_width,width_sweep_m=[actual_width,open_width],
         release_height_m=height,release_bias_includes_height=bias_includes_height,release_bias_board_m=p.get('release_translation_bias_board_m',[0.,0.,0.]),clearance_candidates=clearance,requested_release_tcp=requested.tolist(),requested_rotation=qtarget,
         actual_preopen_tcp=actual.tolist(),actual_preopen_rotation=actual_q,open_width_m=open_width,open_result=opening,home_result=home,support_open_result=support_open,support_home_result=support_home,support_release=support_release,

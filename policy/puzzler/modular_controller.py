@@ -80,14 +80,19 @@ def initial_state(name,base,*,memory=None,executed=(),execution_tokens=None,hist
 
 
 def save_observation(state,observed):
-    history=deepcopy(state.get('rgb_history',[]));packet={k:deepcopy(observed[k])for k in ['poses','detections','timestamp','frame_sha256','observation_source','assessment','robot_geometry_provenance','bounded_rgb_source','prefix_compatibility']if k in observed};
+    history=deepcopy(state.get('rgb_history',[]));packet={k:deepcopy(observed[k])for k in ['poses','detections','timestamp','frame_sha256','observation_source','assessment','robot_geometry_provenance','bounded_rgb_source','prefix_compatibility','goal_pixel_support']if k in observed};
     if not history or history[-1].get('timestamp')!=packet.get('timestamp')or history[-1].get('frame_sha256')!=packet.get('frame_sha256')or history[-1].get('poses')!=packet.get('poses'):history.append(_plain(packet))
     ledger=deepcopy(state.get('belief_ledger',{}))
     if 'board'in observed.get('poses',{}):
         for name in [*state.get('initialized_prefix',[]),*state.get('executed_placements',[]),*state.get('released_placements',[])]:
             if name not in observed['poses']:continue
             residual=visual_memory.goal_error(name,observed,state['parameters'])
-            if residual>=.004:ledger[name]={**ledger.get(name,{}),'status':'current_rgb_conflict_goal_envelope_invalidated','source_timestamp':observed['timestamp'],'frame_sha256':observed['frame_sha256'],'visual_goal_residual_m':residual}
+            support=observed.get('goal_pixel_support',{}).get(name,{})
+            if residual>=.004 and support.get('consistent'):
+                # The fit disagrees but the goal pose explains the pixels: a
+                # partly hidden piece fitted at a wrong turn is not evidence.
+                ledger[name]={**ledger.get(name,{}),'last_fit_alias':dict(timestamp=observed['timestamp'],visual_goal_residual_m=residual,goal_pixel_support=support)}
+            elif residual>=.004:ledger[name]={**ledger.get(name,{}),'status':'current_rgb_conflict_goal_envelope_invalidated','source_timestamp':observed['timestamp'],'frame_sha256':observed['frame_sha256'],'visual_goal_residual_m':residual}
             elif ledger.get(name,{}).get('status')=='current_rgb_conflict_goal_envelope_invalidated':ledger[name]={**ledger[name],'status':'reacquired_current_goal_compatible','source_timestamp':observed['timestamp'],'frame_sha256':observed['frame_sha256'],'visual_goal_residual_m':residual,'previous_invalidation':deepcopy(ledger[name])}
     return{**state,'observation':_observation(observed),'rgb_history':history[-48:],'belief_ledger':ledger}
 
@@ -121,14 +126,15 @@ def scene_belief(state,observed):
                     raw_aliases_retained_in_conditional_MAP_witness=conditional_map,
                     independent_prefix_physical_checkpoint_required=True)
                 continue
-            conflict=item in raw and visual_memory.goal_error(item,{'poses':{'board':bp.tolist(),item:raw[item]}},p)>=.004
+            alias=bool(observed.get('goal_pixel_support',{}).get(item,{}).get('consistent'))
+            conflict=item in raw and not alias and visual_memory.goal_error(item,{'poses':{'board':bp.tolist(),item:raw[item]}},p)>=.004
             if conflict:
                 # Explicitly invalidate the goal envelope and replan from current RGB.
                 ledger[item]={**ledger.get(item,{}),'status':'current_rgb_conflict_goal_envelope_invalidated','source_timestamp':observed['timestamp']}
                 options=[raw[item]];margin=.006;source='current_rgb_after_goal_envelope_invalidation'
             else:
                 if ledger.get(item,{}).get('status')=='current_rgb_conflict_goal_envelope_invalidated'and item not in raw:raise StageRefusal('Invalidated prefix requires current reacquisition: '+item)
-                options=[goal]+([raw[item]]if item in raw else[]);margin=.004+board['uncertainty_m'];source='conditional_given_stage_prefix_goal_plus_raw'if item in state.get('initialized_prefix',[])else'conditional_executed_goal_persistence_plus_current_raw'
+                options=[goal]+([raw[item]]if item in raw and not alias else[]);margin=.004+board['uncertainty_m'];source='conditional_given_stage_prefix_goal_plus_raw'if item in state.get('initialized_prefix',[])else'conditional_executed_goal_persistence_plus_current_raw'
                 ledger.setdefault(item,dict(status='executed_unknown',conditional_goal_margin_m=.004))
         elif item in raw:options=[raw[item]];margin=0.;source='current_rgb_measurement'
         else:

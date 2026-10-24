@@ -141,6 +141,10 @@ class VisualObserver:
         if hasattr(self.capture,'__self__') and hasattr(self.capture.__self__,'robot_geometry_provenance'):
             result['robot_geometry_provenance']=dict(self.capture.__self__.robot_geometry_provenance)
         result['assessment'] = assess(result, self.targets)
+        disputed = [name for name, error in result['assessment']['bead_error_m'].items() if error is not None and error >= .003]
+        if disputed and 'board' in result.get('poses', {}):
+            from .assembly_completion import goal_support
+            result['goal_pixel_support'] = goal_support(images, self.cameras, result['poses']['board'], self.targets, disputed)
         result['frame_sha256'] = {k: hashlib.sha256(a.tobytes()).hexdigest() for k, a in images.items()}
         for witness in result.get('prefix_track_reassociation',{}).values():
             witness.update(timestamp=result['timestamp'],frame_sha256=dict(result['frame_sha256']),

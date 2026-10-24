@@ -41,6 +41,9 @@ VARIANTS = {
                      label='Case, pieces and friction together (seed 201)'),
     'shuffled': dict(seed=0, scene_variant=dict(appearance='shuffled'), label='Piece colors shuffled'),
 }
+# Loose pieces re-placed anywhere on their own arm's side and turned up to ±45°.
+VARIANTS.update({f'scatter_{k}': dict(seed=0, scene_variant=dict(scatter_seed=k), label=f'Scattered layout {k}')
+                 for k in range(1, 13)})
 
 
 def workspace(name):
