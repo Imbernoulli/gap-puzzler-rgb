@@ -16,6 +16,7 @@ from . import model
 CONFUSABLE = {'red': {'maroon'}, 'maroon': {'red'}}
 MIN_SHARE = .6  # fraction of a piece's decisive views that must match
 MAX_MISMATCH = .15  # fraction of all decisive views that may disagree
+MIN_COVERAGE = .6  # fraction of expected-visible sites that must be decisive
 
 
 def _labels(rgb):
@@ -84,15 +85,20 @@ def evaluate(images, cameras, board_pose, targets, patch=2, pieces=None):
                               outcome=outcome, label=label))
     decisive = sum(r['match'] + r['mismatch'] for r in per_piece.values())
     mismatches = sum(r['mismatch'] for r in per_piece.values())
+    # A piece the cameras should see must show itself: unclear-only views do
+    # not confirm it. Only pieces hidden in every camera are exempt, and the
+    # frame as a whole must be decisive on most of its expected-visible sites.
     unconfirmed = sorted(name for name, r in per_piece.items()
-                         if r['match'] + r['mismatch'] > 0
+                         if r['visible'] > 0
                          and (r['match'] == 0 or r['match'] < MIN_SHARE * (r['match'] + r['mismatch'])))
-    hidden = sorted(name for name, r in per_piece.items() if r['match'] + r['mismatch'] == 0)
-    complete = bool(decisive and not unconfirmed and mismatches <= MAX_MISMATCH * decisive)
+    hidden = sorted(name for name, r in per_piece.items() if r['visible'] == 0)
+    visible = sum(r['visible'] for r in per_piece.values())
+    complete = bool(decisive and not unconfirmed and mismatches <= MAX_MISMATCH * decisive
+                    and decisive >= MIN_COVERAGE * visible)
     return dict(complete=complete, per_piece=per_piece, decisive_views=decisive, mismatched_views=mismatches,
-                unconfirmed_pieces=unconfirmed, pieces_without_decisive_view=hidden, views=views,
-                rule=f'each visible piece: matches >= {MIN_SHARE:g} of decisive views and >= 1; all pieces: '
-                     f'mismatches <= {MAX_MISMATCH:g} of decisive views',
+                expected_visible_views=visible, unconfirmed_pieces=unconfirmed, hidden_pieces=hidden, views=views,
+                rule=f'each piece expected visible: matches >= {MIN_SHARE:g} of decisive views and >= 1; all pieces: '
+                     f'mismatches <= {MAX_MISMATCH:g} of decisive, decisive >= {MIN_COVERAGE:g} of expected-visible',
                 source='current RGB, calibrated cameras, RGB case pose, public CAD and pyramid plan')
 
 
