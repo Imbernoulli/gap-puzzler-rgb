@@ -82,7 +82,7 @@ def segment_conditional_release(ctx,state:StageState)->StageResult:
         board=np.asarray(raw['board']if board_measured else prior['poses']['board']);br=Rotation.from_quat(board[3:]).as_matrix()
         board_margin=0. if board_measured else .004
         try:
-            reference=select_reference(observed,prior,now=belief['current_timestamp'],max_age_s=p.get('historical_max_age_s',15.),board_limit_m=.0015,refusal=StageRefusal)
+            reference=select_reference(observed,prior,now=belief['current_timestamp'],max_age_s=p.get('historical_max_age_s',15.),board_limit_m=.0015,refusal=StageRefusal,loose=[n for n in model.CELLS if n!=name and n not in p.get('planning_prefix',p.get('actual_executed_prefix',[]))])
             break
         except StageRefusal as error:
             if historical_preopen or look==2 or not str(error).startswith('Fresh board contradicts'):raise
