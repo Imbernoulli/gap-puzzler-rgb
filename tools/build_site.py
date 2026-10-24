@@ -52,6 +52,10 @@ LABELS = {
 }
 
 
+# Nodes whose code takes a bounded extra look before refusing.
+RELOOK = {'receipt_settle', 'finish'}
+
+
 def jsonl(path):
     return [json.loads(line) for line in Path(path).read_text().splitlines() if line.strip()]
 
@@ -269,33 +273,61 @@ def camera_grid(run, out):
     grid.save(out, quality=82)
 
 
+def loop_svg():
+    steps = [('Rehearse', 'one skill, then 2–6 piece chains'), ('Check', 'independent checkpoint per node'),
+             ('Locate', 'logs · saved RGB · robot state'), ('Change', 'one skill, same thresholds'),
+             ('Rejoin', 'fresh all-loose 12-piece run')]
+    w, box, gap, top = 980, 168, 35, 14
+    parts = [f'<div class="loop-wrap"><svg class="loop-svg" viewBox="0 0 {w} 118" role="img" aria-label="Refinement loop: rehearse, check, locate, change, rejoin; repeat until the joined run passes">',
+             '<defs><marker id="la" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" class="arrowhead"/></marker></defs>']
+    for i, (title, sub) in enumerate(steps):
+        x = 6 + i * (box + gap)
+        parts.append(f'<rect class="loop-box{" final" if i == 4 else ""}" x="{x}" y="{top}" width="{box}" height="56" rx="8"/>'
+                     f'<text class="loop-title" x="{x + 14}" y="{top + 24}">{title}</text>'
+                     f'<text class="loop-sub" x="{x + 14}" y="{top + 43}">{sub}</text>')
+        if i < 4:
+            parts.append(f'<line class="loop-edge" x1="{x + box + 3}" y1="{top + 28}" x2="{x + box + gap - 4}" y2="{top + 28}" marker-end="url(#la)"/>')
+    back_from = 6 + 3 * (box + gap) + box / 2
+    back_to = 6 + box / 2
+    parts.append(f'<path class="loop-edge" d="M{back_from},{top + 58} C{back_from},{top + 96} {back_to},{top + 96} {back_to},{top + 60}" marker-end="url(#la)"/>'
+                 f'<text class="loop-sub" x="{(back_from + back_to) / 2}" y="{top + 100}" text-anchor="middle">repeat while any checkpoint fails</text></svg></div>')
+    return ''.join(parts)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--main', required=True)
-    parser.add_argument('--video', required=True, help='rendered mp4 of --main (tools/render_gap.py)')
+    parser.add_argument('--media', required=True, help='output folder of tools/make_media.py for --main')
     parser.add_argument('--video-stride', type=int, default=3)
-    parser.add_argument('--clip', help='close-up mp4 for the real-to-sim comparison')
+    parser.add_argument('--grid', help='grid video (tools/make_grid.py) for the generalization section')
+    parser.add_argument('--grid-caption', default='')
     parser.add_argument('--before', nargs='*', default=[])
     parser.add_argument('--after', nargs='*', default=[])
     args = parser.parse_args()
+    from PIL import Image
 
     if SITE.exists():
         shutil.rmtree(SITE)
     shutil.copytree(SRC, SITE, ignore=shutil.ignore_patterns('index.html', '*.html'))
-    (SITE / 'media').mkdir(exist_ok=True)
+    media = Path(args.media)
     main_run = inner(args.main)
     data = timeline(main_run)
+    for piece in data['pieces']:
+        for node in piece['nodes']:
+            node['relook'] = node['kind'] in RELOOK
     data['video'] = dict(src='media/gap_full12.mp4', poster='media/gap_full12_poster.jpg',
                          steps_per_second=30 * args.video_stride * FRAME_STEPS)
-    shutil.copy2(args.video, SITE / 'media/gap_full12.mp4')
-    from PIL import Image
-    final = Path(args.video).with_name(Path(args.video).stem + '_final.png')
-    Image.open(final).convert('RGB').save(SITE / 'media/gap_full12_poster.jpg', quality=85)
-    if args.clip:
-        shutil.copy2(args.clip, SITE / 'media/rss_closeup.mp4')
-        Image.open(Path(args.clip).with_name(Path(args.clip).stem + '_final.png')).convert('RGB').save(
-            SITE / 'media/rss_closeup_poster.jpg', quality=85)
+    for name in ('gap_full12.mp4', 'cyan_transfer.mp4', 'red_transfer.mp4'):
+        shutil.copy2(media / name, SITE / 'media' / name)
+    Image.open(media / 'gap_full12_final.png').convert('RGB').save(SITE / 'media/gap_full12_poster.jpg', quality=85)
+    Image.open(media / 'stills/real_match.png').convert('RGB').resize((960, 540), Image.LANCZOS).save(
+        SITE / 'media/rss_sim.jpg', quality=88)
     camera_grid(main_run, SITE / 'media/policy_views_t0.jpg')
+    grid = ''
+    if args.grid:
+        shutil.copy2(args.grid, SITE / 'media/generalization_grid.mp4')
+        grid = (f'<figure class="grid-video"><video src="media/generalization_grid.mp4" muted loop playsinline controls '
+                f'preload="metadata" aria-label="{esc(args.grid_caption)}"></video><figcaption>{esc(args.grid_caption)}</figcaption></figure>')
 
     before = {r['variant']: r for r in map(variant_row, args.before)}
     after = {r['variant']: r for r in map(variant_row, args.after)}
@@ -305,20 +337,16 @@ def main():
                      change=describe((before.get(n) or after.get(n))['scene'] or {}),
                      before=before.get(n), after=after.get(n)) for n in names]
     data['variants'] = variants
-    (SITE / 'data').mkdir(exist_ok=True)
     (SITE / 'data/page.json').write_text(json.dumps(data, indent=1) + '\n')
+    witness = json.loads((SRC / 'data/v13_completion_witness.json').read_text())
 
     fill = dict(
         PIECES_PLACED=str(data['pieces_placed']), CHECKPOINTS=f"{data['checkpoints_passed']}/{data['checkpoints_total']}",
         SIM_TIME=f"{data['sim_time_s']:.0f}", AUDIT_MAX=f"{data['audit_max_mm']:.1f}" if data['audit_max_mm'] else '—',
-        STABLE=f"{data['audit_stable_s']:.0f}" if data['audit_stable_s'] else '—',
-        GRAPH_STATUS='reached its success exit' if data['graph_success'] else 'did not reach its success exit',
-        SHAPES=shapes_html(data), VARIANT_ROWS=variants_html(variants),
+        VARIANT_ROWS=variants_html(variants), GRID=grid, LOOP_SVG=loop_svg(),
         GENERALIZATION_CASES=(SRC / 'generalization_cases.html').read_text() if (SRC / 'generalization_cases.html').exists() else '',
         DRIFT_SVG=drift_svg(SRC / 'data/v13_board_drift.json'),
-        FIX_RESULT=(f"A fresh run with the change placed all twelve pieces and passed {data['checkpoints_passed']} of "
-                    f"{data['checkpoints_total']} checkpoints, ending at the workflow's success exit."
-                    if data['graph_success'] else 'Rerun pending.'),
+        WITNESS=f"{witness['complete']['matched']}/{witness['complete']['decisive']} views",
         DATA=json.dumps(data).replace('</', '<\\/'))
     page = (SRC / 'index.html').read_text()
     for key, value in fill.items():
@@ -328,7 +356,7 @@ def main():
         raise SystemExit('Unfilled placeholders: ' + ', '.join(missing))
     (SITE / 'index.html').write_text(page)
     print(f"site/: {data['pieces_placed']} pieces, {data['checkpoints_passed']}/{data['checkpoints_total']} checkpoints, "
-          f"{len(variants)} variants")
+          f"{len(variants)} variants, graph_success={data['graph_success']}")
 
 
 if __name__ == '__main__':

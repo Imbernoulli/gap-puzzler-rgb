@@ -29,7 +29,8 @@
      "end": 22,
      "passed": true,
      "checkpoint": "perceive_plan",
-     "metrics": {}
+     "metrics": {},
+     "relook": false
     },
     {
      "id": "azure_grasp",
@@ -44,7 +45,8 @@
      "end": 405,
      "passed": true,
      "checkpoint": "grasp",
-     "metrics": {}
+     "metrics": {},
+     "relook": false
     },
     {
      "id": "azure_transport",
@@ -59,7 +61,8 @@
      "end": 657,
      "passed": true,
      "checkpoint": "transport",
-     "metrics": {}
+     "metrics": {},
+     "relook": false
     },
     {
      "id": "azure_release",
@@ -79,7 +82,8 @@
      "metrics": {
       "placement_error_mm": 0.5,
       "stable_s": 8.6
-     }
+     },
+     "relook": false
     },
     {
      "id": "azure_receipt_settle",
@@ -99,7 +103,8 @@
      "metrics": {
       "placement_error_mm": 0.5,
       "stable_s": 8.72
-     }
+     },
+     "relook": true
     },
     {
      "id": "azure_handoff",
@@ -117,7 +122,8 @@
      "metrics": {
       "placement_error_mm": 0.5,
       "stable_s": 8.84
-     }
+     },
+     "relook": false
     }
    ],
    "start": 0,
@@ -144,7 +150,8 @@
      "checkpoint": "perceive_plan",
      "metrics": {
       "earlier_pieces_max_mm": 0.5
-     }
+     },
+     "relook": false
     },
     {
      "id": "orange_grasp",
@@ -161,7 +168,8 @@
      "checkpoint": "grasp",
      "metrics": {
       "earlier_pieces_max_mm": 0.5
-     }
+     },
+     "relook": false
     },
     {
      "id": "orange_transport",
@@ -178,7 +186,8 @@
      "checkpoint": "transport",
      "metrics": {
       "earlier_pieces_max_mm": 0.5
-     }
+     },
+     "relook": false
     },
     {
      "id": "orange_release",
@@ -199,7 +208,8 @@
       "placement_error_mm": 0.47,
       "earlier_pieces_max_mm": 0.5,
       "stable_s": 9.08
-     }
+     },
+     "relook": false
     },
     {
      "id": "orange_receipt_settle",
@@ -220,7 +230,8 @@
       "placement_error_mm": 0.47,
       "earlier_pieces_max_mm": 0.39,
       "stable_s": 9.22
-     }
+     },
+     "relook": true
     },
     {
      "id": "orange_handoff",
@@ -239,7 +250,8 @@
       "placement_error_mm": 0.47,
       "earlier_pieces_max_mm": 0.38,
       "stable_s": 9.62
-     }
+     },
+     "relook": false
     }
    ],
    "start": 1287,
@@ -266,7 +278,8 @@
      "checkpoint": "perceive_plan",
      "metrics": {
       "earlier_pieces_max_mm": 0.48
-     }
+     },
+     "relook": false
     },
     {
      "id": "yellow_grasp",
@@ -283,7 +296,8 @@
      "checkpoint": "grasp",
      "metrics": {
       "earlier_pieces_max_mm": 0.49
-     }
+     },
+     "relook": false
     },
     {
      "id": "yellow_transport",
@@ -300,7 +314,8 @@
      "checkpoint": "transport",
      "metrics": {
       "earlier_pieces_max_mm": 0.49
-     }
+     },
+     "relook": false
     },
     {
      "id": "yellow_release",
@@ -321,7 +336,8 @@
       "placement_error_mm": 0.6,
       "earlier_pieces_max_mm": 0.49,
       "stable_s": 8.62
-     }
+     },
+     "relook": false
     },
     {
      "id": "yellow_receipt_settle",
@@ -342,7 +358,8 @@
       "placement_error_mm": 0.6,
       "earlier_pieces_max_mm": 0.49,
       "stable_s": 8.82
-     }
+     },
+     "relook": true
     },
     {
      "id": "yellow_handoff",
@@ -361,7 +378,8 @@
       "placement_error_mm": 0.6,
       "earlier_pieces_max_mm": 0.49,
       "stable_s": 8.96
-     }
+     },
+     "relook": false
     }
    ],
    "start": 2621,
@@ -388,7 +406,8 @@
      "checkpoint": "perceive_plan",
      "metrics": {
       "earlier_pieces_max_mm": 0.6
-     }
+     },
+     "relook": false
     },
     {
      "id": "teal_grasp",
@@ -405,7 +424,8 @@
      "checkpoint": "grasp",
      "metrics": {
       "earlier_pieces_max_mm": 0.6
-     }
+     },
+     "relook": false
     },
     {
      "id": "teal_transport",
@@ -422,7 +442,8 @@
      "checkpoint": "transport",
      "metrics": {
       "earlier_pieces_max_mm": 0.59
-     }
+     },
+     "relook": false
     },
     {
      "id": "teal_release",
@@ -443,7 +464,8 @@
       "placement_error_mm": 0.55,
       "earlier_pieces_max_mm": 0.59,
       "stable_s": 9.48
-     }
+     },
+     "relook": false
     },
     {
      "id": "teal_receipt_settle",
@@ -464,7 +486,8 @@
       "placement_error_mm": 0.55,
       "earlier_pieces_max_mm": 0.49,
       "stable_s": 9.7
-     }
+     },
+     "relook": true
     },
     {
      "id": "teal_handoff",
@@ -483,7 +506,8 @@
       "placement_error_mm": 0.55,
       "earlier_pieces_max_mm": 0.49,
       "stable_s": 9.88
-     }
+     },
+     "relook": false
     }
    ],
    "start": 4180,
@@ -510,7 +534,8 @@
      "checkpoint": "perceive_plan",
      "metrics": {
       "earlier_pieces_max_mm": 0.55
-     }
+     },
+     "relook": false
     },
     {
      "id": "purple_grasp",
@@ -527,7 +552,8 @@
      "checkpoint": "grasp",
      "metrics": {
       "earlier_pieces_max_mm": 0.56
-     }
+     },
+     "relook": false
     },
     {
      "id": "purple_transport",
@@ -544,7 +570,8 @@
      "checkpoint": "transport",
      "metrics": {
       "earlier_pieces_max_mm": 0.56
-     }
+     },
+     "relook": false
     },
     {
      "id": "purple_release",
@@ -565,7 +592,8 @@
       "placement_error_mm": 0.42,
       "earlier_pieces_max_mm": 0.61,
       "stable_s": 6.76
-     }
+     },
+     "relook": false
     },
     {
      "id": "purple_receipt_settle",
@@ -586,7 +614,8 @@
       "placement_error_mm": 0.42,
       "earlier_pieces_max_mm": 0.61,
       "stable_s": 6.94
-     }
+     },
+     "relook": true
     },
     {
      "id": "purple_handoff",
@@ -605,7 +634,8 @@
       "placement_error_mm": 0.42,
       "earlier_pieces_max_mm": 0.61,
       "stable_s": 7.12
-     }
+     },
+     "relook": false
     }
    ],
    "start": 5345,
@@ -632,7 +662,8 @@
      "checkpoint": "perceive_plan",
      "metrics": {
       "earlier_pieces_max_mm": 0.61
-     }
+     },
+     "relook": false
     },
     {
      "id": "cyan_grasp",
@@ -649,7 +680,8 @@
      "checkpoint": "grasp",
      "metrics": {
       "earlier_pieces_max_mm": 0.61
-     }
+     },
+     "relook": false
     },
     {
      "id": "cyan_cyan_approach",
@@ -666,7 +698,8 @@
      "checkpoint": "handoff_approach",
      "metrics": {
       "earlier_pieces_max_mm": 0.61
-     }
+     },
+     "relook": false
     },
     {
      "id": "cyan_cyan_receiver_close",
@@ -683,7 +716,8 @@
      "checkpoint": "handoff_dualhold",
      "metrics": {
       "earlier_pieces_max_mm": 0.61
-     }
+     },
+     "relook": false
     },
     {
      "id": "cyan_cyan_donor_release",
@@ -700,7 +734,8 @@
      "checkpoint": "handoff_receiveronly",
      "metrics": {
       "earlier_pieces_max_mm": 0.61
-     }
+     },
+     "relook": false
     },
     {
      "id": "cyan_cyan_receiver_bind",
@@ -717,7 +752,8 @@
      "checkpoint": "handoff_receiver_hold",
      "metrics": {
       "earlier_pieces_max_mm": 0.61
-     }
+     },
+     "relook": false
     },
     {
      "id": "cyan_cyan_receiver_transport",
@@ -734,7 +770,8 @@
      "checkpoint": "transport",
      "metrics": {
       "earlier_pieces_max_mm": 0.61
-     }
+     },
+     "relook": false
     },
     {
      "id": "cyan_release",
@@ -755,7 +792,8 @@
       "placement_error_mm": 0.78,
       "earlier_pieces_max_mm": 0.61,
       "stable_s": 14.7
-     }
+     },
+     "relook": false
     },
     {
      "id": "cyan_receipt_settle",
@@ -776,7 +814,8 @@
       "placement_error_mm": 0.78,
       "earlier_pieces_max_mm": 0.61,
       "stable_s": 16.06
-     }
+     },
+     "relook": true
     },
     {
      "id": "cyan_handoff",
@@ -795,7 +834,8 @@
       "placement_error_mm": 0.78,
       "earlier_pieces_max_mm": 0.61,
       "stable_s": 17.04
-     }
+     },
+     "relook": false
     }
    ],
    "start": 6711,
@@ -822,7 +862,8 @@
      "checkpoint": "perceive_plan",
      "metrics": {
       "earlier_pieces_max_mm": 0.78
-     }
+     },
+     "relook": false
     },
     {
      "id": "mint_grasp",
@@ -839,7 +880,8 @@
      "checkpoint": "grasp",
      "metrics": {
       "earlier_pieces_max_mm": 0.78
-     }
+     },
+     "relook": false
     },
     {
      "id": "mint_transport",
@@ -856,7 +898,8 @@
      "checkpoint": "transport",
      "metrics": {
       "earlier_pieces_max_mm": 0.88
-     }
+     },
+     "relook": false
     },
     {
      "id": "mint_release",
@@ -877,7 +920,8 @@
       "placement_error_mm": 1.35,
       "earlier_pieces_max_mm": 1.25,
       "stable_s": 7.28
-     }
+     },
+     "relook": false
     },
     {
      "id": "mint_receipt_settle",
@@ -898,7 +942,8 @@
       "placement_error_mm": 1.34,
       "earlier_pieces_max_mm": 1.28,
       "stable_s": 7.98
-     }
+     },
+     "relook": true
     },
     {
      "id": "mint_handoff",
@@ -917,7 +962,8 @@
       "placement_error_mm": 1.34,
       "earlier_pieces_max_mm": 1.32,
       "stable_s": 8.62
-     }
+     },
+     "relook": false
     }
    ],
    "start": 13287,
@@ -944,7 +990,8 @@
      "checkpoint": "perceive_plan",
      "metrics": {
       "earlier_pieces_max_mm": 1.35
-     }
+     },
+     "relook": false
     },
     {
      "id": "lime_grasp",
@@ -961,7 +1008,8 @@
      "checkpoint": "grasp",
      "metrics": {
       "earlier_pieces_max_mm": 1.37
-     }
+     },
+     "relook": false
     },
     {
      "id": "lime_transport",
@@ -978,7 +1026,8 @@
      "checkpoint": "transport",
      "metrics": {
       "earlier_pieces_max_mm": 1.36
-     }
+     },
+     "relook": false
     },
     {
      "id": "lime_release",
@@ -999,7 +1048,8 @@
       "placement_error_mm": 1.02,
       "earlier_pieces_max_mm": 1.34,
       "stable_s": 7.2
-     }
+     },
+     "relook": false
     },
     {
      "id": "lime_receipt_settle",
@@ -1020,7 +1070,8 @@
       "placement_error_mm": 1.02,
       "earlier_pieces_max_mm": 1.32,
       "stable_s": 7.9
-     }
+     },
+     "relook": true
     },
     {
      "id": "lime_handoff",
@@ -1039,7 +1090,8 @@
       "placement_error_mm": 1.03,
       "earlier_pieces_max_mm": 1.32,
       "stable_s": 8.56
-     }
+     },
+     "relook": false
     }
    ],
    "start": 14959,
@@ -1066,7 +1118,8 @@
      "checkpoint": "perceive_plan",
      "metrics": {
       "earlier_pieces_max_mm": 1.32
-     }
+     },
+     "relook": false
     },
     {
      "id": "maroon_grasp",
@@ -1083,7 +1136,8 @@
      "checkpoint": "grasp",
      "metrics": {
       "earlier_pieces_max_mm": 1.28
-     }
+     },
+     "relook": false
     },
     {
      "id": "maroon_transport",
@@ -1100,7 +1154,8 @@
      "checkpoint": "transport",
      "metrics": {
       "earlier_pieces_max_mm": 1.29
-     }
+     },
+     "relook": false
     },
     {
      "id": "maroon_release",
@@ -1121,7 +1176,8 @@
       "placement_error_mm": 1.88,
       "earlier_pieces_max_mm": 1.34,
       "stable_s": 10.0
-     }
+     },
+     "relook": false
     },
     {
      "id": "maroon_receipt_settle",
@@ -1142,7 +1198,8 @@
       "placement_error_mm": 1.88,
       "earlier_pieces_max_mm": 1.29,
       "stable_s": 10.96
-     }
+     },
+     "relook": true
     },
     {
      "id": "maroon_handoff",
@@ -1161,7 +1218,8 @@
       "placement_error_mm": 1.88,
       "earlier_pieces_max_mm": 1.29,
       "stable_s": 11.66
-     }
+     },
+     "relook": false
     }
    ],
    "start": 16504,
@@ -1188,7 +1246,8 @@
      "checkpoint": "perceive_plan",
      "metrics": {
       "earlier_pieces_max_mm": 1.89
-     }
+     },
+     "relook": false
     },
     {
      "id": "navy_grasp",
@@ -1205,7 +1264,8 @@
      "checkpoint": "grasp",
      "metrics": {
       "earlier_pieces_max_mm": 1.9
-     }
+     },
+     "relook": false
     },
     {
      "id": "navy_transport",
@@ -1222,7 +1282,8 @@
      "checkpoint": "transport",
      "metrics": {
       "earlier_pieces_max_mm": 1.91
-     }
+     },
+     "relook": false
     },
     {
      "id": "navy_release",
@@ -1243,7 +1304,8 @@
       "placement_error_mm": 2.02,
       "earlier_pieces_max_mm": 1.93,
       "stable_s": 7.8
-     }
+     },
+     "relook": false
     },
     {
      "id": "navy_receipt_settle",
@@ -1264,7 +1326,8 @@
       "placement_error_mm": 2.02,
       "earlier_pieces_max_mm": 1.92,
       "stable_s": 8.52
-     }
+     },
+     "relook": true
     },
     {
      "id": "navy_handoff",
@@ -1283,7 +1346,8 @@
       "placement_error_mm": 2.02,
       "earlier_pieces_max_mm": 1.92,
       "stable_s": 9.12
-     }
+     },
+     "relook": false
     }
    ],
    "start": 19648,
@@ -1310,7 +1374,8 @@
      "checkpoint": "perceive_plan",
      "metrics": {
       "earlier_pieces_max_mm": 2.02
-     }
+     },
+     "relook": false
     },
     {
      "id": "pink_grasp",
@@ -1327,7 +1392,8 @@
      "checkpoint": "grasp",
      "metrics": {
       "earlier_pieces_max_mm": 2.03
-     }
+     },
+     "relook": false
     },
     {
      "id": "pink_transport",
@@ -1344,7 +1410,8 @@
      "checkpoint": "transport",
      "metrics": {
       "earlier_pieces_max_mm": 2.03
-     }
+     },
+     "relook": false
     },
     {
      "id": "pink_release",
@@ -1365,7 +1432,8 @@
       "placement_error_mm": 2.51,
       "earlier_pieces_max_mm": 2.07,
       "stable_s": 7.44
-     }
+     },
+     "relook": false
     },
     {
      "id": "pink_receipt_settle",
@@ -1386,7 +1454,8 @@
       "placement_error_mm": 2.52,
       "earlier_pieces_max_mm": 2.06,
       "stable_s": 8.26
-     }
+     },
+     "relook": true
     },
     {
      "id": "pink_handoff",
@@ -1405,7 +1474,8 @@
       "placement_error_mm": 2.52,
       "earlier_pieces_max_mm": 2.06,
       "stable_s": 8.92
-     }
+     },
+     "relook": false
     }
    ],
    "start": 21304,
@@ -1432,7 +1502,8 @@
      "checkpoint": "perceive_plan",
      "metrics": {
       "earlier_pieces_max_mm": 2.52
-     }
+     },
+     "relook": false
     },
     {
      "id": "red_grasp",
@@ -1449,7 +1520,8 @@
      "checkpoint": "grasp",
      "metrics": {
       "earlier_pieces_max_mm": 2.54
-     }
+     },
+     "relook": false
     },
     {
      "id": "red_red_handoff_prepare",
@@ -1466,7 +1538,8 @@
      "checkpoint": "handoff_prepared",
      "metrics": {
       "earlier_pieces_max_mm": 2.59
-     }
+     },
+     "relook": false
     },
     {
      "id": "red_red_receiver_close",
@@ -1483,7 +1556,8 @@
      "checkpoint": "handoff_dualhold",
      "metrics": {
       "earlier_pieces_max_mm": 2.62
-     }
+     },
+     "relook": false
     },
     {
      "id": "red_red_sender_release",
@@ -1500,7 +1574,8 @@
      "checkpoint": "handoff_receiver_only",
      "metrics": {
       "earlier_pieces_max_mm": 2.66
-     }
+     },
+     "relook": false
     },
     {
      "id": "red_red_receiver_bind",
@@ -1517,7 +1592,8 @@
      "checkpoint": "handoff_receiver_bound",
      "metrics": {
       "earlier_pieces_max_mm": 2.67
-     }
+     },
+     "relook": false
     },
     {
      "id": "red_red_return_prepare",
@@ -1534,7 +1610,8 @@
      "checkpoint": "return_handoff_prepared",
      "metrics": {
       "earlier_pieces_max_mm": 2.67
-     }
+     },
+     "relook": false
     },
     {
      "id": "red_red_return_close",
@@ -1551,7 +1628,8 @@
      "checkpoint": "return_handoff_dualhold",
      "metrics": {
       "earlier_pieces_max_mm": 2.67
-     }
+     },
+     "relook": false
     },
     {
      "id": "red_red_return_release",
@@ -1568,7 +1646,8 @@
      "checkpoint": "return_handoff_receiver_only",
      "metrics": {
       "earlier_pieces_max_mm": 2.67
-     }
+     },
+     "relook": false
     },
     {
      "id": "red_red_return_bind",
@@ -1585,7 +1664,8 @@
      "checkpoint": "return_handoff_receiver_bound",
      "metrics": {
       "earlier_pieces_max_mm": 2.67
-     }
+     },
+     "relook": false
     },
     {
      "id": "red_red_goal_transport",
@@ -1602,7 +1682,8 @@
      "checkpoint": "transport",
      "metrics": {
       "earlier_pieces_max_mm": 2.76
-     }
+     },
+     "relook": false
     },
     {
      "id": "red_red_goal_release",
@@ -1623,7 +1704,8 @@
       "placement_error_mm": 2.53,
       "earlier_pieces_max_mm": 2.75,
       "stable_s": 4.88
-     }
+     },
+     "relook": false
     },
     {
      "id": "red_red_goal_verify",
@@ -1638,7 +1720,8 @@
      "end": null,
      "passed": false,
      "checkpoint": null,
-     "metrics": {}
+     "metrics": {},
+     "relook": false
     }
    ],
    "start": 23085,
@@ -1663,7 +1746,8 @@
      "end": null,
      "passed": false,
      "checkpoint": null,
-     "metrics": {}
+     "metrics": {},
+     "relook": true
     }
    ],
    "start": 32502,
@@ -1811,7 +1895,14 @@
     },
     "seed": 0,
     "placed": 11,
-    "done": false
+    "done": true,
+    "rss_success": true,
+    "graph_success": false,
+    "sim_time_s": 658.9,
+    "audit_max_mm": 2.61,
+    "stopped_piece": "red",
+    "stopped_node": "red_goal_verify",
+    "refusal": "Final visual UNKNOWN requires the canonical explicitly enabled terminal execution scope"
    },
    "after": null
   },

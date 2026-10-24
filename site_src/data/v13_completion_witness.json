@@ -1,0 +1,22 @@
+{
+ "missing": {
+  "index": 109,
+  "timestamp": 604.66,
+  "complete": false,
+  "decisive": 96,
+  "mismatched": 11,
+  "matched": 85,
+  "unconfirmed": [
+   "red"
+  ]
+ },
+ "complete": {
+  "index": 120,
+  "timestamp": 651.3,
+  "complete": true,
+  "decisive": 106,
+  "mismatched": 0,
+  "matched": 106,
+  "unconfirmed": []
+ }
+}
