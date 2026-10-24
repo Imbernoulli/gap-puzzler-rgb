@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Puzzler GaP</title>
+  <meta name="description" content="Two simulated YAM arms build the IQ Puzzler Pro pyramid from twelve loose pieces, driven by an RGB-only Graph-as-Policy controller in RoboSimStudio.">
+  <link rel="icon" href="favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;600;700&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="top wrap">
+    <a class="mark" href="#top">Puzzler<span aria-hidden="true">·</span>GaP</a>
+    <nav aria-label="Sections">
+      <a href="#rss">Real to sim</a>
+      <a href="#gap">Graph as policy</a>
+      <a href="#refine">Self-refinement</a>
+      <a href="#generalize">Generalization</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero wrap">
+      <p class="kicker">RoboSimStudio × Graph-as-Policy</p>
+      <h1>Two arms build the IQ Puzzler pyramid from camera images.</h1>
+      <p class="lede">Twelve loose pieces, five layers, 55 beads. The controller is a graph of small skills. It sees the table only through four RGB cameras and the robot's joint encoders, and it knows the pieces' CAD shapes.</p>
+      <dl class="stats">
+        <div><dt>Pieces placed</dt><dd>{{PIECES_PLACED}}<small>/12</small></dd></div>
+        <div><dt>Checkpoints passed</dt><dd>{{CHECKPOINTS}}</dd></div>
+        <div><dt>Simulated time</dt><dd>{{SIM_TIME}}<small> s</small></dd></div>
+        <div><dt>Worst bead error</dt><dd>{{AUDIT_MAX}}<small> mm</small></dd></div>
+      </dl>
+    </section>
+
+    <section class="block wrap" id="rss" aria-labelledby="rss-title">
+      <p class="kicker">RoboSimStudio</p>
+      <h2 id="rss-title">Real to sim</h2>
+      <p class="intro">RoboSimStudio rebuilds a manipulation task as a physics simulation that people and coding agents can inspect and tune. On the left, the real puzzle is solved by hand. On the right, two YAM arms solve the rebuilt workcell.</p>
+      <div class="pair">
+        <figure>
+          <div class="frame"><iframe src="https://www.youtube-nocookie.com/embed/PSgC31TvdxA?start=150" title="IQ Puzzler Pro pyramid solved by hand (Puzzle Master on YouTube)" loading="lazy" allow="encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+          <figcaption><b>Real</b> Pyramid solved by hand · Puzzle Master on YouTube</figcaption>
+        </figure>
+        <figure>
+          <div class="frame"><video src="media/rss_closeup.mp4" poster="media/rss_closeup_poster.jpg" muted loop playsinline controls preload="metadata" aria-label="Simulated arms placing the last pieces of the pyramid"></video></div>
+          <figcaption><b>Sim</b> The last three pieces in RSS, replayed from the recorded episode</figcaption>
+        </figure>
+      </div>
+      <div class="spec">
+        <dl>
+          <div><dt>Workcell</dt><dd>RSS bench cell with two YAM 6-DoF arms and parallel grippers</dd></div>
+          <div><dt>Physics</dt><dd>MuJoCo-Warp on GPU at 500 Hz; joint-position control at 50 Hz</dd></div>
+          <div><dt>Pieces</dt><dd>12 rigid bodies, 55 beads at 25 mm pitch, 12 g per bead, friction 0.65</dd></div>
+          <div><dt>Case</dt><dd>A free 0.28 kg body; a careless push slides it</dd></div>
+          <div><dt>Goal</dt><dd>All 55 beads within 4 mm of their sites and still, case level, hands open and clear, held for 2 s</dd></div>
+          <div><dt>Policy inputs</dt><dd>Four 1280×1024 RGB cameras, joint encoders, CAD of the pieces and case. No object poses, depth or masks.</dd></div>
+        </dl>
+        <figure class="views">
+          <img src="media/policy_views_t0.jpg" width="1280" height="1024" loading="lazy" alt="The four RGB camera frames the policy receives at the start: top, front, rear and side views of the loose pieces and the empty case">
+          <figcaption>What the policy sees at t = 0. Top, front, rear and side.</figcaption>
+        </figure>
+      </div>
+      <p class="note">Piece shapes and the pyramid solution come from the product. The loose layout is set in sim, with Lime starting 70 mm further out than the first layout, which kept it clear of Cyan's hand-to-hand transfer.</p>
+    </section>
+
+    <section class="block wrap" id="gap" aria-labelledby="gap-title">
+      <p class="kicker">Graph-as-Policy</p>
+      <h2 id="gap-title">The graph is the policy</h2>
+      <p class="intro">Each piece gets a subgraph of typed skill nodes. A node calls robot tools, reads fresh camera frames, and leaves through a named exit such as <code>planned</code>, <code>verified</code> or <code>placed</code>; any refusal routes to <code>abort</code>. After every node, an independent checkpoint reads the simulator to confirm the physical result. The policy never sees those checks. Play the run and the graph follows it.</p>
+
+      <div class="player" id="player">
+        <div class="screen">
+          <video id="run-video" src="media/gap_full12.mp4" poster="media/gap_full12_poster.jpg" playsinline controls preload="metadata" aria-label="Full twelve-piece run, external camera replay of the recorded episode"></video>
+          <div class="track" id="track" role="group" aria-label="Jump to a piece"></div>
+          <p class="clock"><span id="clock-time">t = 0.0 s</span><span id="clock-speed"></span></p>
+        </div>
+        <aside class="graph" aria-live="polite">
+          <div class="graph-head">
+            <span class="swatch" id="now-swatch"></span>
+            <div><p class="mono small" id="now-index">Piece 1 of 12</p><h3 id="now-piece">Azure</h3></div>
+          </div>
+          <ol class="nodes" id="nodes"></ol>
+          <p class="node-detail" id="node-detail"></p>
+        </aside>
+      </div>
+      <p class="note">The video is an external camera replay of the recorded body poses, at nine times real speed; it is not one of the policy's inputs. This run's workflow {{GRAPH_STATUS}}, and an independent audit of the recorded trajectory found every bead within {{AUDIT_MAX}} mm after {{STABLE}} s of released stability.</p>
+
+      <h3 class="sub">Three subgraph shapes</h3>
+      {{SHAPES}}
+    </section>
+
+    <section class="block wrap" id="refine" aria-labelledby="refine-title">
+      <p class="kicker">Self-refinement</p>
+      <h2 id="refine-title">Every failure pointed to one change</h2>
+      <p class="intro">Skills were rehearsed alone, then in chains of two to six pieces, then all twelve. When a checkpoint failed, the saved RGB frames, robot state and node logs located the condition that broke, the responsible skill changed, and the chain ran again from a fresh start.</p>
+      <ol class="loop" aria-label="Refinement loop">
+        <li><b>Run</b> a chain in simulation</li>
+        <li><b>Check</b> each node independently</li>
+        <li><b>Locate</b> the failed condition in logs and frames</li>
+        <li><b>Change</b> one skill, then rerun</li>
+      </ol>
+      <div class="cases">
+        <article class="case">
+          <p class="case-tag mono">v13 → this policy</p>
+          <h3>A finished pyramid was refused</h3>
+          <dl>
+            <div><dt>Failure</dt><dd>All twelve pieces were seated, but the last node refused and the workflow aborted. Four earlier placement receipts had been flagged as contradicted, and nothing could clear the flag.</dd></div>
+            <div><dt>Cause</dt><dd>The case slid about 1.1 mm while Maroon and Navy went in, and the RGB fit of the case wanders by up to 1.7 mm. Together they crossed the 1.5 mm receipt check once, and the flag was permanent.</dd></div>
+            <div><dt>Change</dt><dd>A flag raised by RGB is re-checked on every later frame with the same thresholds. At the end, a receipt that later frames dispute by less than the 4 mm goal envelope stays valid, and the dispute is recorded.</dd></div>
+            <div><dt>Result</dt><dd>{{FIX_RESULT}}</dd></div>
+          </dl>
+          <figure>{{DRIFT_SVG}}<figcaption>Case shift from its first estimate during the refused run. The physical pose is read offline from the recording, for this figure only.</figcaption></figure>
+        </article>
+        <article class="case">
+          <p class="case-tag mono">v10 → v13</p>
+          <h3>A finger hid Cyan's middle bead</h3>
+          <dl>
+            <div><dt>Failure</dt><dd>Cyan was released, but with the jaw opened to 55 mm a finger still covered its middle bead in the top camera. The check after release couldn't accept Cyan, so the retreat was refused.</dd></div>
+            <div><dt>Cause</dt><dd>Rays from the cameras to 13 points on that bead were traced against the finger mesh at the recorded joint angles. At 65 mm, 11 of 13 were clear; at 75, 80 and 90 mm, all 13.</dd></div>
+            <div><dt>Change</dt><dd>Open to 75 mm, the smallest width that cleared every ray and still passed the collision and joint-limit checks.</dd></div>
+            <div><dt>Result</dt><dd>Cyan was accepted in both frames after opening. Its release checkpoint passed at 0.78 mm.</dd></div>
+          </dl>
+          <figure><img src="media/refine_cyan_opening.jpg" width="900" height="420" loading="lazy" alt="Two top-camera crops after Cyan's release. Left, at 55 mm, a finger covers Cyan's middle bead. Right, at 75 mm, the bead is visible."><figcaption>Top camera, same moment in two runs. Left: 55 mm opening. Right: 75 mm.</figcaption></figure>
+        </article>
+        <article class="case">
+          <p class="case-tag mono">layout B → C</p>
+          <h3>Lime crowded Cyan's transfer</h3>
+          <dl>
+            <div><dt>Failure</dt><dd>In the first all-twelve run, Cyan's hand-to-hand transfer passed, then the carry stopped. Lime, still loose beside the transfer station, was hidden behind the arms, and its last observation expired.</dd></div>
+            <div><dt>Cause</dt><dd>The carry planner refuses to sweep a hand through space whose occupancy it can't currently see. With Lime out of view, that space was unknown.</dd></div>
+            <div><dt>Change</dt><dd>Start Lime 70 mm further from the case. This changes the declared initial layout, not the policy.</dd></div>
+            <div><dt>Result</dt><dd>Cyan's carry and release passed, and two pieces later Lime was found, grasped and placed from its new start.</dd></div>
+          </dl>
+        </article>
+        {{GENERALIZATION_CASES}}
+      </div>
+    </section>
+
+    <section class="block wrap" id="generalize" aria-labelledby="gen-title">
+      <p class="kicker">Generalization</p>
+      <h2 id="gen-title">Same graph, changed scenes</h2>
+      <p class="intro">We reran the full twelve-piece graph on scenes it was never tuned on: the case moved and turned, every loose piece nudged and turned, different friction, shuffled colors. The policy gets none of these numbers. It has to see the change and plan around it.</p>
+      <div class="table-wrap"><table class="results">{{VARIANT_ROWS}}</table></div>
+      <p class="note">Each row is one fresh episode from an all-loose start. “v13 policy” is the controller this work started from; “This policy” adds the changes described under Self-refinement. Jittered layouts were drawn by rejection sampling so that no two loose pieces overlap.</p>
+    </section>
+  </main>
+
+  <footer class="wrap foot">
+    <p>Puzzler · RoboSimStudio × Graph-as-Policy</p>
+    <p><a href="https://github.com/Imbernoulli/gap-puzzler-rgb">Code and run records</a> · <a href="https://github.com/robosimstudio/robosimstudio">RoboSimStudio</a> · <a href="https://github.com/graph-robots/graph-as-policy">Graph-as-Policy</a></p>
+  </footer>
+  <script id="page-data" type="application/json">{{DATA}}</script>
+</body>
+</html>
