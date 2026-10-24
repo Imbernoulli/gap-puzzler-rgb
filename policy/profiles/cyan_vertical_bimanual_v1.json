@@ -1,0 +1,448 @@
+{
+  "allow_conditional_board_persistence": true,
+  "anchor": false,
+  "cartesian_carry": true,
+  "close_width": 0.0,
+  "conditional_attachment_prior": {
+    "bead_displacement_bound_m": 0.008,
+    "source_stationary_or_bounded_until_close": true
+  },
+  "conditional_planning": true,
+  "conditional_prefix_margin_m": 0.004,
+  "finish_wait": 25,
+  "forbidden": [
+    "teacher_absolute_world_poses",
+    "teacher_joint_trajectory",
+    "object_GT_online"
+  ],
+  "full_task": false,
+  "grasp_auto": true,
+  "grasp_headings": [
+    90.0
+  ],
+  "grasp_heights": [
+    0.006
+  ],
+  "grasp_indices": [
+    2
+  ],
+  "grasp_leans": [
+    45.0
+  ],
+  "grasp_stability": false,
+  "grasp_z": 0.006,
+  "hand_clearance": true,
+  "hand_clearance_margin": 0.0005,
+  "historical_max_age_s": 30.0,
+  "lift": 0.08,
+  "max_attempts_per_piece": 1,
+  "max_release_height": 0.01,
+  "min_ik_joint_margin_rad": 0.035,
+  "min_target_approach_down": -1.1,
+  "mode": "pyramid",
+  "motion_scale": 1.0,
+  "native_carry": true,
+  "observation_required": "rgb-shape",
+  "obstacle_grasp": true,
+  "open_width": 0.095,
+  "profile_role": "Public shape/body-relative motion parameters only",
+  "pyramid_plan": "pyramid_robot6_plan.json",
+  "release_height": 0.003,
+  "release_open_width": 0.055,
+  "release_width": 0.08,
+  "retreat": 0.06,
+  "runtime_contract": "Current source RGB + current/historical separately labelled board + robotFK + public CAD/goal -> current IK and encoder-feedback motion. Postrelease measured receipt or UNKNOWN; no blind retry.",
+  "safe_anchor": true,
+  "scene_inspection_clearance_m": 0.004,
+  "scene_inspection_max_moves": 3,
+  "schema": "puzzler.modular_piece_profile.v1",
+  "seat_compensation_board_m": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "shape_symmetry": true,
+  "source_contact_grasp": {
+    "maximum_public_cad_penetration_m": 0.003,
+    "maximum_vertical_approach_distance_m": 0.015,
+    "non_target_clearance_margin_m": 0.0005,
+    "permitted_pad_bead_pairs": [
+      {
+        "hand_primitive_name": "left_lf_down:6",
+        "target_bead_index": 0
+      },
+      {
+        "hand_primitive_name": "left_lf_down:6",
+        "target_bead_index": 1
+      },
+      {
+        "hand_primitive_name": "left_lf_down:6",
+        "target_bead_index": 2
+      },
+      {
+        "hand_primitive_name": "left_lf_down:7",
+        "target_bead_index": 0
+      },
+      {
+        "hand_primitive_name": "left_lf_down:7",
+        "target_bead_index": 1
+      },
+      {
+        "hand_primitive_name": "left_lf_down:7",
+        "target_bead_index": 2
+      },
+      {
+        "hand_primitive_name": "left_lf_down:8",
+        "target_bead_index": 0
+      },
+      {
+        "hand_primitive_name": "left_lf_down:8",
+        "target_bead_index": 1
+      },
+      {
+        "hand_primitive_name": "left_lf_down:8",
+        "target_bead_index": 2
+      },
+      {
+        "hand_primitive_name": "left_lf_down:9",
+        "target_bead_index": 0
+      },
+      {
+        "hand_primitive_name": "left_lf_down:9",
+        "target_bead_index": 1
+      },
+      {
+        "hand_primitive_name": "left_lf_down:9",
+        "target_bead_index": 2
+      },
+      {
+        "hand_primitive_name": "left_lf_down:10",
+        "target_bead_index": 0
+      },
+      {
+        "hand_primitive_name": "left_lf_down:10",
+        "target_bead_index": 1
+      },
+      {
+        "hand_primitive_name": "left_lf_down:10",
+        "target_bead_index": 2
+      },
+      {
+        "hand_primitive_name": "left_lf_down:11",
+        "target_bead_index": 0
+      },
+      {
+        "hand_primitive_name": "left_lf_down:11",
+        "target_bead_index": 1
+      },
+      {
+        "hand_primitive_name": "left_lf_down:11",
+        "target_bead_index": 2
+      },
+      {
+        "hand_primitive_name": "left_lf_down:12",
+        "target_bead_index": 0
+      },
+      {
+        "hand_primitive_name": "left_lf_down:12",
+        "target_bead_index": 1
+      },
+      {
+        "hand_primitive_name": "left_lf_down:12",
+        "target_bead_index": 2
+      },
+      {
+        "hand_primitive_name": "left_lf_down:13",
+        "target_bead_index": 0
+      },
+      {
+        "hand_primitive_name": "left_lf_down:13",
+        "target_bead_index": 1
+      },
+      {
+        "hand_primitive_name": "left_lf_down:13",
+        "target_bead_index": 2
+      },
+      {
+        "hand_primitive_name": "left_lf_down:14",
+        "target_bead_index": 0
+      },
+      {
+        "hand_primitive_name": "left_lf_down:14",
+        "target_bead_index": 1
+      },
+      {
+        "hand_primitive_name": "left_lf_down:14",
+        "target_bead_index": 2
+      },
+      {
+        "hand_primitive_name": "left_lf_down:15",
+        "target_bead_index": 0
+      },
+      {
+        "hand_primitive_name": "left_lf_down:15",
+        "target_bead_index": 1
+      },
+      {
+        "hand_primitive_name": "left_lf_down:15",
+        "target_bead_index": 2
+      },
+      {
+        "hand_primitive_name": "left_lf_down:16",
+        "target_bead_index": 0
+      },
+      {
+        "hand_primitive_name": "left_lf_down:16",
+        "target_bead_index": 1
+      },
+      {
+        "hand_primitive_name": "left_lf_down:16",
+        "target_bead_index": 2
+      },
+      {
+        "hand_primitive_name": "left_rf_down:19",
+        "target_bead_index": 0
+      },
+      {
+        "hand_primitive_name": "left_rf_down:19",
+        "target_bead_index": 1
+      },
+      {
+        "hand_primitive_name": "left_rf_down:19",
+        "target_bead_index": 2
+      },
+      {
+        "hand_primitive_name": "left_rf_down:20",
+        "target_bead_index": 0
+      },
+      {
+        "hand_primitive_name": "left_rf_down:20",
+        "target_bead_index": 1
+      },
+      {
+        "hand_primitive_name": "left_rf_down:20",
+        "target_bead_index": 2
+      },
+      {
+        "hand_primitive_name": "left_rf_down:21",
+        "target_bead_index": 0
+      },
+      {
+        "hand_primitive_name": "left_rf_down:21",
+        "target_bead_index": 1
+      },
+      {
+        "hand_primitive_name": "left_rf_down:21",
+        "target_bead_index": 2
+      },
+      {
+        "hand_primitive_name": "left_rf_down:22",
+        "target_bead_index": 0
+      },
+      {
+        "hand_primitive_name": "left_rf_down:22",
+        "target_bead_index": 1
+      },
+      {
+        "hand_primitive_name": "left_rf_down:22",
+        "target_bead_index": 2
+      },
+      {
+        "hand_primitive_name": "left_rf_down:23",
+        "target_bead_index": 0
+      },
+      {
+        "hand_primitive_name": "left_rf_down:23",
+        "target_bead_index": 1
+      },
+      {
+        "hand_primitive_name": "left_rf_down:23",
+        "target_bead_index": 2
+      },
+      {
+        "hand_primitive_name": "left_rf_down:24",
+        "target_bead_index": 0
+      },
+      {
+        "hand_primitive_name": "left_rf_down:24",
+        "target_bead_index": 1
+      },
+      {
+        "hand_primitive_name": "left_rf_down:24",
+        "target_bead_index": 2
+      },
+      {
+        "hand_primitive_name": "left_rf_down:25",
+        "target_bead_index": 0
+      },
+      {
+        "hand_primitive_name": "left_rf_down:25",
+        "target_bead_index": 1
+      },
+      {
+        "hand_primitive_name": "left_rf_down:25",
+        "target_bead_index": 2
+      },
+      {
+        "hand_primitive_name": "left_rf_down:26",
+        "target_bead_index": 0
+      },
+      {
+        "hand_primitive_name": "left_rf_down:26",
+        "target_bead_index": 1
+      },
+      {
+        "hand_primitive_name": "left_rf_down:26",
+        "target_bead_index": 2
+      },
+      {
+        "hand_primitive_name": "left_rf_down:27",
+        "target_bead_index": 0
+      },
+      {
+        "hand_primitive_name": "left_rf_down:27",
+        "target_bead_index": 1
+      },
+      {
+        "hand_primitive_name": "left_rf_down:27",
+        "target_bead_index": 2
+      },
+      {
+        "hand_primitive_name": "left_rf_down:28",
+        "target_bead_index": 0
+      },
+      {
+        "hand_primitive_name": "left_rf_down:28",
+        "target_bead_index": 1
+      },
+      {
+        "hand_primitive_name": "left_rf_down:28",
+        "target_bead_index": 2
+      },
+      {
+        "hand_primitive_name": "left_rf_down:29",
+        "target_bead_index": 0
+      },
+      {
+        "hand_primitive_name": "left_rf_down:29",
+        "target_bead_index": 1
+      },
+      {
+        "hand_primitive_name": "left_rf_down:29",
+        "target_bead_index": 2
+      }
+    ],
+    "permitted_phase": "source_open_hand_final_descent_and_close",
+    "permitted_primitive_body_substrings": [
+      "_lf_down",
+      "_rf_down"
+    ],
+    "require_after_lift_current_rgb": true,
+    "scope": "Only intended target/distal-finger source-grasp contact; housing, table and other objects require positive original clearance. Nativeforcecaps unchanged.",
+    "target": "cyan"
+  },
+  "source_grasp_only": true,
+  "source_hover": 0.04,
+  "source_open_width": 0.095,
+  "staged_policy": true,
+  "support_anchor": {
+    "arm": "opposite_work_arm",
+    "board_offset_left": [
+      -0.078,
+      0.145,
+      0.02
+    ],
+    "board_offset_right": [
+      -0.078,
+      -0.145,
+      0.02
+    ],
+    "bounded_contact": "board_edge_brace_only",
+    "frame_heading_left": -90.0,
+    "frame_heading_right": 90.0,
+    "hover_m": 0.09,
+    "module": "puzzler.modular_cyan_anchor",
+    "width_m": 0.008
+  },
+  "target_normal": [
+    -1,
+    -1,
+    0
+  ],
+  "terminal_grasp": true,
+  "transport": 0.1,
+  "vertical_retreat": true,
+  "visual_memory_contract": "receipts_only_fresh_gates_unchanged_v1",
+  "release_yaw_offset_deg": 0.0,
+  "release_start_width": 0.0,
+  "carry_body_height_board_m": 0.187,
+  "carry_stage_board_m": [
+    0.133,
+    0.2,
+    0.187
+  ],
+  "inverse_grasp_profile": {
+    "bead": 0,
+    "goal_heading": 150,
+    "goal_lean": -30.0,
+    "bead_in_tcp_m": [
+      0.0,
+      0.0,
+      0.0125
+    ],
+    "hand_in_body_position": [
+      0.008333333333333338,
+      0.016666666666666684,
+      0.0125
+    ],
+    "hand_in_body_rotation": [
+      [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        -1.0
+      ]
+    ],
+    "stable_contact_constraint": {
+      "public_blade_front_z_m": 0.0165,
+      "bead_beyond_blade_front_m": -0.004,
+      "contact_normal_tangential_to_pinch_ratio": 0.0,
+      "closing_axis_centered": true,
+      "scope": "Nominal centered bead0 on opposed blade faces; actual RGB/q16 geometry must confirm; no stability claim from profile."
+    }
+  },
+  "held_active_look_moves": 0,
+  "skip_preopen_rgb": false,
+  "source_contact_bead_indices": [
+    0
+  ],
+  "piece_module": "puzzler.cyan_modular_adapter",
+  "release_module": "puzzler.cyan_receiver_release_feedback_delivery",
+  "cyan_leaf_variant": "inverse_tip",
+  "source_endpoint_accuracy_m": 0.0007,
+  "source_actual_bead0_TCPz_max_m": 0.0145,
+  "source_endpoint_feedback_module": "puzzler.cyan_vertical_source_v2",
+  "source_minimum_loaded_jaw_width_m": 0.02,
+  "postlift_inspection_rise_m": 0.015,
+  "cyan_handoff_common_board_offsets": [
+    [
+      0.22,
+      0.2,
+      0.1
+    ],
+    [
+      0.2,
+      0.2,
+      0.1
+    ]
+  ]
+}

@@ -1,0 +1,7 @@
+#!/bin/bash
+set -e
+TASK_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+export PYTHONPATH="$TASK_ROOT${PYTHONPATH:+:$PYTHONPATH}" CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES-}" OMP_NUM_THREADS="${OMP_NUM_THREADS:-4}" OPENBLAS_NUM_THREADS=1
+export OPENCV_FOR_THREADS_NUM="${OPENCV_FOR_THREADS_NUM:-1}"
+export NUMPY_MADVISE_HUGEPAGE="${NUMPY_MADVISE_HUGEPAGE:-0}"
+exec "$TASK_ROOT/third_party/robosimstudio/.venv/bin/python" "$@"

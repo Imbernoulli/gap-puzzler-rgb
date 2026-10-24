@@ -1,0 +1,3990 @@
+{
+  "version": 3,
+  "meta": {
+    "name": "pyramid_original_order_layout_c_v10",
+    "description": "RGB/proprio/public CAD pyramid with separate physical Cyan/Red transfer checkpoints",
+    "required_checkpoint_mode": "raise",
+    "schema_module_path": "scripts/schema.py",
+    "skill_registry_paths": [
+      "/srv/home/bohanlyu/gap-puzzler-web/runs/pyramid_full12_bimanual_layout_c_v13/workspace/registry_modular",
+      "/srv/home/bohanlyu/gap-puzzler-web/runs/pyramid_full12_bimanual_layout_c_v13/workspace/third_party/open-robot-skills"
+    ],
+    "observation_mode": "on_demand",
+    "ordered_stages": [
+      "azure",
+      "orange",
+      "yellow",
+      "teal",
+      "purple",
+      "cyan",
+      "mint",
+      "lime",
+      "maroon",
+      "navy",
+      "pink",
+      "red"
+    ],
+    "order_name": "original_order",
+    "phase_schedule": {
+      "azure": [
+        "perceive_plan",
+        "grasp",
+        "transport",
+        "release",
+        "receipt_settle",
+        "handoff"
+      ],
+      "orange": [
+        "perceive_plan",
+        "grasp",
+        "transport",
+        "release",
+        "receipt_settle",
+        "handoff"
+      ],
+      "yellow": [
+        "perceive_plan",
+        "grasp",
+        "transport",
+        "release",
+        "receipt_settle",
+        "handoff"
+      ],
+      "teal": [
+        "perceive_plan",
+        "grasp",
+        "transport",
+        "release",
+        "receipt_settle",
+        "handoff"
+      ],
+      "purple": [
+        "perceive_plan",
+        "grasp",
+        "transport",
+        "release",
+        "receipt_settle",
+        "handoff"
+      ],
+      "cyan": [
+        "perceive_plan",
+        "grasp",
+        "cyan_approach",
+        "cyan_receiver_close",
+        "cyan_donor_release",
+        "cyan_receiver_bind",
+        "cyan_receiver_transport",
+        "release",
+        "receipt_settle",
+        "handoff"
+      ],
+      "mint": [
+        "perceive_plan",
+        "grasp",
+        "transport",
+        "release",
+        "receipt_settle",
+        "handoff"
+      ],
+      "lime": [
+        "perceive_plan",
+        "grasp",
+        "transport",
+        "release",
+        "receipt_settle",
+        "handoff"
+      ],
+      "maroon": [
+        "perceive_plan",
+        "grasp",
+        "transport",
+        "release",
+        "receipt_settle",
+        "handoff"
+      ],
+      "navy": [
+        "perceive_plan",
+        "grasp",
+        "transport",
+        "release",
+        "receipt_settle",
+        "handoff"
+      ],
+      "pink": [
+        "perceive_plan",
+        "grasp",
+        "transport",
+        "release",
+        "receipt_settle",
+        "handoff"
+      ],
+      "red": [
+        "perceive_plan",
+        "grasp",
+        "red_handoff_prepare",
+        "red_receiver_close",
+        "red_sender_release",
+        "red_receiver_bind",
+        "red_return_prepare",
+        "red_return_close",
+        "red_return_release",
+        "red_return_bind",
+        "red_goal_transport",
+        "red_goal_release",
+        "red_goal_verify"
+      ]
+    },
+    "source_qualification": "Original5\u20137 and10\u201312 independently PASS; exact successful C2 flat/effectiveCyan and strictreleaseRGB native16CP independently PASS; original executed Maroon public body-relative recipe restored; c25 bounded source endpoint settling independent API30/30 PASS, native qualification PENDING; V12 bounded stationary postopen RGB reacquisition contract PASS, native PENDING; V13 public75mm opening original material/old16mm empty retreat math PASS and ray13/13 clear; native PENDING",
+    "state_flow": "Exactly one initial_state; every later node consumes Ref(previous.state)",
+    "regrasp_contract": "Cyan four physical phases; Red two distinct four-phase hops. Receiver actual close q16/FK binds dated authentic RGB, never a desired transform. Opening revokes old sender source.",
+    "receipt_contract": "Authentic RGB alone earns placements. Explicit execution-only conditional hypotheses preserve UNKNOWN/conflicts and require unchanged physical gates.",
+    "finish_contract": "All12 execution/receipt lineage, both hands open/home and >=2s actual wait, unchanged independent physical completion gates",
+    "task_termination": "terminate_on_success=False preserves final finish; original physical goal unchanged",
+    "contact_capacity": 4096,
+    "contact_law_and_rates": "Original RSS MuJoCo500Hz; capacity storage only",
+    "initialization": "Fresh all12 loose; declared public layout C only LimeY+70mm; empty state/no start_poses/presets/restores",
+    "initialized_prefix": [],
+    "full_assembly_eligible": true,
+    "full12_acceptance": false,
+    "flat_acceptance": false,
+    "canonical_original_staging": false,
+    "public_initial_layout": {
+      "name": "C_Lime_world_y_plus070",
+      "piece": "lime",
+      "translation_m": [
+        0.0,
+        0.07,
+        0.0
+      ],
+      "all12_loose": true
+    }
+  },
+  "nodes": {
+    "done": {
+      "type": "end",
+      "status": "success"
+    },
+    "abort": {
+      "type": "end",
+      "status": "failure"
+    },
+    "azure_perceive_plan": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "piece": "azure",
+          "parameters": {
+            "enable_released_piece_repair": false,
+            "terminal_visual_receipt_optional": true,
+            "conditional_execution_handoff_pieces": [
+              "azure",
+              "orange",
+              "yellow",
+              "teal",
+              "purple",
+              "cyan",
+              "mint",
+              "lime",
+              "maroon",
+              "navy",
+              "pink"
+            ],
+            "assembly_order": [
+              "azure",
+              "orange",
+              "yellow",
+              "teal",
+              "purple",
+              "cyan",
+              "mint",
+              "lime",
+              "maroon",
+              "navy",
+              "pink",
+              "red"
+            ],
+            "diagnostic_subset": [],
+            "diagnostic_prefix_finish": false,
+            "skill_profiles": {
+              "azure": {
+                "anchor": false,
+                "close_width": 0.0,
+                "finish_wait": 25,
+                "full_task": true,
+                "grasp_auto": true,
+                "grasp_headings": [
+                  90.0
+                ],
+                "grasp_heights": [
+                  0.006
+                ],
+                "grasp_leans": [
+                  0
+                ],
+                "grasp_stability": true,
+                "grasp_z": 0.006,
+                "hand_clearance": true,
+                "max_attempts_per_piece": 2,
+                "max_release_height": 0.032,
+                "min_ik_joint_margin_rad": 0.035,
+                "min_target_approach_down": 0.65,
+                "mode": "pyramid",
+                "motion_scale": 1.0,
+                "native_carry": true,
+                "observation_required": "rgb-shape",
+                "obstacle_grasp": true,
+                "pyramid_plan": "pyramid_robot6_plan.json",
+                "release_height": 0.012,
+                "retreat": 0.065,
+                "safe_anchor": true,
+                "scene_inspection_clearance_m": 0.004,
+                "scene_inspection_max_moves": 3,
+                "shape_symmetry": true,
+                "source_hover": 0.055,
+                "staged_policy": true,
+                "terminal_grasp": true,
+                "transport": 0.09,
+                "source_open_width": 0.055,
+                "release_open_width": 0.055,
+                "grasp_indices": [
+                  1
+                ]
+              },
+              "orange": {
+                "anchor": false,
+                "close_width": 0.0,
+                "finish_wait": 25,
+                "full_task": true,
+                "grasp_auto": true,
+                "grasp_headings": [
+                  150.0
+                ],
+                "grasp_heights": [
+                  0.006
+                ],
+                "grasp_leans": [
+                  0
+                ],
+                "grasp_stability": true,
+                "grasp_z": 0.006,
+                "hand_clearance": true,
+                "max_attempts_per_piece": 2,
+                "max_release_height": 0.032,
+                "min_ik_joint_margin_rad": 0.035,
+                "min_target_approach_down": 0.65,
+                "mode": "pyramid",
+                "motion_scale": 1.0,
+                "native_carry": true,
+                "observation_required": "rgb-shape",
+                "obstacle_grasp": true,
+                "pyramid_plan": "pyramid_robot6_plan.json",
+                "release_height": 0.012,
+                "retreat": 0.065,
+                "safe_anchor": true,
+                "scene_inspection_clearance_m": 0.004,
+                "scene_inspection_max_moves": 3,
+                "shape_symmetry": true,
+                "source_hover": 0.055,
+                "staged_policy": true,
+                "terminal_grasp": true,
+                "transport": 0.09,
+                "source_open_width": 0.055,
+                "release_open_width": 0.055,
+                "grasp_indices": [
+                  1
+                ]
+              },
+              "yellow": {
+                "anchor": false,
+                "close_width": 0.0,
+                "finish_wait": 25,
+                "full_task": true,
+                "grasp_auto": true,
+                "grasp_headings": [
+                  240.0
+                ],
+                "grasp_heights": [
+                  0.006
+                ],
+                "grasp_leans": [
+                  0
+                ],
+                "grasp_stability": true,
+                "grasp_z": 0.006,
+                "hand_clearance": true,
+                "max_attempts_per_piece": 2,
+                "max_release_height": 0.032,
+                "min_ik_joint_margin_rad": 0.035,
+                "min_target_approach_down": 0.65,
+                "mode": "pyramid",
+                "motion_scale": 1.0,
+                "native_carry": true,
+                "observation_required": "rgb-shape",
+                "obstacle_grasp": true,
+                "pyramid_plan": "pyramid_robot6_plan.json",
+                "release_height": 0.012,
+                "retreat": 0.065,
+                "safe_anchor": true,
+                "scene_inspection_clearance_m": 0.004,
+                "scene_inspection_max_moves": 3,
+                "shape_symmetry": true,
+                "source_hover": 0.055,
+                "staged_policy": true,
+                "terminal_grasp": true,
+                "transport": 0.09,
+                "source_open_width": 0.055,
+                "release_open_width": 0.055,
+                "grasp_indices": [
+                  4
+                ]
+              },
+              "teal": {
+                "anchor": false,
+                "close_width": 0.0,
+                "finish_wait": 25,
+                "full_task": true,
+                "grasp_auto": true,
+                "grasp_headings": [
+                  90.0
+                ],
+                "grasp_heights": [
+                  0.006
+                ],
+                "grasp_leans": [
+                  45
+                ],
+                "grasp_stability": true,
+                "grasp_z": 0.006,
+                "hand_clearance": true,
+                "max_attempts_per_piece": 2,
+                "max_release_height": 0.032,
+                "min_ik_joint_margin_rad": 0.035,
+                "min_target_approach_down": 0.65,
+                "mode": "pyramid",
+                "motion_scale": 1.0,
+                "native_carry": true,
+                "observation_required": "rgb-shape",
+                "obstacle_grasp": true,
+                "pyramid_plan": "pyramid_robot6_plan.json",
+                "release_height": 0.012,
+                "retreat": 0.065,
+                "safe_anchor": true,
+                "scene_inspection_clearance_m": 0.004,
+                "scene_inspection_max_moves": 3,
+                "shape_symmetry": true,
+                "source_hover": 0.055,
+                "staged_policy": true,
+                "terminal_grasp": true,
+                "transport": 0.09,
+                "source_open_width": 0.055,
+                "release_open_width": 0.055,
+                "grasp_indices": [
+                  0
+                ]
+              },
+              "purple": {
+                "anchor": false,
+                "close_width": 0.0,
+                "finish_wait": 25,
+                "full_task": true,
+                "grasp_auto": true,
+                "grasp_headings": [
+                  150
+                ],
+                "grasp_heights": [
+                  0.006
+                ],
+                "grasp_leans": [
+                  0
+                ],
+                "grasp_stability": true,
+                "grasp_z": 0.006,
+                "hand_clearance": true,
+                "max_attempts_per_piece": 2,
+                "max_release_height": 0.032,
+                "min_ik_joint_margin_rad": 0.035,
+                "min_target_approach_down": 0.65,
+                "mode": "pyramid",
+                "motion_scale": 1.0,
+                "native_carry": true,
+                "observation_required": "rgb-shape",
+                "obstacle_grasp": true,
+                "pyramid_plan": "pyramid_robot6_plan.json",
+                "release_height": 0.012,
+                "retreat": 0.065,
+                "safe_anchor": true,
+                "scene_inspection_clearance_m": 0.004,
+                "scene_inspection_max_moves": 3,
+                "shape_symmetry": true,
+                "source_hover": 0.055,
+                "staged_policy": true,
+                "terminal_grasp": true,
+                "transport": 0.09,
+                "source_open_width": 0.028,
+                "release_open_width": 0.028,
+                "fallback_grasp_parameters": {
+                  "grasp_headings": [
+                    90,
+                    0,
+                    270,
+                    180,
+                    30,
+                    60,
+                    120,
+                    150,
+                    210,
+                    240,
+                    300,
+                    330
+                  ],
+                  "grasp_leans": [
+                    0,
+                    -30,
+                    30,
+                    -45,
+                    45,
+                    -60,
+                    60
+                  ],
+                  "grasp_heights": [
+                    0.006
+                  ]
+                },
+                "grasp_indices": [
+                  4
+                ],
+                "arm_candidates": [
+                  0
+                ],
+                "release_module": "puzzler.reloc_modular_release"
+              },
+              "cyan": {
+                "allow_conditional_board_persistence": true,
+                "anchor": false,
+                "cartesian_carry": true,
+                "close_width": 0.0,
+                "conditional_attachment_prior": {
+                  "bead_displacement_bound_m": 0.008,
+                  "source_stationary_or_bounded_until_close": true
+                },
+                "conditional_planning": true,
+                "conditional_prefix_margin_m": 0.004,
+                "finish_wait": 25,
+                "forbidden": [
+                  "teacher_absolute_world_poses",
+                  "teacher_joint_trajectory",
+                  "object_GT_online"
+                ],
+                "full_task": false,
+                "grasp_auto": true,
+                "grasp_headings": [
+                  90.0
+                ],
+                "grasp_heights": [
+                  0.006
+                ],
+                "grasp_indices": [
+                  2
+                ],
+                "grasp_leans": [
+                  45.0
+                ],
+                "grasp_stability": false,
+                "grasp_z": 0.006,
+                "hand_clearance": true,
+                "hand_clearance_margin": 0.0005,
+                "historical_max_age_s": 30.0,
+                "lift": 0.08,
+                "max_attempts_per_piece": 1,
+                "max_release_height": 0.01,
+                "min_ik_joint_margin_rad": 0.035,
+                "min_target_approach_down": -1.1,
+                "mode": "pyramid",
+                "motion_scale": 1.0,
+                "native_carry": true,
+                "observation_required": "rgb-shape",
+                "obstacle_grasp": true,
+                "open_width": 0.095,
+                "profile_role": "Public shape/body-relative motion parameters only",
+                "pyramid_plan": "pyramid_robot6_plan.json",
+                "release_height": 0.003,
+                "release_open_width": 0.055,
+                "release_width": 0.08,
+                "retreat": 0.06,
+                "runtime_contract": "Current source RGB + current/historical separately labelled board + robotFK + public CAD/goal -> current IK and encoder-feedback motion. Postrelease measured receipt or UNKNOWN; no blind retry.",
+                "safe_anchor": true,
+                "scene_inspection_clearance_m": 0.004,
+                "scene_inspection_max_moves": 3,
+                "schema": "puzzler.modular_piece_profile.v1",
+                "seat_compensation_board_m": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "shape_symmetry": true,
+                "source_contact_grasp": {
+                  "maximum_public_cad_penetration_m": 0.003,
+                  "maximum_vertical_approach_distance_m": 0.015,
+                  "non_target_clearance_margin_m": 0.0005,
+                  "permitted_pad_bead_pairs": [
+                    {
+                      "hand_primitive_name": "left_lf_down:6",
+                      "target_bead_index": 0
+                    },
+                    {
+                      "hand_primitive_name": "left_lf_down:6",
+                      "target_bead_index": 1
+                    },
+                    {
+                      "hand_primitive_name": "left_lf_down:6",
+                      "target_bead_index": 2
+                    },
+                    {
+                      "hand_primitive_name": "left_lf_down:7",
+                      "target_bead_index": 0
+                    },
+                    {
+                      "hand_primitive_name": "left_lf_down:7",
+                      "target_bead_index": 1
+                    },
+                    {
+                      "hand_primitive_name": "left_lf_down:7",
+                      "target_bead_index": 2
+                    },
+                    {
+                      "hand_primitive_name": "left_lf_down:8",
+                      "target_bead_index": 0
+                    },
+                    {
+                      "hand_primitive_name": "left_lf_down:8",
+                      "target_bead_index": 1
+                    },
+                    {
+                      "hand_primitive_name": "left_lf_down:8",
+                      "target_bead_index": 2
+                    },
+                    {
+                      "hand_primitive_name": "left_lf_down:9",
+                      "target_bead_index": 0
+                    },
+                    {
+                      "hand_primitive_name": "left_lf_down:9",
+                      "target_bead_index": 1
+                    },
+                    {
+                      "hand_primitive_name": "left_lf_down:9",
+                      "target_bead_index": 2
+                    },
+                    {
+                      "hand_primitive_name": "left_lf_down:10",
+                      "target_bead_index": 0
+                    },
+                    {
+                      "hand_primitive_name": "left_lf_down:10",
+                      "target_bead_index": 1
+                    },
+                    {
+                      "hand_primitive_name": "left_lf_down:10",
+                      "target_bead_index": 2
+                    },
+                    {
+                      "hand_primitive_name": "left_lf_down:11",
+                      "target_bead_index": 0
+                    },
+                    {
+                      "hand_primitive_name": "left_lf_down:11",
+                      "target_bead_index": 1
+                    },
+                    {
+                      "hand_primitive_name": "left_lf_down:11",
+                      "target_bead_index": 2
+                    },
+                    {
+                      "hand_primitive_name": "left_lf_down:12",
+                      "target_bead_index": 0
+                    },
+                    {
+                      "hand_primitive_name": "left_lf_down:12",
+                      "target_bead_index": 1
+                    },
+                    {
+                      "hand_primitive_name": "left_lf_down:12",
+                      "target_bead_index": 2
+                    },
+                    {
+                      "hand_primitive_name": "left_lf_down:13",
+                      "target_bead_index": 0
+                    },
+                    {
+                      "hand_primitive_name": "left_lf_down:13",
+                      "target_bead_index": 1
+                    },
+                    {
+                      "hand_primitive_name": "left_lf_down:13",
+                      "target_bead_index": 2
+                    },
+                    {
+                      "hand_primitive_name": "left_lf_down:14",
+                      "target_bead_index": 0
+                    },
+                    {
+                      "hand_primitive_name": "left_lf_down:14",
+                      "target_bead_index": 1
+                    },
+                    {
+                      "hand_primitive_name": "left_lf_down:14",
+                      "target_bead_index": 2
+                    },
+                    {
+                      "hand_primitive_name": "left_lf_down:15",
+                      "target_bead_index": 0
+                    },
+                    {
+                      "hand_primitive_name": "left_lf_down:15",
+                      "target_bead_index": 1
+                    },
+                    {
+                      "hand_primitive_name": "left_lf_down:15",
+                      "target_bead_index": 2
+                    },
+                    {
+                      "hand_primitive_name": "left_lf_down:16",
+                      "target_bead_index": 0
+                    },
+                    {
+                      "hand_primitive_name": "left_lf_down:16",
+                      "target_bead_index": 1
+                    },
+                    {
+                      "hand_primitive_name": "left_lf_down:16",
+                      "target_bead_index": 2
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:19",
+                      "target_bead_index": 0
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:19",
+                      "target_bead_index": 1
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:19",
+                      "target_bead_index": 2
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:20",
+                      "target_bead_index": 0
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:20",
+                      "target_bead_index": 1
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:20",
+                      "target_bead_index": 2
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:21",
+                      "target_bead_index": 0
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:21",
+                      "target_bead_index": 1
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:21",
+                      "target_bead_index": 2
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:22",
+                      "target_bead_index": 0
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:22",
+                      "target_bead_index": 1
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:22",
+                      "target_bead_index": 2
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:23",
+                      "target_bead_index": 0
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:23",
+                      "target_bead_index": 1
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:23",
+                      "target_bead_index": 2
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:24",
+                      "target_bead_index": 0
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:24",
+                      "target_bead_index": 1
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:24",
+                      "target_bead_index": 2
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:25",
+                      "target_bead_index": 0
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:25",
+                      "target_bead_index": 1
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:25",
+                      "target_bead_index": 2
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:26",
+                      "target_bead_index": 0
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:26",
+                      "target_bead_index": 1
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:26",
+                      "target_bead_index": 2
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:27",
+                      "target_bead_index": 0
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:27",
+                      "target_bead_index": 1
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:27",
+                      "target_bead_index": 2
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:28",
+                      "target_bead_index": 0
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:28",
+                      "target_bead_index": 1
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:28",
+                      "target_bead_index": 2
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:29",
+                      "target_bead_index": 0
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:29",
+                      "target_bead_index": 1
+                    },
+                    {
+                      "hand_primitive_name": "left_rf_down:29",
+                      "target_bead_index": 2
+                    }
+                  ],
+                  "permitted_phase": "source_open_hand_final_descent_and_close",
+                  "permitted_primitive_body_substrings": [
+                    "_lf_down",
+                    "_rf_down"
+                  ],
+                  "require_after_lift_current_rgb": true,
+                  "scope": "Only intended target/distal-finger source-grasp contact; housing, table and other objects require positive original clearance. Nativeforcecaps unchanged.",
+                  "target": "cyan"
+                },
+                "source_grasp_only": true,
+                "source_hover": 0.04,
+                "source_open_width": 0.095,
+                "staged_policy": true,
+                "support_anchor": {
+                  "arm": "opposite_work_arm",
+                  "board_offset_left": [
+                    -0.078,
+                    0.145,
+                    0.02
+                  ],
+                  "board_offset_right": [
+                    -0.078,
+                    -0.145,
+                    0.02
+                  ],
+                  "bounded_contact": "board_edge_brace_only",
+                  "frame_heading_left": -90.0,
+                  "frame_heading_right": 90.0,
+                  "hover_m": 0.09,
+                  "module": "puzzler.modular_cyan_anchor",
+                  "width_m": 0.008
+                },
+                "target_normal": [
+                  -1,
+                  -1,
+                  0
+                ],
+                "terminal_grasp": true,
+                "transport": 0.1,
+                "vertical_retreat": true,
+                "visual_memory_contract": "receipts_only_fresh_gates_unchanged_v1",
+                "release_yaw_offset_deg": 0.0,
+                "release_start_width": 0.0,
+                "carry_body_height_board_m": 0.187,
+                "carry_stage_board_m": [
+                  0.133,
+                  0.2,
+                  0.187
+                ],
+                "inverse_grasp_profile": {
+                  "bead": 0,
+                  "goal_heading": 150,
+                  "goal_lean": -30.0,
+                  "bead_in_tcp_m": [
+                    0.0,
+                    0.0,
+                    0.0125
+                  ],
+                  "hand_in_body_position": [
+                    0.008333333333333338,
+                    0.016666666666666684,
+                    0.0125
+                  ],
+                  "hand_in_body_rotation": [
+                    [
+                      0.0,
+                      -1.0,
+                      0.0
+                    ],
+                    [
+                      -1.0,
+                      0.0,
+                      0.0
+                    ],
+                    [
+                      0.0,
+                      0.0,
+                      -1.0
+                    ]
+                  ],
+                  "stable_contact_constraint": {
+                    "public_blade_front_z_m": 0.0165,
+                    "bead_beyond_blade_front_m": -0.004,
+                    "contact_normal_tangential_to_pinch_ratio": 0.0,
+                    "closing_axis_centered": true,
+                    "scope": "Nominal centered bead0 on opposed blade faces; actual RGB/q16 geometry must confirm; no stability claim from profile."
+                  }
+                },
+                "held_active_look_moves": 0,
+                "skip_preopen_rgb": false,
+                "source_contact_bead_indices": [
+                  0
+                ],
+                "piece_module": "puzzler.cyan_modular_adapter",
+                "release_module": "puzzler.cyan_receiver_release_feedback_delivery",
+                "cyan_leaf_variant": "inverse_tip",
+                "source_endpoint_accuracy_m": 0.0007,
+                "source_actual_bead0_TCPz_max_m": 0.0145,
+                "source_endpoint_feedback_module": "puzzler.cyan_vertical_source_v2",
+                "source_minimum_loaded_jaw_width_m": 0.02,
+                "postlift_inspection_rise_m": 0.015,
+                "cyan_handoff_common_board_offsets": [
+                  [
+                    0.22,
+                    0.2,
+                    0.1
+                  ],
+                  [
+                    0.2,
+                    0.2,
+                    0.1
+                  ]
+                ]
+              },
+              "mint": {
+                "anchor": false,
+                "close_width": 0.0,
+                "fallback_grasp_parameters": {
+                  "grasp_headings": [
+                    90.0,
+                    0.0,
+                    270.0,
+                    180.0,
+                    30.0,
+                    60.0,
+                    120.0,
+                    150.0,
+                    210.0,
+                    240.0,
+                    300.0,
+                    330.0
+                  ],
+                  "grasp_heights": [
+                    0.006
+                  ],
+                  "grasp_leans": [
+                    0,
+                    -30,
+                    30,
+                    -45,
+                    45,
+                    -60,
+                    60
+                  ]
+                },
+                "finish_wait": 25,
+                "full_task": true,
+                "grasp_auto": true,
+                "grasp_headings": [
+                  0.0
+                ],
+                "grasp_heights": [
+                  0.006
+                ],
+                "grasp_indices": [
+                  2
+                ],
+                "grasp_leans": [
+                  0.0
+                ],
+                "grasp_stability": true,
+                "grasp_z": 0.006,
+                "hand_clearance": true,
+                "max_attempts_per_piece": 2,
+                "max_release_height": 0.032,
+                "min_ik_joint_margin_rad": 0.035,
+                "min_target_approach_down": 0.65,
+                "mode": "pyramid",
+                "motion_scale": 1.0,
+                "native_carry": true,
+                "observation_required": "rgb-shape",
+                "obstacle_grasp": true,
+                "pyramid_plan": "pyramid_robot6_plan.json",
+                "release_height": 0.012,
+                "release_open_width": 0.04,
+                "retreat": 0.065,
+                "safe_anchor": true,
+                "scene_inspection_clearance_m": 0.004,
+                "scene_inspection_max_moves": 3,
+                "shape_symmetry": true,
+                "source_hover": 0.055,
+                "source_open_width": 0.055,
+                "source_profile_provenance": "pyramid_conditional_workstream_v1/workspace/runs/pyramid07_mint_static_prefix_v2/cases/pyramid_07_mint_static_prefix_v2/episode/trace/0000/node_data/plan_sg.act/iters/000/output.json",
+                "staged_policy": true,
+                "terminal_grasp": true,
+                "transport": 0.09,
+                "skip_preopen_rgb": false,
+                "max_reobserve_attempts": 2
+              },
+              "lime": {
+                "anchor": false,
+                "close_width": 0.0,
+                "finish_wait": 25,
+                "full_task": true,
+                "grasp_auto": true,
+                "grasp_headings": [
+                  0.0
+                ],
+                "grasp_heights": [
+                  0.014
+                ],
+                "grasp_leans": [
+                  0.0
+                ],
+                "grasp_stability": true,
+                "grasp_z": 0.014,
+                "hand_clearance": true,
+                "max_attempts_per_piece": 2,
+                "max_release_height": 0.032,
+                "min_ik_joint_margin_rad": 0.035,
+                "min_target_approach_down": 0.65,
+                "mode": "pyramid",
+                "motion_scale": 1.0,
+                "native_carry": true,
+                "observation_required": "rgb-shape",
+                "obstacle_grasp": true,
+                "pyramid_plan": "pyramid_robot6_plan.json",
+                "release_height": 0.012,
+                "retreat": 0.065,
+                "safe_anchor": true,
+                "scene_inspection_clearance_m": 0.004,
+                "scene_inspection_max_moves": 3,
+                "shape_symmetry": true,
+                "source_hover": 0.055,
+                "staged_policy": true,
+                "terminal_grasp": true,
+                "transport": 0.09,
+                "source_open_width": 0.055,
+                "release_open_width": 0.04,
+                "fallback_grasp_parameters": {
+                  "grasp_headings": [
+                    90.0,
+                    0.0,
+                    270.0,
+                    180.0,
+                    30.0,
+                    60.0,
+                    120.0,
+                    150.0,
+                    210.0,
+                    240.0,
+                    300.0,
+                    330.0
+                  ],
+                  "grasp_leans": [
+                    0,
+                    -30,
+                    30,
+                    -45,
+                    45,
+                    -60,
+                    60
+                  ],
+                  "grasp_heights": [
+                    0.006
+                  ]
+                },
+                "grasp_indices": [
+                  1
+                ],
+                "source_profile_provenance": "pyramid_suffix_workstream_v1/PYRAMID_SUFFIX_HANDOFF.md and pyr08_lime_height14_v3 exact public profile"
+              },
+              "maroon": {
+                "achieved_tcp_height_body_m": 0.012647604450555069,
+                "anchor": false,
+                "close_width": 0.0,
+                "defer_target_until_held": true,
+                "finish_wait": 25,
+                "full_task": true,
+                "geometry_module": "puzzler.modular_maroon_geometry",
+                "grasp_auto": true,
+                "grasp_headings": [
+                  270
+                ],
+                "grasp_heights": [
+                  0.006
+                ],
+                "grasp_index": 3,
+                "grasp_indices": [
+                  3
+                ],
+                "grasp_leans": [
+                  -30
+                ],
+                "grasp_rotation_body": [
+                  [
+                    0.8710626097029269,
+                    -0.023801081198238695,
+                    0.4905949841889149
+                  ],
+                  [
+                    -0.015297855365125377,
+                    -0.999655309312002,
+                    -0.02133631143271245
+                  ],
+                  [
+                    0.49093370794716723,
+                    0.011080212007034905,
+                    -0.8711264680304032
+                  ]
+                ],
+                "grasp_stability": true,
+                "grasp_tcp_center_body_m": [
+                  -0.026968523352162696,
+                  0.01244655938120989,
+                  0.012647604450555069
+                ],
+                "grasp_z": 0.006,
+                "hand_clearance": true,
+                "lift": 0.085,
+                "max_attempts_per_piece": 2,
+                "max_release_height": 0.003,
+                "min_ik_joint_margin_rad": 0.035,
+                "min_target_approach_down": 0.65,
+                "mode": "pyramid",
+                "motion_scale": 1.0,
+                "native_carry": true,
+                "observation_required": "rgb-shape",
+                "obstacle_grasp": true,
+                "piece": "maroon",
+                "pyramid_plan": "pyramid_robot6_plan.json",
+                "release_bias_includes_height": true,
+                "release_body_offset_goal_frame_m": [
+                  -0.003129799809028249,
+                  -0.0025709109672996944,
+                  -0.0005736764236651551
+                ],
+                "release_body_rotation_goal_frame": [
+                  [
+                    0.999881588403955,
+                    -0.015255980590310005,
+                    0.002015992810442357
+                  ],
+                  [
+                    0.015264629670117763,
+                    0.9998740400667593,
+                    -0.0043468473185158335
+                  ],
+                  [
+                    -0.0019494234578021513,
+                    0.004377105985055948,
+                    0.9999885202797969
+                  ]
+                ],
+                "release_geometry_scope": "State-dependent measured-jaw/actualFK progressive opening/retreat. Target housing separation not certified; native placement/prefix CP thresholds unchanged.",
+                "release_height": 0.003,
+                "release_module": "puzzler.modular_maroon_adapter",
+                "release_offset_includes_demo_height": true,
+                "release_offset_scope": "Learned body pose relative to publicfinalgoal before nativeopening. Contactseating expected; notfinal3D goal or measurement.",
+                "release_open_width": 0.04,
+                "release_rotation_bias_board": [
+                  [
+                    0.9999438427538104,
+                    0.0045438849287784975,
+                    -0.009574155236714309
+                  ],
+                  [
+                    -0.004428854344435023,
+                    0.9999181672214394,
+                    0.012001837763968041
+                  ],
+                  [
+                    0.009627906726722252,
+                    -0.011958761234795728,
+                    0.9998821387752608
+                  ]
+                ],
+                "release_translation_bias_board_m": [
+                  0.0006850949102447551,
+                  0.00012620606851620068,
+                  0.004031011247524716
+                ],
+                "requested_demo_height_m": 0.006,
+                "retreat": 0.05,
+                "runtime_inputs": "Fresh measuredRGB body and board, robotFK, publicCAD only. No absoluteworldpose or joint program.",
+                "safe_anchor": true,
+                "scene_inspection_clearance_m": 0.004,
+                "scene_inspection_max_moves": 3,
+                "schema": "puzzler.public_body_relative_grasp_profile.v1",
+                "shape_symmetry": true,
+                "source_body_symmetries": [
+                  "I",
+                  "Rz180_index3to0"
+                ],
+                "source_grasp_only": true,
+                "source_height_reference": "achieved bodyrelative12.6476mm, sourcehandorientation uses RGB yaw + measuredboardnormal planar-source precondition; raw3D kept unchanged",
+                "source_hover": 0.11,
+                "source_open_width": 0.055,
+                "staged_policy": true,
+                "support_anchor": {
+                  "arm_id": 0,
+                  "close_heading_in_board_deg": -90.0,
+                  "hover_m": 0.09,
+                  "module": "puzzler.modular_maroon_anchor",
+                  "offset_board_m": [
+                    -0.078,
+                    0.145,
+                    0.02
+                  ],
+                  "width_m": 0.008
+                },
+                "terminal_grasp": true,
+                "transport": 0.07,
+                "vertical_retreat": false
+              },
+              "navy": {
+                "anchor": false,
+                "close_width": 0.0,
+                "finish_wait": 25,
+                "full_task": true,
+                "grasp_auto": true,
+                "grasp_headings": [
+                  270.0
+                ],
+                "grasp_heights": [
+                  0.006
+                ],
+                "grasp_leans": [
+                  0.0
+                ],
+                "grasp_stability": true,
+                "grasp_z": 0.006,
+                "hand_clearance": true,
+                "max_attempts_per_piece": 2,
+                "max_release_height": 0.032,
+                "min_ik_joint_margin_rad": 0.035,
+                "min_target_approach_down": 0.65,
+                "mode": "pyramid",
+                "motion_scale": 1.0,
+                "native_carry": true,
+                "observation_required": "rgb-shape",
+                "obstacle_grasp": true,
+                "pyramid_plan": "pyramid_robot6_plan.json",
+                "release_height": 0.012,
+                "retreat": 0.065,
+                "safe_anchor": true,
+                "scene_inspection_clearance_m": 0.004,
+                "scene_inspection_max_moves": 3,
+                "shape_symmetry": true,
+                "source_hover": 0.055,
+                "staged_policy": true,
+                "terminal_grasp": true,
+                "transport": 0.09,
+                "source_open_width": 0.055,
+                "release_open_width": 0.04,
+                "fallback_grasp_parameters": {
+                  "grasp_headings": [
+                    90.0,
+                    0.0,
+                    270.0,
+                    180.0,
+                    30.0,
+                    60.0,
+                    120.0,
+                    150.0,
+                    210.0,
+                    240.0,
+                    300.0,
+                    330.0
+                  ],
+                  "grasp_leans": [
+                    0,
+                    -30,
+                    30,
+                    -45,
+                    45,
+                    -60,
+                    60
+                  ],
+                  "grasp_heights": [
+                    0.006
+                  ]
+                },
+                "grasp_indices": [
+                  0
+                ],
+                "source_profile_provenance": "pyramid_suffix_workstream_v1/workspace/runs/pyramid08_12_static_prefix_original_v1/cases/pyramid_10_navy_static_original_v1/episode/trace/0000/node_data/plan_sg.act/iters/000/output.json"
+              },
+              "pink": {
+                "anchor": false,
+                "close_width": 0.0,
+                "finish_wait": 25,
+                "full_task": true,
+                "grasp_auto": true,
+                "grasp_headings": [
+                  0
+                ],
+                "grasp_heights": [
+                  0.01
+                ],
+                "grasp_indices": [
+                  4
+                ],
+                "grasp_leans": [
+                  -15
+                ],
+                "grasp_stability": true,
+                "grasp_z": 0.006,
+                "hand_clearance": true,
+                "lift": 0.07,
+                "max_attempts_per_piece": 2,
+                "max_grasp_obstacle_distance": 0.03,
+                "max_release_height": 0.032,
+                "min_ik_joint_margin_rad": 0.035,
+                "min_target_approach_down": 0.15,
+                "mode": "pyramid",
+                "motion_scale": 1.0,
+                "native_carry": true,
+                "neighbor_clearance": 0.016,
+                "observation_required": "rgb-shape",
+                "obstacle_grasp": true,
+                "open_width": 0.055,
+                "pyramid_plan": "pyramid_robot6_plan.json",
+                "release_height": 0.012,
+                "retreat": 0.065,
+                "safe_anchor": true,
+                "scene_inspection_clearance_m": 0.004,
+                "scene_inspection_max_moves": 3,
+                "shape_symmetry": true,
+                "source_hover": 0.06,
+                "staged_policy": true,
+                "terminal_grasp": true,
+                "transport": 0.09,
+                "source_open_width": 0.055,
+                "release_open_width": 0.04
+              },
+              "red": {
+                "anchor": false,
+                "candidate_arm": 1,
+                "cartesian_carry": true,
+                "close_width": 0.0,
+                "finish_wait": 25,
+                "forbidden": [
+                  "absolute_world_robot_poses",
+                  "teacher_joint_waypoints",
+                  "teacher_action_tapes",
+                  "online_object_GT/contacts/evaluator"
+                ],
+                "full_task": true,
+                "grasp_auto": true,
+                "grasp_headings": [
+                  0.0
+                ],
+                "grasp_heights": [
+                  0.0133
+                ],
+                "grasp_indices": [
+                  4
+                ],
+                "grasp_leans": [
+                  0.0
+                ],
+                "grasp_stability": true,
+                "grasp_z": 0.006,
+                "hand_clearance": true,
+                "lift": 0.09,
+                "max_attempts_per_piece": 2,
+                "max_grasp_obstacle_distance": 0.03,
+                "max_release_height": 0.003,
+                "min_ik_joint_margin_rad": 0.035,
+                "min_target_approach_down": -1.0,
+                "mode": "pyramid",
+                "motion_scale": 1.0,
+                "native_carry": true,
+                "neighbor_clearance": 0.016,
+                "object_relative_grasp_se3": {
+                  "position_m": [
+                    -0.014063125127011621,
+                    -0.038565442001748364,
+                    0.010828235403750658
+                  ],
+                  "quaternion_xyzw": [
+                    -0.3147889933524669,
+                    0.7318093889892032,
+                    0.23613701546336172,
+                    0.5564191026370733
+                  ],
+                  "source_scope": "Public-CAD candidate: translate the baseline TCP +2mm along hand x and +2mm along hand z in the source body frame; unchanged orientation. Actual current RGB/q16/FK/corridor/retained guards/postlift RGB remain required; no grasp-retention guarantee."
+                },
+                "observation_required": "rgb-shape",
+                "obstacle_grasp": true,
+                "online_inputs": [
+                  "current_RGB",
+                  "public_CAD/goals",
+                  "robot_proprioception/FK"
+                ],
+                "open_width": 0.055,
+                "piece": "red",
+                "pyramid_plan": "pyramid_robot6_plan.json",
+                "release_height": 0.003,
+                "release_open_width": 0.09,
+                "release_width": 0.09,
+                "retreat": 0.03,
+                "safe_anchor": true,
+                "scene_inspection_clearance_m": 0.004,
+                "scene_inspection_max_moves": 3,
+                "schema": "puzzler.modular_piece_profile.v1",
+                "shape_symmetry": true,
+                "source_cartesian": false,
+                "source_contact_grasp": {
+                  "allow_target_moving_finger_contact": true,
+                  "candidate_fanout": [],
+                  "candidate_reason": "One public-CAD source pose change: baseline TCP +handx2mm +handz2mm, targeting lateral/tip edge support. Carry/physics/force/friction/contact gates unchanged.",
+                  "kind": "public_selected_bead_opposed_blade_corridor_v1",
+                  "max_angular_drift_rad": 0.015,
+                  "max_held_bead_tcp_gap_m": 0.045,
+                  "max_retained_jaw_width_m": 0.08,
+                  "max_rotation_residual_rad": 0.04,
+                  "max_target_finger_penetration_m": 0.02,
+                  "max_tcp_drift_m": 0.0004,
+                  "max_tcp_residual_m": 0.025,
+                  "min_lift_rgb_rise_m": 0.025,
+                  "min_retained_jaw_width_m": 0.008,
+                  "module": "puzzler.modular_red_contact",
+                  "retained_clearance_margin_m": 0.0005,
+                  "selected_bead_index": 4,
+                  "stable_control_steps": 5
+                },
+                "source_grasp_only": true,
+                "source_hover": 0.04,
+                "source_open_width": 0.055,
+                "source_phase_scope": "Source-only contact geometry/IK + actual closed/lift evidence. Carry/release uses common owned postliftRGB+q16 belief and newly computed publicCAD goals.",
+                "source_profile_provenance": "Source pose screened with authentic historical RGB/q16, public selected-bead/retained geometry and native GPU IK; nominal grasp_heights loop labels are ignored by object_relative_grasp_se3. Runtime current RGB/q16/physical checkpoints remain mandatory.",
+                "staged_policy": true,
+                "support_anchor": false,
+                "terminal_grasp": true,
+                "transport": 0.036,
+                "vertical_retreat": true,
+                "transport_module": "puzzler.red_computed_carry",
+                "release_module": "puzzler.red_computed_carry",
+                "arm_candidates": [
+                  1
+                ],
+                "allow_maroon_conditional_MAP_reassociation": true
+              }
+            },
+            "anchor": false,
+            "close_width": 0.0,
+            "finish_wait": 25,
+            "full_task": true,
+            "grasp_auto": true,
+            "grasp_headings": [
+              90.0
+            ],
+            "grasp_heights": [
+              0.006
+            ],
+            "grasp_leans": [
+              0
+            ],
+            "grasp_stability": true,
+            "grasp_z": 0.006,
+            "hand_clearance": true,
+            "max_attempts_per_piece": 2,
+            "max_release_height": 0.032,
+            "min_ik_joint_margin_rad": 0.035,
+            "min_target_approach_down": 0.65,
+            "mode": "pyramid",
+            "motion_scale": 1.0,
+            "native_carry": true,
+            "observation_required": "rgb-shape",
+            "obstacle_grasp": true,
+            "pyramid_plan": "pyramid_robot6_plan.json",
+            "release_height": 0.012,
+            "retreat": 0.065,
+            "safe_anchor": true,
+            "scene_inspection_clearance_m": 0.004,
+            "scene_inspection_max_moves": 3,
+            "shape_symmetry": true,
+            "source_hover": 0.055,
+            "staged_policy": true,
+            "terminal_grasp": true,
+            "transport": 0.09,
+            "source_open_width": 0.055,
+            "release_open_width": 0.055,
+            "grasp_indices": [
+              1
+            ],
+            "open_width": 0.055,
+            "pieces": {},
+            "actual_executed_prefix": []
+          },
+          "plan": {},
+          "arm": -1,
+          "memory": {
+            "schema": "puzzler.visual_memory.v1",
+            "scope": "continuous_visual_rollout",
+            "placements": {},
+            "local_prefix_assumptions": {},
+            "last_timestamp": -1.0,
+            "last_frame_sha256": {},
+            "planning_from_memory_enabled": false
+          },
+          "observation": {},
+          "rgb_history": [],
+          "planning_scene": {},
+          "executed_placements": [],
+          "initialized_prefix": [],
+          "execution_tokens": {},
+          "belief_ledger": {},
+          "history": [],
+          "prediction": [],
+          "last_stage": "",
+          "last_outcome": "",
+          "release_execution": {},
+          "support_anchor_evidence": {},
+          "pending_placement_receipt": {},
+          "attempt": 0
+        }
+      },
+      "ref": "perceive_plan_sg"
+    },
+    "azure_grasp": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "azure_perceive_plan.state"
+        }
+      },
+      "ref": "grasp_sg"
+    },
+    "azure_transport": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "azure_grasp.state"
+        }
+      },
+      "ref": "transport_sg"
+    },
+    "azure_release": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "azure_transport.state"
+        }
+      },
+      "ref": "release_sg"
+    },
+    "azure_receipt_settle": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "azure_release.state"
+        }
+      },
+      "ref": "receipt_settle_sg"
+    },
+    "azure_handoff": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "azure_receipt_settle.state"
+        },
+        "expected_piece": "azure"
+      },
+      "ref": "handoff_sg"
+    },
+    "orange_perceive_plan": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "azure_handoff.state"
+        }
+      },
+      "ref": "perceive_plan_sg"
+    },
+    "orange_grasp": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "orange_perceive_plan.state"
+        }
+      },
+      "ref": "grasp_sg"
+    },
+    "orange_transport": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "orange_grasp.state"
+        }
+      },
+      "ref": "transport_sg"
+    },
+    "orange_release": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "orange_transport.state"
+        }
+      },
+      "ref": "release_sg"
+    },
+    "orange_receipt_settle": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "orange_release.state"
+        }
+      },
+      "ref": "receipt_settle_sg"
+    },
+    "orange_handoff": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "orange_receipt_settle.state"
+        },
+        "expected_piece": "orange"
+      },
+      "ref": "handoff_sg"
+    },
+    "yellow_perceive_plan": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "orange_handoff.state"
+        }
+      },
+      "ref": "perceive_plan_sg"
+    },
+    "yellow_grasp": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "yellow_perceive_plan.state"
+        }
+      },
+      "ref": "grasp_sg"
+    },
+    "yellow_transport": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "yellow_grasp.state"
+        }
+      },
+      "ref": "transport_sg"
+    },
+    "yellow_release": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "yellow_transport.state"
+        }
+      },
+      "ref": "release_sg"
+    },
+    "yellow_receipt_settle": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "yellow_release.state"
+        }
+      },
+      "ref": "receipt_settle_sg"
+    },
+    "yellow_handoff": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "yellow_receipt_settle.state"
+        },
+        "expected_piece": "yellow"
+      },
+      "ref": "handoff_sg"
+    },
+    "teal_perceive_plan": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "yellow_handoff.state"
+        }
+      },
+      "ref": "perceive_plan_sg"
+    },
+    "teal_grasp": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "teal_perceive_plan.state"
+        }
+      },
+      "ref": "grasp_sg"
+    },
+    "teal_transport": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "teal_grasp.state"
+        }
+      },
+      "ref": "transport_sg"
+    },
+    "teal_release": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "teal_transport.state"
+        }
+      },
+      "ref": "release_sg"
+    },
+    "teal_receipt_settle": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "teal_release.state"
+        }
+      },
+      "ref": "receipt_settle_sg"
+    },
+    "teal_handoff": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "teal_receipt_settle.state"
+        },
+        "expected_piece": "teal"
+      },
+      "ref": "handoff_sg"
+    },
+    "purple_perceive_plan": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "teal_handoff.state"
+        }
+      },
+      "ref": "perceive_plan_sg"
+    },
+    "purple_grasp": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "purple_perceive_plan.state"
+        }
+      },
+      "ref": "grasp_sg"
+    },
+    "purple_transport": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "purple_grasp.state"
+        }
+      },
+      "ref": "transport_sg"
+    },
+    "purple_release": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "purple_transport.state"
+        }
+      },
+      "ref": "release_sg"
+    },
+    "purple_receipt_settle": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "purple_release.state"
+        }
+      },
+      "ref": "receipt_settle_sg"
+    },
+    "purple_handoff": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "purple_receipt_settle.state"
+        },
+        "expected_piece": "purple"
+      },
+      "ref": "handoff_sg"
+    },
+    "cyan_perceive_plan": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "purple_handoff.state"
+        }
+      },
+      "ref": "perceive_plan_sg"
+    },
+    "cyan_grasp": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "cyan_perceive_plan.state"
+        }
+      },
+      "ref": "grasp_sg"
+    },
+    "cyan_cyan_approach": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "cyan_grasp.state"
+        }
+      },
+      "ref": "cyan_approach_sg"
+    },
+    "cyan_cyan_receiver_close": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "cyan_cyan_approach.state"
+        }
+      },
+      "ref": "cyan_receiver_close_sg"
+    },
+    "cyan_cyan_donor_release": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "cyan_cyan_receiver_close.state"
+        }
+      },
+      "ref": "cyan_donor_release_sg"
+    },
+    "cyan_cyan_receiver_bind": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "cyan_cyan_donor_release.state"
+        }
+      },
+      "ref": "cyan_receiver_bind_sg"
+    },
+    "cyan_cyan_receiver_transport": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "cyan_cyan_receiver_bind.state"
+        }
+      },
+      "ref": "cyan_receiver_transport_sg"
+    },
+    "cyan_release": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "cyan_cyan_receiver_transport.state"
+        }
+      },
+      "ref": "release_sg"
+    },
+    "cyan_receipt_settle": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "cyan_release.state"
+        }
+      },
+      "ref": "receipt_settle_sg"
+    },
+    "cyan_handoff": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "cyan_receipt_settle.state"
+        },
+        "expected_piece": "cyan"
+      },
+      "ref": "handoff_sg"
+    },
+    "mint_perceive_plan": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "cyan_handoff.state"
+        }
+      },
+      "ref": "perceive_plan_sg"
+    },
+    "mint_grasp": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "mint_perceive_plan.state"
+        }
+      },
+      "ref": "grasp_sg"
+    },
+    "mint_transport": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "mint_grasp.state"
+        }
+      },
+      "ref": "transport_sg"
+    },
+    "mint_release": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "mint_transport.state"
+        }
+      },
+      "ref": "release_sg"
+    },
+    "mint_receipt_settle": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "mint_release.state"
+        }
+      },
+      "ref": "receipt_settle_sg"
+    },
+    "mint_handoff": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "mint_receipt_settle.state"
+        },
+        "expected_piece": "mint"
+      },
+      "ref": "handoff_sg"
+    },
+    "lime_perceive_plan": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "mint_handoff.state"
+        }
+      },
+      "ref": "perceive_plan_sg"
+    },
+    "lime_grasp": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "lime_perceive_plan.state"
+        }
+      },
+      "ref": "grasp_sg"
+    },
+    "lime_transport": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "lime_grasp.state"
+        }
+      },
+      "ref": "transport_sg"
+    },
+    "lime_release": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "lime_transport.state"
+        }
+      },
+      "ref": "release_sg"
+    },
+    "lime_receipt_settle": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "lime_release.state"
+        }
+      },
+      "ref": "receipt_settle_sg"
+    },
+    "lime_handoff": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "lime_receipt_settle.state"
+        },
+        "expected_piece": "lime"
+      },
+      "ref": "handoff_sg"
+    },
+    "maroon_perceive_plan": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "lime_handoff.state"
+        }
+      },
+      "ref": "perceive_plan_sg"
+    },
+    "maroon_grasp": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "maroon_perceive_plan.state"
+        }
+      },
+      "ref": "grasp_sg"
+    },
+    "maroon_transport": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "maroon_grasp.state"
+        }
+      },
+      "ref": "transport_sg"
+    },
+    "maroon_release": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "maroon_transport.state"
+        }
+      },
+      "ref": "release_sg"
+    },
+    "maroon_receipt_settle": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "maroon_release.state"
+        }
+      },
+      "ref": "receipt_settle_sg"
+    },
+    "maroon_handoff": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "maroon_receipt_settle.state"
+        },
+        "expected_piece": "maroon"
+      },
+      "ref": "handoff_sg"
+    },
+    "navy_perceive_plan": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "maroon_handoff.state"
+        }
+      },
+      "ref": "perceive_plan_sg"
+    },
+    "navy_grasp": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "navy_perceive_plan.state"
+        }
+      },
+      "ref": "grasp_sg"
+    },
+    "navy_transport": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "navy_grasp.state"
+        }
+      },
+      "ref": "transport_sg"
+    },
+    "navy_release": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "navy_transport.state"
+        }
+      },
+      "ref": "release_sg"
+    },
+    "navy_receipt_settle": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "navy_release.state"
+        }
+      },
+      "ref": "receipt_settle_sg"
+    },
+    "navy_handoff": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "navy_receipt_settle.state"
+        },
+        "expected_piece": "navy"
+      },
+      "ref": "handoff_sg"
+    },
+    "pink_perceive_plan": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "navy_handoff.state"
+        }
+      },
+      "ref": "perceive_plan_sg"
+    },
+    "pink_grasp": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "pink_perceive_plan.state"
+        }
+      },
+      "ref": "grasp_sg"
+    },
+    "pink_transport": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "pink_grasp.state"
+        }
+      },
+      "ref": "transport_sg"
+    },
+    "pink_release": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "pink_transport.state"
+        }
+      },
+      "ref": "release_sg"
+    },
+    "pink_receipt_settle": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "pink_release.state"
+        }
+      },
+      "ref": "receipt_settle_sg"
+    },
+    "pink_handoff": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "pink_receipt_settle.state"
+        },
+        "expected_piece": "pink"
+      },
+      "ref": "handoff_sg"
+    },
+    "red_perceive_plan": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "pink_handoff.state"
+        }
+      },
+      "ref": "perceive_plan_sg"
+    },
+    "red_grasp": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "red_perceive_plan.state"
+        }
+      },
+      "ref": "grasp_sg"
+    },
+    "red_red_handoff_prepare": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "red_grasp.state"
+        }
+      },
+      "ref": "red_handoff_prepare_sg"
+    },
+    "red_red_receiver_close": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "red_red_handoff_prepare.state"
+        }
+      },
+      "ref": "red_receiver_close_sg"
+    },
+    "red_red_sender_release": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "red_red_receiver_close.state"
+        }
+      },
+      "ref": "red_sender_release_sg"
+    },
+    "red_red_receiver_bind": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "red_red_sender_release.state"
+        }
+      },
+      "ref": "red_receiver_bind_sg"
+    },
+    "red_red_return_prepare": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "red_red_receiver_bind.state"
+        }
+      },
+      "ref": "red_return_prepare_sg"
+    },
+    "red_red_return_close": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "red_red_return_prepare.state"
+        }
+      },
+      "ref": "red_return_close_sg"
+    },
+    "red_red_return_release": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "red_red_return_close.state"
+        }
+      },
+      "ref": "red_return_release_sg"
+    },
+    "red_red_return_bind": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "red_red_return_release.state"
+        }
+      },
+      "ref": "red_return_bind_sg"
+    },
+    "red_red_goal_transport": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "red_red_return_bind.state"
+        }
+      },
+      "ref": "red_goal_transport_sg"
+    },
+    "red_red_goal_release": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "red_red_goal_transport.state"
+        }
+      },
+      "ref": "red_goal_release_sg"
+    },
+    "red_red_goal_verify": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "red_red_goal_release.state"
+        }
+      },
+      "ref": "red_goal_verify_sg"
+    },
+    "finish_all12": {
+      "type": "subgraph",
+      "inputs": {
+        "state": {
+          "$ref": "red_red_goal_verify.state"
+        }
+      },
+      "ref": "finish_sg"
+    }
+  },
+  "edges": [
+    [
+      "START",
+      "azure_perceive_plan"
+    ]
+  ],
+  "conditional_edges": {
+    "azure_perceive_plan": {
+      "router_field": "exit",
+      "mapping": {
+        "planned": "azure_grasp",
+        "error": "abort"
+      }
+    },
+    "azure_grasp": {
+      "router_field": "exit",
+      "mapping": {
+        "verified": "azure_transport",
+        "error": "abort"
+      }
+    },
+    "azure_transport": {
+      "router_field": "exit",
+      "mapping": {
+        "carried": "azure_release",
+        "error": "abort"
+      }
+    },
+    "azure_release": {
+      "router_field": "exit",
+      "mapping": {
+        "placed": "azure_receipt_settle",
+        "uncertain": "azure_receipt_settle",
+        "missed": "azure_receipt_settle",
+        "error": "abort"
+      }
+    },
+    "azure_receipt_settle": {
+      "router_field": "exit",
+      "mapping": {
+        "placed": "azure_handoff",
+        "executed_visual_unknown": "azure_handoff",
+        "executed_visual_unverified": "azure_handoff",
+        "error": "abort",
+        "unknown": "abort"
+      }
+    },
+    "azure_handoff": {
+      "router_field": "exit",
+      "mapping": {
+        "advanced": "orange_perceive_plan",
+        "error": "abort"
+      }
+    },
+    "orange_perceive_plan": {
+      "router_field": "exit",
+      "mapping": {
+        "planned": "orange_grasp",
+        "error": "abort"
+      }
+    },
+    "orange_grasp": {
+      "router_field": "exit",
+      "mapping": {
+        "verified": "orange_transport",
+        "error": "abort"
+      }
+    },
+    "orange_transport": {
+      "router_field": "exit",
+      "mapping": {
+        "carried": "orange_release",
+        "error": "abort"
+      }
+    },
+    "orange_release": {
+      "router_field": "exit",
+      "mapping": {
+        "placed": "orange_receipt_settle",
+        "uncertain": "orange_receipt_settle",
+        "missed": "orange_receipt_settle",
+        "error": "abort"
+      }
+    },
+    "orange_receipt_settle": {
+      "router_field": "exit",
+      "mapping": {
+        "placed": "orange_handoff",
+        "executed_visual_unknown": "orange_handoff",
+        "executed_visual_unverified": "orange_handoff",
+        "error": "abort",
+        "unknown": "abort"
+      }
+    },
+    "orange_handoff": {
+      "router_field": "exit",
+      "mapping": {
+        "advanced": "yellow_perceive_plan",
+        "error": "abort"
+      }
+    },
+    "yellow_perceive_plan": {
+      "router_field": "exit",
+      "mapping": {
+        "planned": "yellow_grasp",
+        "error": "abort"
+      }
+    },
+    "yellow_grasp": {
+      "router_field": "exit",
+      "mapping": {
+        "verified": "yellow_transport",
+        "error": "abort"
+      }
+    },
+    "yellow_transport": {
+      "router_field": "exit",
+      "mapping": {
+        "carried": "yellow_release",
+        "error": "abort"
+      }
+    },
+    "yellow_release": {
+      "router_field": "exit",
+      "mapping": {
+        "placed": "yellow_receipt_settle",
+        "uncertain": "yellow_receipt_settle",
+        "missed": "yellow_receipt_settle",
+        "error": "abort"
+      }
+    },
+    "yellow_receipt_settle": {
+      "router_field": "exit",
+      "mapping": {
+        "placed": "yellow_handoff",
+        "executed_visual_unknown": "yellow_handoff",
+        "executed_visual_unverified": "yellow_handoff",
+        "error": "abort",
+        "unknown": "abort"
+      }
+    },
+    "yellow_handoff": {
+      "router_field": "exit",
+      "mapping": {
+        "advanced": "teal_perceive_plan",
+        "error": "abort"
+      }
+    },
+    "teal_perceive_plan": {
+      "router_field": "exit",
+      "mapping": {
+        "planned": "teal_grasp",
+        "error": "abort"
+      }
+    },
+    "teal_grasp": {
+      "router_field": "exit",
+      "mapping": {
+        "verified": "teal_transport",
+        "error": "abort"
+      }
+    },
+    "teal_transport": {
+      "router_field": "exit",
+      "mapping": {
+        "carried": "teal_release",
+        "error": "abort"
+      }
+    },
+    "teal_release": {
+      "router_field": "exit",
+      "mapping": {
+        "placed": "teal_receipt_settle",
+        "uncertain": "teal_receipt_settle",
+        "missed": "teal_receipt_settle",
+        "error": "abort"
+      }
+    },
+    "teal_receipt_settle": {
+      "router_field": "exit",
+      "mapping": {
+        "placed": "teal_handoff",
+        "executed_visual_unknown": "teal_handoff",
+        "executed_visual_unverified": "teal_handoff",
+        "error": "abort",
+        "unknown": "abort"
+      }
+    },
+    "teal_handoff": {
+      "router_field": "exit",
+      "mapping": {
+        "advanced": "purple_perceive_plan",
+        "error": "abort"
+      }
+    },
+    "purple_perceive_plan": {
+      "router_field": "exit",
+      "mapping": {
+        "planned": "purple_grasp",
+        "error": "abort"
+      }
+    },
+    "purple_grasp": {
+      "router_field": "exit",
+      "mapping": {
+        "verified": "purple_transport",
+        "error": "abort"
+      }
+    },
+    "purple_transport": {
+      "router_field": "exit",
+      "mapping": {
+        "carried": "purple_release",
+        "error": "abort"
+      }
+    },
+    "purple_release": {
+      "router_field": "exit",
+      "mapping": {
+        "placed": "purple_receipt_settle",
+        "uncertain": "purple_receipt_settle",
+        "missed": "purple_receipt_settle",
+        "error": "abort"
+      }
+    },
+    "purple_receipt_settle": {
+      "router_field": "exit",
+      "mapping": {
+        "placed": "purple_handoff",
+        "executed_visual_unknown": "purple_handoff",
+        "executed_visual_unverified": "purple_handoff",
+        "error": "abort",
+        "unknown": "abort"
+      }
+    },
+    "purple_handoff": {
+      "router_field": "exit",
+      "mapping": {
+        "advanced": "cyan_perceive_plan",
+        "error": "abort"
+      }
+    },
+    "cyan_perceive_plan": {
+      "router_field": "exit",
+      "mapping": {
+        "planned": "cyan_grasp",
+        "error": "abort"
+      }
+    },
+    "cyan_grasp": {
+      "router_field": "exit",
+      "mapping": {
+        "verified": "cyan_cyan_approach",
+        "error": "abort"
+      }
+    },
+    "cyan_cyan_approach": {
+      "router_field": "exit",
+      "mapping": {
+        "receiver_ready": "cyan_cyan_receiver_close",
+        "error": "abort"
+      }
+    },
+    "cyan_cyan_receiver_close": {
+      "router_field": "exit",
+      "mapping": {
+        "receiver_closed": "cyan_cyan_donor_release",
+        "error": "abort"
+      }
+    },
+    "cyan_cyan_donor_release": {
+      "router_field": "exit",
+      "mapping": {
+        "donor_released": "cyan_cyan_receiver_bind",
+        "error": "abort"
+      }
+    },
+    "cyan_cyan_receiver_bind": {
+      "router_field": "exit",
+      "mapping": {
+        "receiver_verified": "cyan_cyan_receiver_transport",
+        "error": "abort"
+      }
+    },
+    "cyan_cyan_receiver_transport": {
+      "router_field": "exit",
+      "mapping": {
+        "carried": "cyan_release",
+        "error": "abort"
+      }
+    },
+    "cyan_release": {
+      "router_field": "exit",
+      "mapping": {
+        "placed": "cyan_receipt_settle",
+        "uncertain": "cyan_receipt_settle",
+        "missed": "cyan_receipt_settle",
+        "error": "abort"
+      }
+    },
+    "cyan_receipt_settle": {
+      "router_field": "exit",
+      "mapping": {
+        "placed": "cyan_handoff",
+        "executed_visual_unknown": "cyan_handoff",
+        "executed_visual_unverified": "cyan_handoff",
+        "error": "abort",
+        "unknown": "abort"
+      }
+    },
+    "cyan_handoff": {
+      "router_field": "exit",
+      "mapping": {
+        "advanced": "mint_perceive_plan",
+        "error": "abort"
+      }
+    },
+    "mint_perceive_plan": {
+      "router_field": "exit",
+      "mapping": {
+        "planned": "mint_grasp",
+        "error": "abort"
+      }
+    },
+    "mint_grasp": {
+      "router_field": "exit",
+      "mapping": {
+        "verified": "mint_transport",
+        "error": "abort"
+      }
+    },
+    "mint_transport": {
+      "router_field": "exit",
+      "mapping": {
+        "carried": "mint_release",
+        "error": "abort"
+      }
+    },
+    "mint_release": {
+      "router_field": "exit",
+      "mapping": {
+        "placed": "mint_receipt_settle",
+        "uncertain": "mint_receipt_settle",
+        "missed": "mint_receipt_settle",
+        "error": "abort"
+      }
+    },
+    "mint_receipt_settle": {
+      "router_field": "exit",
+      "mapping": {
+        "placed": "mint_handoff",
+        "executed_visual_unknown": "mint_handoff",
+        "executed_visual_unverified": "mint_handoff",
+        "error": "abort",
+        "unknown": "abort"
+      }
+    },
+    "mint_handoff": {
+      "router_field": "exit",
+      "mapping": {
+        "advanced": "lime_perceive_plan",
+        "error": "abort"
+      }
+    },
+    "lime_perceive_plan": {
+      "router_field": "exit",
+      "mapping": {
+        "planned": "lime_grasp",
+        "error": "abort"
+      }
+    },
+    "lime_grasp": {
+      "router_field": "exit",
+      "mapping": {
+        "verified": "lime_transport",
+        "error": "abort"
+      }
+    },
+    "lime_transport": {
+      "router_field": "exit",
+      "mapping": {
+        "carried": "lime_release",
+        "error": "abort"
+      }
+    },
+    "lime_release": {
+      "router_field": "exit",
+      "mapping": {
+        "placed": "lime_receipt_settle",
+        "uncertain": "lime_receipt_settle",
+        "missed": "lime_receipt_settle",
+        "error": "abort"
+      }
+    },
+    "lime_receipt_settle": {
+      "router_field": "exit",
+      "mapping": {
+        "placed": "lime_handoff",
+        "executed_visual_unknown": "lime_handoff",
+        "executed_visual_unverified": "lime_handoff",
+        "error": "abort",
+        "unknown": "abort"
+      }
+    },
+    "lime_handoff": {
+      "router_field": "exit",
+      "mapping": {
+        "advanced": "maroon_perceive_plan",
+        "error": "abort"
+      }
+    },
+    "maroon_perceive_plan": {
+      "router_field": "exit",
+      "mapping": {
+        "planned": "maroon_grasp",
+        "error": "abort"
+      }
+    },
+    "maroon_grasp": {
+      "router_field": "exit",
+      "mapping": {
+        "verified": "maroon_transport",
+        "error": "abort"
+      }
+    },
+    "maroon_transport": {
+      "router_field": "exit",
+      "mapping": {
+        "carried": "maroon_release",
+        "error": "abort"
+      }
+    },
+    "maroon_release": {
+      "router_field": "exit",
+      "mapping": {
+        "placed": "maroon_receipt_settle",
+        "uncertain": "maroon_receipt_settle",
+        "missed": "maroon_receipt_settle",
+        "error": "abort"
+      }
+    },
+    "maroon_receipt_settle": {
+      "router_field": "exit",
+      "mapping": {
+        "placed": "maroon_handoff",
+        "executed_visual_unknown": "maroon_handoff",
+        "executed_visual_unverified": "maroon_handoff",
+        "error": "abort",
+        "unknown": "abort"
+      }
+    },
+    "maroon_handoff": {
+      "router_field": "exit",
+      "mapping": {
+        "advanced": "navy_perceive_plan",
+        "error": "abort"
+      }
+    },
+    "navy_perceive_plan": {
+      "router_field": "exit",
+      "mapping": {
+        "planned": "navy_grasp",
+        "error": "abort"
+      }
+    },
+    "navy_grasp": {
+      "router_field": "exit",
+      "mapping": {
+        "verified": "navy_transport",
+        "error": "abort"
+      }
+    },
+    "navy_transport": {
+      "router_field": "exit",
+      "mapping": {
+        "carried": "navy_release",
+        "error": "abort"
+      }
+    },
+    "navy_release": {
+      "router_field": "exit",
+      "mapping": {
+        "placed": "navy_receipt_settle",
+        "uncertain": "navy_receipt_settle",
+        "missed": "navy_receipt_settle",
+        "error": "abort"
+      }
+    },
+    "navy_receipt_settle": {
+      "router_field": "exit",
+      "mapping": {
+        "placed": "navy_handoff",
+        "executed_visual_unknown": "navy_handoff",
+        "executed_visual_unverified": "navy_handoff",
+        "error": "abort",
+        "unknown": "abort"
+      }
+    },
+    "navy_handoff": {
+      "router_field": "exit",
+      "mapping": {
+        "advanced": "pink_perceive_plan",
+        "error": "abort"
+      }
+    },
+    "pink_perceive_plan": {
+      "router_field": "exit",
+      "mapping": {
+        "planned": "pink_grasp",
+        "error": "abort"
+      }
+    },
+    "pink_grasp": {
+      "router_field": "exit",
+      "mapping": {
+        "verified": "pink_transport",
+        "error": "abort"
+      }
+    },
+    "pink_transport": {
+      "router_field": "exit",
+      "mapping": {
+        "carried": "pink_release",
+        "error": "abort"
+      }
+    },
+    "pink_release": {
+      "router_field": "exit",
+      "mapping": {
+        "placed": "pink_receipt_settle",
+        "uncertain": "pink_receipt_settle",
+        "missed": "pink_receipt_settle",
+        "error": "abort"
+      }
+    },
+    "pink_receipt_settle": {
+      "router_field": "exit",
+      "mapping": {
+        "placed": "pink_handoff",
+        "executed_visual_unknown": "pink_handoff",
+        "executed_visual_unverified": "pink_handoff",
+        "error": "abort",
+        "unknown": "abort"
+      }
+    },
+    "pink_handoff": {
+      "router_field": "exit",
+      "mapping": {
+        "advanced": "red_perceive_plan",
+        "error": "abort"
+      }
+    },
+    "red_perceive_plan": {
+      "router_field": "exit",
+      "mapping": {
+        "planned": "red_grasp",
+        "error": "abort"
+      }
+    },
+    "red_grasp": {
+      "router_field": "exit",
+      "mapping": {
+        "verified": "red_red_handoff_prepare",
+        "error": "abort"
+      }
+    },
+    "red_red_handoff_prepare": {
+      "router_field": "exit",
+      "mapping": {
+        "prepared": "red_red_receiver_close",
+        "error": "abort"
+      }
+    },
+    "red_red_receiver_close": {
+      "router_field": "exit",
+      "mapping": {
+        "dual_held": "red_red_sender_release",
+        "error": "abort"
+      }
+    },
+    "red_red_sender_release": {
+      "router_field": "exit",
+      "mapping": {
+        "transferred": "red_red_receiver_bind",
+        "error": "abort"
+      }
+    },
+    "red_red_receiver_bind": {
+      "router_field": "exit",
+      "mapping": {
+        "verified": "red_red_return_prepare",
+        "error": "abort"
+      }
+    },
+    "red_red_return_prepare": {
+      "router_field": "exit",
+      "mapping": {
+        "prepared": "red_red_return_close",
+        "error": "abort"
+      }
+    },
+    "red_red_return_close": {
+      "router_field": "exit",
+      "mapping": {
+        "dual_held": "red_red_return_release",
+        "error": "abort"
+      }
+    },
+    "red_red_return_release": {
+      "router_field": "exit",
+      "mapping": {
+        "transferred": "red_red_return_bind",
+        "error": "abort"
+      }
+    },
+    "red_red_return_bind": {
+      "router_field": "exit",
+      "mapping": {
+        "verified": "red_red_goal_transport",
+        "error": "abort"
+      }
+    },
+    "red_red_goal_transport": {
+      "router_field": "exit",
+      "mapping": {
+        "carried": "red_red_goal_release",
+        "error": "abort"
+      }
+    },
+    "red_red_goal_release": {
+      "router_field": "exit",
+      "mapping": {
+        "placed": "red_red_goal_verify",
+        "uncertain": "red_red_goal_verify",
+        "missed": "red_red_goal_verify",
+        "error": "abort"
+      }
+    },
+    "red_red_goal_verify": {
+      "router_field": "exit",
+      "mapping": {
+        "advanced": "finish_all12",
+        "error": "abort"
+      }
+    },
+    "finish_all12": {
+      "router_field": "exit",
+      "mapping": {
+        "completed": "done",
+        "error": "abort"
+      }
+    }
+  },
+  "subgraphs": {
+    "perceive_plan_sg": {
+      "skill": "modular-rgb-puzzler",
+      "inputs": {
+        "state": "ModularState"
+      },
+      "outputs": {
+        "state": {
+          "$ref": "act.state"
+        },
+        "evidence": {
+          "$ref": "act.evidence"
+        },
+        "decision": {
+          "$ref": "act.route"
+        }
+      },
+      "nodes": {
+        "act": {
+          "type": "script",
+          "inputs": {
+            "state": {
+              "$ref": "in.state"
+            }
+          },
+          "script": "scripts/perceive_plan.py"
+        }
+      },
+      "edges": [
+        [
+          "START",
+          "act"
+        ],
+        [
+          "act",
+          "END"
+        ]
+      ],
+      "conditional_edges": {},
+      "exit": {
+        "router_field": "route",
+        "success_values": [
+          "planned"
+        ]
+      },
+      "on_error": "error"
+    },
+    "grasp_sg": {
+      "skill": "modular-rgb-puzzler",
+      "inputs": {
+        "state": "ModularState"
+      },
+      "outputs": {
+        "state": {
+          "$ref": "act.state"
+        },
+        "evidence": {
+          "$ref": "act.evidence"
+        },
+        "decision": {
+          "$ref": "act.route"
+        }
+      },
+      "nodes": {
+        "act": {
+          "type": "script",
+          "inputs": {
+            "state": {
+              "$ref": "in.state"
+            }
+          },
+          "script": "scripts/grasp.py"
+        }
+      },
+      "edges": [
+        [
+          "START",
+          "act"
+        ],
+        [
+          "act",
+          "END"
+        ]
+      ],
+      "conditional_edges": {},
+      "exit": {
+        "router_field": "route",
+        "success_values": [
+          "verified"
+        ]
+      },
+      "on_error": "error"
+    },
+    "transport_sg": {
+      "skill": "modular-rgb-puzzler",
+      "inputs": {
+        "state": "ModularState"
+      },
+      "outputs": {
+        "state": {
+          "$ref": "act.state"
+        },
+        "evidence": {
+          "$ref": "act.evidence"
+        },
+        "decision": {
+          "$ref": "act.route"
+        }
+      },
+      "nodes": {
+        "act": {
+          "type": "script",
+          "inputs": {
+            "state": {
+              "$ref": "in.state"
+            }
+          },
+          "script": "scripts/transport.py"
+        }
+      },
+      "edges": [
+        [
+          "START",
+          "act"
+        ],
+        [
+          "act",
+          "END"
+        ]
+      ],
+      "conditional_edges": {},
+      "exit": {
+        "router_field": "route",
+        "success_values": [
+          "carried"
+        ]
+      },
+      "on_error": "error"
+    },
+    "release_sg": {
+      "skill": "modular-rgb-puzzler",
+      "inputs": {
+        "state": "ModularState"
+      },
+      "outputs": {
+        "state": {
+          "$ref": "act.state"
+        },
+        "evidence": {
+          "$ref": "act.evidence"
+        },
+        "decision": {
+          "$ref": "act.route"
+        }
+      },
+      "nodes": {
+        "act": {
+          "type": "script",
+          "inputs": {
+            "state": {
+              "$ref": "in.state"
+            }
+          },
+          "script": "scripts/release.py"
+        }
+      },
+      "edges": [
+        [
+          "START",
+          "act"
+        ],
+        [
+          "act",
+          "END"
+        ]
+      ],
+      "conditional_edges": {},
+      "exit": {
+        "router_field": "route",
+        "success_values": [
+          "placed",
+          "uncertain",
+          "missed"
+        ]
+      },
+      "on_error": "error"
+    },
+    "receipt_settle_sg": {
+      "skill": "modular-rgb-puzzler",
+      "inputs": {
+        "state": "ModularState"
+      },
+      "outputs": {
+        "state": {
+          "$ref": "act.state"
+        },
+        "evidence": {
+          "$ref": "act.evidence"
+        },
+        "decision": {
+          "$ref": "act.route"
+        }
+      },
+      "nodes": {
+        "act": {
+          "type": "script",
+          "inputs": {
+            "state": {
+              "$ref": "in.state"
+            }
+          },
+          "script": "scripts/receipt_settle.py"
+        }
+      },
+      "edges": [
+        [
+          "START",
+          "act"
+        ],
+        [
+          "act",
+          "END"
+        ]
+      ],
+      "conditional_edges": {},
+      "exit": {
+        "router_field": "route",
+        "success_values": [
+          "placed",
+          "unknown",
+          "executed_visual_unknown",
+          "executed_visual_unverified"
+        ]
+      },
+      "on_error": "error"
+    },
+    "handoff_sg": {
+      "skill": "modular-rgb-puzzler",
+      "inputs": {
+        "state": "ModularState",
+        "expected_piece": "string"
+      },
+      "outputs": {
+        "state": {
+          "$ref": "act.state"
+        },
+        "evidence": {
+          "$ref": "act.evidence"
+        },
+        "decision": {
+          "$ref": "act.route"
+        }
+      },
+      "nodes": {
+        "act": {
+          "type": "script",
+          "inputs": {
+            "state": {
+              "$ref": "in.state"
+            },
+            "expected_piece": {
+              "$ref": "in.expected_piece"
+            }
+          },
+          "script": "scripts/handoff.py"
+        }
+      },
+      "edges": [
+        [
+          "START",
+          "act"
+        ],
+        [
+          "act",
+          "END"
+        ]
+      ],
+      "conditional_edges": {},
+      "exit": {
+        "router_field": "route",
+        "success_values": [
+          "advanced"
+        ]
+      },
+      "on_error": "error"
+    },
+    "cyan_approach_sg": {
+      "skill": "modular-rgb-puzzler",
+      "inputs": {
+        "state": "ModularState"
+      },
+      "outputs": {
+        "state": {
+          "$ref": "act.state"
+        },
+        "evidence": {
+          "$ref": "act.evidence"
+        },
+        "decision": {
+          "$ref": "act.route"
+        }
+      },
+      "nodes": {
+        "act": {
+          "type": "script",
+          "inputs": {
+            "state": {
+              "$ref": "in.state"
+            }
+          },
+          "script": "scripts/cyan_approach.py"
+        }
+      },
+      "edges": [
+        [
+          "START",
+          "act"
+        ],
+        [
+          "act",
+          "END"
+        ]
+      ],
+      "conditional_edges": {},
+      "exit": {
+        "router_field": "route",
+        "success_values": [
+          "receiver_ready"
+        ]
+      },
+      "on_error": "error"
+    },
+    "cyan_receiver_close_sg": {
+      "skill": "modular-rgb-puzzler",
+      "inputs": {
+        "state": "ModularState"
+      },
+      "outputs": {
+        "state": {
+          "$ref": "act.state"
+        },
+        "evidence": {
+          "$ref": "act.evidence"
+        },
+        "decision": {
+          "$ref": "act.route"
+        }
+      },
+      "nodes": {
+        "act": {
+          "type": "script",
+          "inputs": {
+            "state": {
+              "$ref": "in.state"
+            }
+          },
+          "script": "scripts/cyan_receiver_close.py"
+        }
+      },
+      "edges": [
+        [
+          "START",
+          "act"
+        ],
+        [
+          "act",
+          "END"
+        ]
+      ],
+      "conditional_edges": {},
+      "exit": {
+        "router_field": "route",
+        "success_values": [
+          "receiver_closed"
+        ]
+      },
+      "on_error": "error"
+    },
+    "cyan_donor_release_sg": {
+      "skill": "modular-rgb-puzzler",
+      "inputs": {
+        "state": "ModularState"
+      },
+      "outputs": {
+        "state": {
+          "$ref": "act.state"
+        },
+        "evidence": {
+          "$ref": "act.evidence"
+        },
+        "decision": {
+          "$ref": "act.route"
+        }
+      },
+      "nodes": {
+        "act": {
+          "type": "script",
+          "inputs": {
+            "state": {
+              "$ref": "in.state"
+            }
+          },
+          "script": "scripts/cyan_donor_release.py"
+        }
+      },
+      "edges": [
+        [
+          "START",
+          "act"
+        ],
+        [
+          "act",
+          "END"
+        ]
+      ],
+      "conditional_edges": {},
+      "exit": {
+        "router_field": "route",
+        "success_values": [
+          "donor_released"
+        ]
+      },
+      "on_error": "error"
+    },
+    "cyan_receiver_bind_sg": {
+      "skill": "modular-rgb-puzzler",
+      "inputs": {
+        "state": "ModularState"
+      },
+      "outputs": {
+        "state": {
+          "$ref": "act.state"
+        },
+        "evidence": {
+          "$ref": "act.evidence"
+        },
+        "decision": {
+          "$ref": "act.route"
+        }
+      },
+      "nodes": {
+        "act": {
+          "type": "script",
+          "inputs": {
+            "state": {
+              "$ref": "in.state"
+            }
+          },
+          "script": "scripts/cyan_receiver_bind.py"
+        }
+      },
+      "edges": [
+        [
+          "START",
+          "act"
+        ],
+        [
+          "act",
+          "END"
+        ]
+      ],
+      "conditional_edges": {},
+      "exit": {
+        "router_field": "route",
+        "success_values": [
+          "receiver_verified"
+        ]
+      },
+      "on_error": "error"
+    },
+    "cyan_receiver_transport_sg": {
+      "skill": "modular-rgb-puzzler",
+      "inputs": {
+        "state": "ModularState"
+      },
+      "outputs": {
+        "state": {
+          "$ref": "act.state"
+        },
+        "evidence": {
+          "$ref": "act.evidence"
+        },
+        "decision": {
+          "$ref": "act.route"
+        }
+      },
+      "nodes": {
+        "act": {
+          "type": "script",
+          "inputs": {
+            "state": {
+              "$ref": "in.state"
+            }
+          },
+          "script": "scripts/cyan_receiver_transport.py"
+        }
+      },
+      "edges": [
+        [
+          "START",
+          "act"
+        ],
+        [
+          "act",
+          "END"
+        ]
+      ],
+      "conditional_edges": {},
+      "exit": {
+        "router_field": "route",
+        "success_values": [
+          "carried"
+        ]
+      },
+      "on_error": "error"
+    },
+    "red_handoff_prepare_sg": {
+      "skill": "modular-rgb-puzzler",
+      "inputs": {
+        "state": "ModularState"
+      },
+      "outputs": {
+        "state": {
+          "$ref": "act.state"
+        },
+        "evidence": {
+          "$ref": "act.evidence"
+        },
+        "decision": {
+          "$ref": "act.route"
+        }
+      },
+      "nodes": {
+        "act": {
+          "type": "script",
+          "inputs": {
+            "state": {
+              "$ref": "in.state"
+            }
+          },
+          "script": "scripts/red_handoff_prepare.py"
+        }
+      },
+      "edges": [
+        [
+          "START",
+          "act"
+        ],
+        [
+          "act",
+          "END"
+        ]
+      ],
+      "conditional_edges": {},
+      "exit": {
+        "router_field": "route",
+        "success_values": [
+          "prepared"
+        ]
+      },
+      "on_error": "error"
+    },
+    "red_receiver_close_sg": {
+      "skill": "modular-rgb-puzzler",
+      "inputs": {
+        "state": "ModularState"
+      },
+      "outputs": {
+        "state": {
+          "$ref": "act.state"
+        },
+        "evidence": {
+          "$ref": "act.evidence"
+        },
+        "decision": {
+          "$ref": "act.route"
+        }
+      },
+      "nodes": {
+        "act": {
+          "type": "script",
+          "inputs": {
+            "state": {
+              "$ref": "in.state"
+            }
+          },
+          "script": "scripts/red_receiver_close.py"
+        }
+      },
+      "edges": [
+        [
+          "START",
+          "act"
+        ],
+        [
+          "act",
+          "END"
+        ]
+      ],
+      "conditional_edges": {},
+      "exit": {
+        "router_field": "route",
+        "success_values": [
+          "dual_held"
+        ]
+      },
+      "on_error": "error"
+    },
+    "red_sender_release_sg": {
+      "skill": "modular-rgb-puzzler",
+      "inputs": {
+        "state": "ModularState"
+      },
+      "outputs": {
+        "state": {
+          "$ref": "act.state"
+        },
+        "evidence": {
+          "$ref": "act.evidence"
+        },
+        "decision": {
+          "$ref": "act.route"
+        }
+      },
+      "nodes": {
+        "act": {
+          "type": "script",
+          "inputs": {
+            "state": {
+              "$ref": "in.state"
+            }
+          },
+          "script": "scripts/red_sender_release.py"
+        }
+      },
+      "edges": [
+        [
+          "START",
+          "act"
+        ],
+        [
+          "act",
+          "END"
+        ]
+      ],
+      "conditional_edges": {},
+      "exit": {
+        "router_field": "route",
+        "success_values": [
+          "transferred"
+        ]
+      },
+      "on_error": "error"
+    },
+    "red_receiver_bind_sg": {
+      "skill": "modular-rgb-puzzler",
+      "inputs": {
+        "state": "ModularState"
+      },
+      "outputs": {
+        "state": {
+          "$ref": "act.state"
+        },
+        "evidence": {
+          "$ref": "act.evidence"
+        },
+        "decision": {
+          "$ref": "act.route"
+        }
+      },
+      "nodes": {
+        "act": {
+          "type": "script",
+          "inputs": {
+            "state": {
+              "$ref": "in.state"
+            }
+          },
+          "script": "scripts/red_receiver_bind.py"
+        }
+      },
+      "edges": [
+        [
+          "START",
+          "act"
+        ],
+        [
+          "act",
+          "END"
+        ]
+      ],
+      "conditional_edges": {},
+      "exit": {
+        "router_field": "route",
+        "success_values": [
+          "verified"
+        ]
+      },
+      "on_error": "error"
+    },
+    "red_return_prepare_sg": {
+      "skill": "modular-rgb-puzzler",
+      "inputs": {
+        "state": "ModularState"
+      },
+      "outputs": {
+        "state": {
+          "$ref": "act.state"
+        },
+        "evidence": {
+          "$ref": "act.evidence"
+        },
+        "decision": {
+          "$ref": "act.route"
+        }
+      },
+      "nodes": {
+        "act": {
+          "type": "script",
+          "inputs": {
+            "state": {
+              "$ref": "in.state"
+            }
+          },
+          "script": "scripts/red_return_prepare.py"
+        }
+      },
+      "edges": [
+        [
+          "START",
+          "act"
+        ],
+        [
+          "act",
+          "END"
+        ]
+      ],
+      "conditional_edges": {},
+      "exit": {
+        "router_field": "route",
+        "success_values": [
+          "prepared"
+        ]
+      },
+      "on_error": "error"
+    },
+    "red_return_close_sg": {
+      "skill": "modular-rgb-puzzler",
+      "inputs": {
+        "state": "ModularState"
+      },
+      "outputs": {
+        "state": {
+          "$ref": "act.state"
+        },
+        "evidence": {
+          "$ref": "act.evidence"
+        },
+        "decision": {
+          "$ref": "act.route"
+        }
+      },
+      "nodes": {
+        "act": {
+          "type": "script",
+          "inputs": {
+            "state": {
+              "$ref": "in.state"
+            }
+          },
+          "script": "scripts/red_return_close.py"
+        }
+      },
+      "edges": [
+        [
+          "START",
+          "act"
+        ],
+        [
+          "act",
+          "END"
+        ]
+      ],
+      "conditional_edges": {},
+      "exit": {
+        "router_field": "route",
+        "success_values": [
+          "dual_held"
+        ]
+      },
+      "on_error": "error"
+    },
+    "red_return_release_sg": {
+      "skill": "modular-rgb-puzzler",
+      "inputs": {
+        "state": "ModularState"
+      },
+      "outputs": {
+        "state": {
+          "$ref": "act.state"
+        },
+        "evidence": {
+          "$ref": "act.evidence"
+        },
+        "decision": {
+          "$ref": "act.route"
+        }
+      },
+      "nodes": {
+        "act": {
+          "type": "script",
+          "inputs": {
+            "state": {
+              "$ref": "in.state"
+            }
+          },
+          "script": "scripts/red_return_release.py"
+        }
+      },
+      "edges": [
+        [
+          "START",
+          "act"
+        ],
+        [
+          "act",
+          "END"
+        ]
+      ],
+      "conditional_edges": {},
+      "exit": {
+        "router_field": "route",
+        "success_values": [
+          "transferred"
+        ]
+      },
+      "on_error": "error"
+    },
+    "red_return_bind_sg": {
+      "skill": "modular-rgb-puzzler",
+      "inputs": {
+        "state": "ModularState"
+      },
+      "outputs": {
+        "state": {
+          "$ref": "act.state"
+        },
+        "evidence": {
+          "$ref": "act.evidence"
+        },
+        "decision": {
+          "$ref": "act.route"
+        }
+      },
+      "nodes": {
+        "act": {
+          "type": "script",
+          "inputs": {
+            "state": {
+              "$ref": "in.state"
+            }
+          },
+          "script": "scripts/red_return_bind.py"
+        }
+      },
+      "edges": [
+        [
+          "START",
+          "act"
+        ],
+        [
+          "act",
+          "END"
+        ]
+      ],
+      "conditional_edges": {},
+      "exit": {
+        "router_field": "route",
+        "success_values": [
+          "verified"
+        ]
+      },
+      "on_error": "error"
+    },
+    "red_goal_transport_sg": {
+      "skill": "modular-rgb-puzzler",
+      "inputs": {
+        "state": "ModularState"
+      },
+      "outputs": {
+        "state": {
+          "$ref": "act.state"
+        },
+        "evidence": {
+          "$ref": "act.evidence"
+        },
+        "decision": {
+          "$ref": "act.route"
+        }
+      },
+      "nodes": {
+        "act": {
+          "type": "script",
+          "inputs": {
+            "state": {
+              "$ref": "in.state"
+            }
+          },
+          "script": "scripts/red_goal_transport.py"
+        }
+      },
+      "edges": [
+        [
+          "START",
+          "act"
+        ],
+        [
+          "act",
+          "END"
+        ]
+      ],
+      "conditional_edges": {},
+      "exit": {
+        "router_field": "route",
+        "success_values": [
+          "carried"
+        ]
+      },
+      "on_error": "error"
+    },
+    "red_goal_release_sg": {
+      "skill": "modular-rgb-puzzler",
+      "inputs": {
+        "state": "ModularState"
+      },
+      "outputs": {
+        "state": {
+          "$ref": "act.state"
+        },
+        "evidence": {
+          "$ref": "act.evidence"
+        },
+        "decision": {
+          "$ref": "act.route"
+        }
+      },
+      "nodes": {
+        "act": {
+          "type": "script",
+          "inputs": {
+            "state": {
+              "$ref": "in.state"
+            }
+          },
+          "script": "scripts/red_goal_release.py"
+        }
+      },
+      "edges": [
+        [
+          "START",
+          "act"
+        ],
+        [
+          "act",
+          "END"
+        ]
+      ],
+      "conditional_edges": {},
+      "exit": {
+        "router_field": "route",
+        "success_values": [
+          "placed",
+          "uncertain",
+          "missed"
+        ]
+      },
+      "on_error": "error"
+    },
+    "red_goal_verify_sg": {
+      "skill": "modular-rgb-puzzler",
+      "inputs": {
+        "state": "ModularState"
+      },
+      "outputs": {
+        "state": {
+          "$ref": "act.state"
+        },
+        "evidence": {
+          "$ref": "act.evidence"
+        },
+        "decision": {
+          "$ref": "act.route"
+        }
+      },
+      "nodes": {
+        "act": {
+          "type": "script",
+          "inputs": {
+            "state": {
+              "$ref": "in.state"
+            }
+          },
+          "script": "scripts/red_goal_verify.py"
+        }
+      },
+      "edges": [
+        [
+          "START",
+          "act"
+        ],
+        [
+          "act",
+          "END"
+        ]
+      ],
+      "conditional_edges": {},
+      "exit": {
+        "router_field": "route",
+        "success_values": [
+          "advanced"
+        ]
+      },
+      "on_error": "error"
+    },
+    "finish_sg": {
+      "skill": "modular-rgb-puzzler",
+      "inputs": {
+        "state": "ModularState"
+      },
+      "outputs": {
+        "state": {
+          "$ref": "act.state"
+        },
+        "evidence": {
+          "$ref": "act.evidence"
+        },
+        "decision": {
+          "$ref": "act.route"
+        }
+      },
+      "nodes": {
+        "act": {
+          "type": "script",
+          "inputs": {
+            "state": {
+              "$ref": "in.state"
+            }
+          },
+          "script": "scripts/finish.py"
+        }
+      },
+      "edges": [
+        [
+          "START",
+          "act"
+        ],
+        [
+          "act",
+          "END"
+        ]
+      ],
+      "conditional_edges": {},
+      "exit": {
+        "router_field": "route",
+        "success_values": [
+          "completed"
+        ]
+      },
+      "on_error": "error"
+    }
+  }
+}

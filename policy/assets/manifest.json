@@ -1,0 +1,245 @@
+{
+  "yellow": {
+    "path": "/srv/home/bohanlyu/gap-puzzler/assets/yellow.obj",
+    "collision_path": "/srv/home/bohanlyu/gap-puzzler/assets/yellow_000.obj",
+    "collision_paths": [
+      "/srv/home/bohanlyu/gap-puzzler/assets/yellow_001.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/yellow_002.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/yellow_003.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/yellow_004.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/yellow_005.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/yellow_006.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/yellow_007.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/yellow_008.obj"
+    ]
+  },
+  "purple": {
+    "path": "/srv/home/bohanlyu/gap-puzzler/assets/purple.obj",
+    "collision_path": "/srv/home/bohanlyu/gap-puzzler/assets/purple_000.obj",
+    "collision_paths": [
+      "/srv/home/bohanlyu/gap-puzzler/assets/purple_001.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/purple_002.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/purple_003.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/purple_004.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/purple_005.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/purple_006.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/purple_007.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/purple_008.obj"
+    ]
+  },
+  "cyan": {
+    "path": "/srv/home/bohanlyu/gap-puzzler/assets/cyan.obj",
+    "collision_path": "/srv/home/bohanlyu/gap-puzzler/assets/cyan_000.obj",
+    "collision_paths": [
+      "/srv/home/bohanlyu/gap-puzzler/assets/cyan_001.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/cyan_002.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/cyan_003.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/cyan_004.obj"
+    ]
+  },
+  "lime": {
+    "path": "/srv/home/bohanlyu/gap-puzzler/assets/lime.obj",
+    "collision_path": "/srv/home/bohanlyu/gap-puzzler/assets/lime_000.obj",
+    "collision_paths": [
+      "/srv/home/bohanlyu/gap-puzzler/assets/lime_001.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/lime_002.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/lime_003.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/lime_004.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/lime_005.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/lime_006.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/lime_007.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/lime_008.obj"
+    ]
+  },
+  "mint": {
+    "path": "/srv/home/bohanlyu/gap-puzzler/assets/mint.obj",
+    "collision_path": "/srv/home/bohanlyu/gap-puzzler/assets/mint_000.obj",
+    "collision_paths": [
+      "/srv/home/bohanlyu/gap-puzzler/assets/mint_001.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/mint_002.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/mint_003.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/mint_004.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/mint_005.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/mint_006.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/mint_007.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/mint_008.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/mint_009.obj"
+    ]
+  },
+  "maroon": {
+    "path": "/srv/home/bohanlyu/gap-puzzler/assets/maroon.obj",
+    "collision_path": "/srv/home/bohanlyu/gap-puzzler/assets/maroon_000.obj",
+    "collision_paths": [
+      "/srv/home/bohanlyu/gap-puzzler/assets/maroon_001.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/maroon_002.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/maroon_003.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/maroon_004.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/maroon_005.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/maroon_006.obj"
+    ]
+  },
+  "teal": {
+    "path": "/srv/home/bohanlyu/gap-puzzler/assets/teal.obj",
+    "collision_path": "/srv/home/bohanlyu/gap-puzzler/assets/teal_000.obj",
+    "collision_paths": [
+      "/srv/home/bohanlyu/gap-puzzler/assets/teal_001.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/teal_002.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/teal_003.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/teal_004.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/teal_005.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/teal_006.obj"
+    ]
+  },
+  "orange": {
+    "path": "/srv/home/bohanlyu/gap-puzzler/assets/orange.obj",
+    "collision_path": "/srv/home/bohanlyu/gap-puzzler/assets/orange_000.obj",
+    "collision_paths": [
+      "/srv/home/bohanlyu/gap-puzzler/assets/orange_001.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/orange_002.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/orange_003.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/orange_004.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/orange_005.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/orange_006.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/orange_007.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/orange_008.obj"
+    ]
+  },
+  "navy": {
+    "path": "/srv/home/bohanlyu/gap-puzzler/assets/navy.obj",
+    "collision_path": "/srv/home/bohanlyu/gap-puzzler/assets/navy_000.obj",
+    "collision_paths": [
+      "/srv/home/bohanlyu/gap-puzzler/assets/navy_001.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/navy_002.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/navy_003.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/navy_004.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/navy_005.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/navy_006.obj"
+    ]
+  },
+  "pink": {
+    "path": "/srv/home/bohanlyu/gap-puzzler/assets/pink.obj",
+    "collision_path": "/srv/home/bohanlyu/gap-puzzler/assets/pink_000.obj",
+    "collision_paths": [
+      "/srv/home/bohanlyu/gap-puzzler/assets/pink_001.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/pink_002.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/pink_003.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/pink_004.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/pink_005.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/pink_006.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/pink_007.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/pink_008.obj"
+    ]
+  },
+  "red": {
+    "path": "/srv/home/bohanlyu/gap-puzzler/assets/red.obj",
+    "collision_path": "/srv/home/bohanlyu/gap-puzzler/assets/red_000.obj",
+    "collision_paths": [
+      "/srv/home/bohanlyu/gap-puzzler/assets/red_001.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/red_002.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/red_003.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/red_004.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/red_005.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/red_006.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/red_007.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/red_008.obj"
+    ]
+  },
+  "azure": {
+    "path": "/srv/home/bohanlyu/gap-puzzler/assets/azure.obj",
+    "collision_path": "/srv/home/bohanlyu/gap-puzzler/assets/azure_000.obj",
+    "collision_paths": [
+      "/srv/home/bohanlyu/gap-puzzler/assets/azure_001.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/azure_002.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/azure_003.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/azure_004.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/azure_005.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/azure_006.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/azure_007.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/azure_008.obj"
+    ]
+  },
+  "board": {
+    "path": "/srv/home/bohanlyu/gap-puzzler/assets/board.obj",
+    "collision_path": "/srv/home/bohanlyu/gap-puzzler/assets/board_000.obj",
+    "collision_paths": [
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_001.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_002.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_003.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_004.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_005.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_006.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_007.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_008.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_009.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_010.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_011.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_012.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_013.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_014.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_015.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_016.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_017.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_018.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_019.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_020.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_021.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_022.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_023.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_024.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_025.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_026.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_027.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_028.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_029.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_030.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_031.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_032.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_033.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_034.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_035.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_036.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_037.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_038.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_039.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_040.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_041.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_042.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_043.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_044.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_045.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_046.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_047.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_048.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_049.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_050.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_051.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_052.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_053.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_054.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_055.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_056.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_057.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_058.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_059.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_060.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_061.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_062.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_063.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_064.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_065.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_066.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_067.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_068.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_069.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_070.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_071.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_072.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_073.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_074.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_075.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_076.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_077.obj",
+      "/srv/home/bohanlyu/gap-puzzler/assets/board_078.obj"
+    ]
+  }
+}

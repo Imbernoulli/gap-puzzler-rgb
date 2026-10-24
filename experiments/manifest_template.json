@@ -1,0 +1,44 @@
+{
+  "initialization": "fresh_canonical_all12_loose",
+  "max_steps": 60000,
+  "device": "cuda:0",
+  "contact_capacity": 4096,
+  "rgb_renderer": "RGBSensor tiled CUDA renderer",
+  "ordered_stages": [
+    "azure",
+    "orange",
+    "yellow",
+    "teal",
+    "purple",
+    "cyan",
+    "mint",
+    "lime",
+    "maroon",
+    "navy",
+    "pink",
+    "red"
+  ],
+  "piece_phase_count": 83,
+  "initial_ledgers_empty": true,
+  "initialized_prefix": [],
+  "terminate_on_success": false,
+  "public_initial_layout": {
+    "name": "C_Lime_world_y_plus070",
+    "piece": "lime",
+    "translation_m": [
+      0.0,
+      0.07,
+      0.0
+    ],
+    "all12_loose": true
+  },
+  "canonical_original_staging": false,
+  "runtime_env": {
+    "OPENBLAS_NUM_THREADS": "1",
+    "OMP_NUM_THREADS": "2"
+  },
+  "schema": "gap_puzzler_rgb.full12_native.v1",
+  "native_run_started": false,
+  "full12_acceptance": false,
+  "policy_source": "policy/ (from gap-puzzler-web runs/pyramid_full12_bimanual_layout_c_v13/workspace)"
+}

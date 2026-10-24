@@ -1,0 +1,14 @@
+{
+  "object_relative_grasp_se3": {
+    "position_m": [
+      -0.014063125127011621,
+      -0.038565442001748364,
+      0.010828235403750658
+    ],
+    "source_scope": "Public-CAD candidate: translate the baseline TCP +2mm along hand x and +2mm along hand z in the source body frame; unchanged orientation. Actual current RGB/q16/FK/corridor/retained guards/postlift RGB remain required; no grasp-retention guarantee."
+  },
+  "source_contact_grasp": {
+    "candidate_reason": "One public-CAD source pose change: baseline TCP +handx2mm +handz2mm, targeting lateral/tip edge support. Carry/physics/force/friction/contact gates unchanged."
+  },
+  "source_profile_provenance": "Source pose screened with authentic historical RGB/q16, public selected-bead/retained geometry and native GPU IK; nominal grasp_heights loop labels are ignored by object_relative_grasp_se3. Runtime current RGB/q16/physical checkpoints remain mandatory."
+}

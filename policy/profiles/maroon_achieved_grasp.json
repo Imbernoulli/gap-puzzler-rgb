@@ -1,0 +1,103 @@
+{
+  "schema": "puzzler.public_body_relative_grasp_profile.v1",
+  "piece": "maroon",
+  "grasp_index": 3,
+  "grasp_tcp_center_body_m": [
+    -0.026968523352162696,
+    0.01244655938120989,
+    0.012647604450555069
+  ],
+  "grasp_rotation_body": [
+    [
+      0.8710626097029269,
+      -0.023801081198238695,
+      0.4905949841889149
+    ],
+    [
+      -0.015297855365125377,
+      -0.999655309312002,
+      -0.02133631143271245
+    ],
+    [
+      0.49093370794716723,
+      0.011080212007034905,
+      -0.8711264680304032
+    ]
+  ],
+  "source_open_width": 0.055,
+  "release_open_width": 0.04,
+  "source_hover": 0.11,
+  "lift": 0.085,
+  "transport": 0.07,
+  "release_height": 0.003,
+  "max_release_height": 0.003,
+  "retreat": 0.05,
+  "vertical_retreat": false,
+  "source_body_symmetries": [
+    "I",
+    "Rz180_index3to0"
+  ],
+  "support_anchor": {
+    "module": "puzzler.modular_maroon_anchor",
+    "arm_id": 0,
+    "offset_board_m": [
+      -0.078,
+      0.145,
+      0.02
+    ],
+    "hover_m": 0.09,
+    "close_heading_in_board_deg": -90.0,
+    "width_m": 0.008
+  },
+  "requested_demo_height_m": 0.006,
+  "achieved_tcp_height_body_m": 0.012647604450555069,
+  "runtime_inputs": "Fresh measuredRGB body and board, robotFK, publicCAD only. No absoluteworldpose or joint program.",
+  "release_body_offset_goal_frame_m": [
+    -0.003129799809028249,
+    -0.0025709109672996944,
+    -0.0005736764236651551
+  ],
+  "release_body_rotation_goal_frame": [
+    [
+      0.999881588403955,
+      -0.015255980590310005,
+      0.002015992810442357
+    ],
+    [
+      0.015264629670117763,
+      0.9998740400667593,
+      -0.0043468473185158335
+    ],
+    [
+      -0.0019494234578021513,
+      0.004377105985055948,
+      0.9999885202797969
+    ]
+  ],
+  "release_offset_includes_demo_height": true,
+  "release_offset_scope": "Learned body pose relative to publicfinalgoal before nativeopening. Contactseating expected; notfinal3D goal or measurement.",
+  "release_translation_bias_board_m": [
+    0.0006850949102447551,
+    0.00012620606851620068,
+    0.004031011247524716
+  ],
+  "release_rotation_bias_board": [
+    [
+      0.9999438427538104,
+      0.0045438849287784975,
+      -0.009574155236714309
+    ],
+    [
+      -0.004428854344435023,
+      0.9999181672214394,
+      0.012001837763968041
+    ],
+    [
+      0.009627906726722252,
+      -0.011958761234795728,
+      0.9998821387752608
+    ]
+  ],
+  "release_bias_includes_height": true,
+  "source_height_reference": "achieved bodyrelative12.6476mm, sourcehandorientation uses RGB yaw + measuredboardnormal planar-source precondition; raw3D kept unchanged"
+}

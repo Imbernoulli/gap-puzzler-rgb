@@ -1,0 +1,102 @@
+{
+  "schema": "puzzler.unified_integration_status.layout_c_v13",
+  "execution_status": "PREPARED_PUBLIC75MM_OPENING_PLUS_BOUNDED_RGB_RETRY_NATIVE_PENDING",
+  "native_full12_started": false,
+  "prepared_native_started": false,
+  "full12_accepted": false,
+  "flat_accepted": false,
+  "source_baseline": "runs/pyramid_full12_bimanual_v6/workspace; actual first all-loose run failed, source snapshot unchanged",
+  "pending": [
+    "cyan_source_endpoint_bounded_settling_c25_native_qualification",
+    "cyan_postopen_stationary_RGB_reacquisition_native_qualification",
+    "cyan_public75mm_opening_native_qualification"
+  ],
+  "contact_capacity": 4096,
+  "candidate_source_packages": {
+    "cyan_source_handoff": "Exact frozen v2 source/HH preserved; v6 actual continuous5\u20137 22/22 physical CP PASS",
+    "cyan_receiver_delivery": "/srv/home/bohanlyu/gap-puzzler-web/runs/cyan_bimanual_delivery_native_v6/workspace/puzzler/cyan_receiver_release_feedback_delivery.py",
+    "cyan_board_estimator": "Exact v6 ANY2 board_vision.py/shape_vision.py",
+    "red": "/srv/home/bohanlyu/gap-puzzler-web/runs/red_bimanual_regrasp_v19/full_ready/puzzler",
+    "red_public_source": "profiles/red_public_source_v7_four_fields.json; exactly four public source-recipe fields, no measured attachment",
+    "azure_canonical": "/srv/home/bohanlyu/gap-puzzler-web/runs/azure_rgb_attribution_canonical_v1/workspace",
+    "azure_suffix": "Same canonical helper import + afterRed call in GivenPrefixGraph closure; no fixture/earned-state dependency",
+    "red_final_review": "source_archives/red_v19_final_frozen_independent_review.json; PASS_FROZEN",
+    "cyan_station_family": "Original qualified v2 station/profile restored byte for byte"
+  },
+  "required_segment_qualifications": {
+    "continuous_5_7_placed": true,
+    "continuous_10_12_placed": true
+  },
+  "qualification_evidence": {
+    "continuous_5_7_placed": "source_archives/cyan_gpu7_v6_subset_native_independent_review.json",
+    "continuous_10_12_placed": "source_archives/suffix10_12_v10_full_native_independent_review.json"
+  },
+  "scope": "Fresh original-order all12 loose with declared public layout variant C; original physical gates retained",
+  "prepared_candidates": {
+    "full12_original_order_layout_c_v13": {
+      "manifest": "/srv/home/bohanlyu/gap-puzzler-web/runs/pyramid_full12_bimanual_layout_c_v13/workspace/runs/full12_original_order_layout_c_v10/manifest.json",
+      "graph": "/srv/home/bohanlyu/gap-puzzler-web/runs/pyramid_full12_bimanual_layout_c_v13/workspace/graphs/pyramid_original_order_layout_c_v10",
+      "native_run_started": false,
+      "full12_launch_ready": false,
+      "candidate_integration_launch_authorized": true
+    }
+  },
+  "skill_contract_checks": {},
+  "physical_progress": {
+    "continuous_5_7_placed": true,
+    "continuous_10_12_placed": true,
+    "continuous_5_7_evidence": "source_archives/cyan_gpu7_v6_subset_native_independent_review.json;9816 native states,22/22CP,actual receipts/tokens3,original final stable/home/contact gates PASS",
+    "continuous_10_12_evidence": "source_archives/suffix10_12_v10_full_native_independent_review.json"
+  },
+  "source_archives": "Preserved successful Cyan5\u20137/RedV19 continuous10\u201312 evidence and compact source archives; new fix will add only changed-leaf provenance",
+  "independent_v7_boundary_review": "PENDING successful changed-dependency native16CP and independent review",
+  "prior_full12_attempt": {
+    "episode": "/srv/home/bohanlyu/gap-puzzler-web/runs/pyramid_full12_bimanual_v6/workspace/runs/canonical_full12_bimanual_v6/episode",
+    "graph_success": false,
+    "full12_acceptance": false,
+    "passed_checkpoints": 36,
+    "completed": "original first five placements and Cyan four physical handoff checkpoints",
+    "blocker": "cyan_receiver_transport_sg.act: No actual bounded RGB occupancy for lime"
+  },
+  "qualification_scope": "Original continuous5\u20137/10\u201312 and successful C2 native16CP qualifications retained unchanged; c25 bounded source endpoint settling has API review PASS and separate native qualification PENDING.",
+  "changed_dependency": {
+    "candidate": "Exact C2 flat profile plus3leaf recovery; C LimeY+70mm",
+    "native_16_CP_passed": true,
+    "independent_review_passed": true,
+    "evidence": "/srv/home/bohanlyu/gap-puzzler-web/runs/gap_delivery_independent_audit_v1/c2_layout_local16CP_terminal_independent_review.json"
+  },
+  "canonical_original_staging": false,
+  "public_initial_layout": {
+    "name": "C_Lime_world_y_plus070",
+    "piece": "lime",
+    "translation_m": [
+      0.0,
+      0.07,
+      0.0
+    ],
+    "all12_loose": true
+  },
+  "full12_observer_scope": "Original all12; no local remaining7 observer patch",
+  "independent_v9_boundary_review": "/srv/home/bohanlyu/gap-puzzler-web/runs/gap_delivery_independent_audit_v1/c2_layout_local16CP_terminal_independent_review.json",
+  "source_wait_dependency": {
+    "sha256": "c25d339ad870096b31b8cd280a126bdaa1e4b476195f3b0e2eb799264300bf37",
+    "source_file": "puzzler/cyan_vertical_source_v2.py",
+    "independent_api_review_passed": true,
+    "independent_api_review": "/srv/home/bohanlyu/gap-puzzler-web/runs/gap_delivery_independent_audit_v1/cyan_source_settle_b4_independent_review.json",
+    "native_qualified": false,
+    "native_qualification": "PENDING; prior C2 and segment native qualifications retained for their original source scope"
+  },
+  "postopen_RGB_dependency": {
+    "contract_review": "PASS;4 narrow offline saved-packet cases; no motors/Env",
+    "native_qualification": "PENDING",
+    "maximum_added_wait_steps": 60,
+    "original_stable_pair_thresholds_unchanged": true
+  },
+  "public75mm_opening_dependency": {
+    "action_width_m": 0.075,
+    "original_opening_material_math": "PASS;54 dense samples",
+    "old_bound_empty_retreat_math": "PASS;25 samples;min22.754297mm>16.5mm",
+    "visibility_math": "13/13 clear;prediction only",
+    "native_qualification": "PENDING"
+  }
+}

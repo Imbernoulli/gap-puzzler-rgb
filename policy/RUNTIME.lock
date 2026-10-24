@@ -1,0 +1,6 @@
+# Execution source inventory. THIRD_PARTY.lock retains the historical checkout inventory.
+robosimstudio https://github.com/robosimstudio/robosimstudio.git b001cc7e10a83577261aac4471fa45e0ced6d415
+graph-as-policy-runtime https://github.com/KeplerC/graph-as-policy.git 09e45f8de27bc1a29629382ed7c2b9b4b384b3d6
+open-robot-skills https://github.com/graph-robots/open-robot-skills.git 752dfbd96968d4d08379f8111765efbf6457800b
+# Reference upstream checkout, not installed by bootstrap.
+graph-as-policy https://github.com/graph-robots/graph-as-policy.git 71549e1584839337eb355c280e7b1e50c805b8c7

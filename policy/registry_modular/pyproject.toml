@@ -1,0 +1,6 @@
+[project]
+name = "puzzler-modular-rgb-skills"
+version = "0.1.0"
+
+[project.optional-dependencies]
+modular-rgb-puzzler = []
