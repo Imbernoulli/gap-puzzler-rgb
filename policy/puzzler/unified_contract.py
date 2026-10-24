@@ -319,7 +319,19 @@ def finish_assembly(ctx, state: ModularState) -> ModularResult:
     last_epoch = ctx.tool('robot.read_proprioception', arm_id=0)
     if last_epoch['timestamp'] - first_epoch['timestamp'] < 2.:
         raise StageRefusal('Final native settling interval was shorter than two seconds')
-    observed = control.state(ctx)
+    # The policy confirms the finished pyramid itself: every bead site the
+    # four cameras should see must show its part. A hand or glare can blur
+    # one frame, so it looks up to three times before refusing.
+    looks = []
+    for _ in range(3):
+        observed = ctx.tool('vision.observe', hints={'__completion_check__': True})
+        looks.append(observed.get('assembly_completion', {}))
+        if looks[-1].get('complete'):
+            break
+        _pause(ctx, 25)
+    if not looks[-1].get('complete'):
+        raise StageRefusal('Final RGB does not show a complete pyramid: '
+                           + ', '.join(looks[-1].get('unconfirmed_pieces', []) or [looks[-1].get('reason', 'unclear')]))
     state = controller.save_observation(state, observed)
     final_ledger = require_final_ledger(state)
     state = {**state, 'last_stage': 'finish', 'last_outcome': 'completed'}
@@ -328,5 +340,7 @@ def finish_assembly(ctx, state: ModularState) -> ModularResult:
         actual_tail_interval_s=last_epoch['timestamp'] - first_epoch['timestamp'],
         earned_pieces=final_ledger['receipt_names'], terminal_visual_status=final_ledger['terminal_visual_status'],
         contested_receipts=final_ledger['contested_receipts'],
+        visual_completion={key: value for key, value in looks[-1].items() if key != 'views'},
+        visual_completion_looks=len(looks),
         red_visual_receipt_earned=final_ledger['red_visual_receipt_earned'],
         independent_all12_physical_verification_required=True))

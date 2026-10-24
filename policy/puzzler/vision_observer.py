@@ -77,6 +77,7 @@ class VisualObserver:
         supplied=dict(hints or {})
         observer_mode=supplied.pop('__observer_mode__',None)
         prefix_tracks=supplied.pop('__conditional_prefix_tracks__',{})
+        completion_check=bool(supplied.pop('__completion_check__',False))
         seeds = {**self.previous, **supplied}
         result = (estimate(images,self.cameras,seeds) if observer_mode in ('plain_rgb_cad','prefix_rgb_cad')
                   else self.estimator(images, self.cameras, seeds))
@@ -131,6 +132,11 @@ class VisualObserver:
                 witnesses[name]=evaluate(name,images,self.cameras,goal,request['receipt_pose'],
                     request.get('conflicting_poses',()),current_poses=result['poses'])
             result['prefix_track_reassociation']=witnesses
+        if completion_check:
+            from .assembly_completion import evaluate as completion
+            result['assembly_completion'] = (completion(images, self.cameras, result['poses']['board'], self.targets)
+                                             if 'board' in result.get('poses', {}) else
+                                             dict(complete=False, reason='case not fitted in this frame'))
         result['timestamp'] = timestamp
         if hasattr(self.capture,'__self__') and hasattr(self.capture.__self__,'robot_geometry_provenance'):
             result['robot_geometry_provenance']=dict(self.capture.__self__.robot_geometry_provenance)
