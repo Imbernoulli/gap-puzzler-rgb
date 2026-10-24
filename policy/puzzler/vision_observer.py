@@ -68,9 +68,41 @@ class VisualObserver:
         self.previous = {}
         self.last = None
         self.records = []
+        self._last_unique = {}
         self.output = Path(output) if output else None
         if self.output:
             self.output.mkdir(parents=True, exist_ok=True)
+
+    def _disambiguate_withheld(self, result, timestamp, match_m=.002, alias_m=.020, max_age_s=30.):
+        """Pick, never invent, a withheld piece's pose from its own current candidates.
+
+        The shape estimator withholds a piece when several distinct CAD poses
+        are all supported by the current images (a symmetric alias). If exactly
+        one of those current candidates is within 2 mm of the piece's most
+        recent unique pose (at most 30 s old) and every other candidate is at
+        least 20 mm away, that candidate is used and the choice recorded.
+        """
+        from .visual_memory import shape_displacement
+        poses = result.setdefault('poses', {})
+        for name, detection in result.get('detections', {}).items():
+            if name not in model.CELLS or name in poses or not isinstance(detection, dict):
+                continue
+            candidates = detection.get('supported_pose_candidates') or []
+            last = self._last_unique.get(name)
+            if len(candidates) < 2 or not last or not 0 <= timestamp - last['timestamp'] <= max_age_s:
+                continue
+            distances = [shape_displacement(name, last['pose'], candidate) for candidate in candidates]
+            near = [i for i, d in enumerate(distances) if d <= match_m]
+            if len(near) != 1 or any(d < alias_m for i, d in enumerate(distances) if i != near[0]):
+                continue
+            pose = [float(v) for v in candidates[near[0]]]
+            poses[name] = pose
+            detection.update(visible=True, pose=pose, temporal_disambiguation=dict(
+                prior_unique_timestamp=last['timestamp'], candidate_displacements_m=[float(d) for d in distances],
+                rule='current candidate within 2 mm of the recent unique pose; others are >=20 mm aliases'))
+        for name, pose in poses.items():
+            if name in model.CELLS and 'temporal_disambiguation' not in result.get('detections', {}).get(name, {}):
+                self._last_unique[name] = dict(pose=list(pose), timestamp=float(timestamp))
 
     def observe(self, hints=None):
         images, timestamp = self.capture()
@@ -132,6 +164,7 @@ class VisualObserver:
                 witnesses[name]=evaluate(name,images,self.cameras,goal,request['receipt_pose'],
                     request.get('conflicting_poses',()),current_poses=result['poses'])
             result['prefix_track_reassociation']=witnesses
+        self._disambiguate_withheld(result, timestamp)
         if completion_check:
             from .assembly_completion import evaluate as completion
             result['assembly_completion'] = (completion(images, self.cameras, result['poses']['board'], self.targets)
