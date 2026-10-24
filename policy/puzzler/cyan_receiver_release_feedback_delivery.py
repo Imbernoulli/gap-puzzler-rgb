@@ -18,6 +18,7 @@ from .finite_release_scene import finite_clearance
 from .cyan_bimanual_adapter import _qpath,_width_rows,_geometry
 from .cyan_receiver_motion_feedback import move_held,_material_geometry,require_board_margin
 from . import cyan_dated_scene
+from . import case_view_prediction
 
 # Public opening action, screened with the unchanged material/contact gates.
 _RELEASE_OPEN_WIDTH_M=.075
@@ -159,7 +160,7 @@ def _hover(state,scene,belief,relative):
         current_target_measured='cyan' in state.get('observation',{}).get('poses',{}))
 
 
-def _select_target(ctx,state,scene,belief,*,lock_relative=False):
+def _select_target(ctx,state,scene,belief,*,lock_relative=False,min_height=0.):
     planned={**state,'parameters':{**state['parameters'],'current_board_for_inverse_planning':deepcopy(scene['board_for_planning'])}}
     _,choices,_=g.carry_target(ctx,planned)
     arm=int(state['arm']);off=0 if arm==0 else 8
@@ -170,6 +171,7 @@ def _select_target(ctx,state,scene,belief,*,lock_relative=False):
         R=Rotation.from_quat(c.qarr(choice['rotation'])).as_matrix()
         for height in (.003,.006,.010):
             if height>float(state['parameters'].get('max_release_height',.010)):continue
+            if height<min_height-1e-9:continue
             pos=np.asarray(choice['target_tcp'])+[0.,0.,height]
             sweep=[finite_clearance(pos,R,float(w),scene,exclude=('cyan',)) for w in np.linspace(width,_RELEASE_OPEN_WIDTH_M,12)]
             if min(row['clearance_m'] for row in sweep)<.0005:continue
@@ -213,6 +215,116 @@ def _home_donor_while_held(ctx,state,scene,belief):
     return dict(native_ik=plan,complete_geometry=proof,motor=motor)
 
 
+# Receiver view proposals are displacements of the actual held hand with its
+# actual attitude fixed. They are ranked by the predicted case-outline
+# acceptance of the rear/side cameras (public visual meshes at proposed q16,
+# calibrated rig, dated actual RGB case pose, unchanged per-view case gates).
+# Each executed proposal is a screened held move; only the real RGB packet
+# taken afterwards can renew the board. Front is excluded from ranking: it is
+# the view the arms do not occlude, and acceptance needs a second view.
+_VIEW_GRID_M=(-.05,0.,.05)
+_VIEW_LIFT_M=(0.,.05)
+_VIEW_RANKED_VIEWS=('rear','side')
+
+
+def _board_current(scene):
+    return float(scene['board_for_planning'].get('uncertainty_m',0.))==0.
+
+
+def _donor_home_plan(ctx,state):
+    arm=int(state['transfer']['sender']);geometry=_geometry()
+    position,quaternion=geometry.robot.iks[geometry._arm(arm)].home_pose
+    plan=ctx.tool('puzzle.plan_joint_path',position=np.asarray(position).tolist(),rotation=c.qdict(quaternion),
+                  arm_id=arm,min_joint_limit_margin_rad=.035)
+    return arm,plan
+
+
+def _home_compatible(state,scene,belief,q,moved,arm,plan):
+    """A view pose must leave the pending screened donor home path open."""
+    if not plan.get('feasible'):return False
+    owner=int(state['arm'])
+    proof=_geometry().screen_q16_path(_qpath(plan,q,arm),scene,moving_arm=arm,held_arm=owner,
+        held_body_pose=np.asarray(moved).tolist(),object_in_tcp_position=belief['object_in_tcp_position'],
+        object_in_tcp_rotation=belief['object_in_tcp_rotation'],target='cyan',
+        finger_target_contract={owner:[_selected_bead(state,belief)]},
+        held_envelope_m=max(.006,float(belief['uncertainty_m'])))
+    if not proof.get('safe'):return False
+    try:require_board_margin(proof,scene,held=True)
+    except c.PlanningRefusal:return False
+    return True
+
+
+def _ranked_view_proposals(ctx,state,scene,belief,grid=_VIEW_GRID_M,lifts=_VIEW_LIFT_M,pending_donor_home=False):
+    arm=int(state['arm']);off=0 if arm==0 else 8
+    tcp,rotation=c.hand(ctx,arm)
+    q16=np.asarray(belief['current_robot_encoder_values'],dtype=float)
+    body=np.asarray(belief['predicted_body_pose'],dtype=float)
+    board=np.asarray(scene['board_for_planning']['pose'],dtype=float)
+    geometry=_geometry();rows=[]
+    home=_donor_home_plan(ctx,state) if pending_donor_home else None
+    for dx in grid:
+        for dy in grid:
+            for dz in lifts:
+                delta=np.array([dx,dy,dz],dtype=float)
+                if not np.any(delta):continue
+                ik=ctx.tool('puzzle.plan_pose',position=(tcp+delta).tolist(),rotation=rotation,
+                            arm_id=arm,min_joint_limit_margin_rad=.035)
+                if (ik['position_error_m']>.002 or ik['rotation_error_rad']>.03
+                        or ik['joint_limit_margin_rad']<.035):continue
+                q=q16.copy();q[off:off+6]=ik['joints']
+                moved=body.copy();moved[:3]=body[:3]+delta
+                prediction=case_view_prediction.fast_predict_views(geometry,q,board,moved,views=_VIEW_RANKED_VIEWS)
+                rows.append(dict(relative_world_proposal_m=delta.tolist(),
+                                 predicted_score=case_view_prediction.predicted_score(prediction),
+                                 prediction=prediction,_q=q,_moved=moved))
+    rows.sort(key=lambda row:row['predicted_score'],reverse=True)
+    # The policy computes while the simulator runs: only the few best-ranked
+    # proposals receive the (expensive) pending donor-home path screen.
+    if home is not None:
+        kept=[]
+        for row in rows:
+            if row['predicted_score'][0]<1 or len(kept)>=3:break
+            if _home_compatible(state,scene,belief,row['_q'],row['_moved'],*home):kept.append(row)
+        rows=kept
+    for row in rows:
+        row.pop('_q',None);row.pop('_moved',None)
+    return tcp,rotation,rows
+
+
+def _predicted_view_move(ctx,state,scene,belief,*,limit=3,pending_donor_home=False,**grid):
+    """Execute the best screened predicted view proposal; never a measurement."""
+    arm=int(state['arm']);off=0 if arm==0 else 8
+    width=float(belief['current_robot_encoder_values'][off+6]-belief['current_robot_encoder_values'][off+7])
+    tcp,rotation,rows=_ranked_view_proposals(ctx,state,scene,belief,pending_donor_home=pending_donor_home,**grid)
+    refusals=[]
+    for row in rows[:limit]:
+        if row['predicted_score'][0]<1:break
+        try:
+            motion=move_held(ctx,state,tcp+np.asarray(row['relative_world_proposal_m']),rotation,scene,width,
+                             belief=belief,joint=False)
+        except (ValueError,c.PlanningRefusal) as error:
+            refusals.append(dict(relative_world_proposal_m=row['relative_world_proposal_m'],refusal=str(error)[:300]))
+            continue
+        return dict(selected=row,motion=motion,screen_refusals=refusals,
+                    proposal_count=len(rows),prediction_is_not_measurement=True)
+    return dict(selected=None,screen_refusals=refusals,proposal_count=len(rows),
+                best=[{k:v for k,v in row.items() if k!='prediction'} for row in rows[:3]])
+
+
+def _renew_board_by_views(ctx,state,observed,scene,belief,attempts=2,**grid):
+    """Bounded re-observation until a real packet re-measures the case."""
+    records=[]
+    for _ in range(attempts):
+        if _board_current(scene):break
+        move=_predicted_view_move(ctx,state,scene,belief,**grid)
+        records.append(move)
+        if move['selected'] is None:break
+        state,observed,scene,belief,source=_refresh(ctx,state)
+        move['actual_observation']=source
+        move['actual_board_measured']=_board_current(scene)
+    return state,observed,scene,belief,records
+
+
 def _execute_transport(ctx,state):
     state=deepcopy(state)
     if state['piece']!='cyan' or state['arm']!=state['transfer']['receiver']:
@@ -227,11 +339,22 @@ def _execute_transport(ctx,state):
     # is sufficient when every used entry retains its original age/envelope.
     # Leave enough of that original30s budget for the already screened home.
     scene_current=observed['timestamp']-initial_reference<=10.
-    for delta in ([0.,-.030,.020],[0.,-.030,0.],[0.,-.030,0.]):
+    for step in range(3):
         if scene_current:break
         width=float(belief['current_robot_encoder_values'][off+6]-belief['current_robot_encoder_values'][off+7])
         tcp,rotation=c.hand(ctx,arm)
-        motion=move_held(ctx,state,tcp+delta,rotation,scene,width,belief=belief,joint=False)
+        if step==0:
+            # Original first public view proposal, unchanged.
+            delta=[0.,-.030,.020]
+            motion=move_held(ctx,state,tcp+delta,rotation,scene,width,belief=belief,joint=False)
+        else:
+            # The fixed world deltas assumed the nominal case/arm occlusion.
+            # Rank bounded proposals by predicted case-view acceptance.
+            motion=_predicted_view_move(ctx,state,scene,belief,pending_donor_home=True)
+            if motion['selected'] is None:
+                view_steps.append(dict(predicted_view_search=motion,actual_environment_reference_renewed=False))
+                break
+            delta=motion['selected']['relative_world_proposal_m']
         state,observed,scene,belief,view_source=_refresh(ctx,state)
         # A successful refresh can still be honest bounded persistence. It
         # cannot license the long donor home unless this REAL packet renewed
@@ -244,6 +367,10 @@ def _execute_transport(ctx,state):
         raise c.PlanningRefusal('Actual bounded receiver views did not renew required environment RGB; donor remains withdrawn, do not home on old occupancy')
     donor_home=_home_donor_while_held(ctx,state,scene,belief)
     state,observed,scene,belief,source2=_refresh(ctx,state)
+    # A case not re-measured in this packet carries the dated 4mm persistence
+    # margin into every release sweep. Re-observe from bounded predicted views
+    # before selecting; the margin itself is unchanged when RGB cannot renew.
+    state,observed,scene,belief,release_views=_renew_board_by_views(ctx,state,observed,scene,belief)
     target=_select_target(ctx,state,scene,belief);relative=target['relative_target_R']
     state['plan']['target_R']=relative
     arm=int(state['arm']);off=0 if arm==0 else 8
@@ -272,7 +399,7 @@ def _execute_transport(ctx,state):
         corrections.append(move_held(ctx,state,target['hover'],target['rotation'],scene,width,belief=belief,joint=True))
     carry=dict(contract='receiver_owned_RGB_or_honest_conditional_segmented_carry_v1',
         receiver_first_actual_view_steps=view_steps,
-        donor_screened_public_home=donor_home,segments=[first,second],sources=[source,source2,middle_source],
+        donor_screened_public_home=donor_home,release_selection_view_renewal=release_views,segments=[first,second],sources=[source,source2,middle_source],
         endpoint_feedback=feedback,corrections=corrections,held_body_envelope_m=.006)
     state.update(cyan_selected_goal=target,transport_record=carry)
     return result('carried',state,observed,'transport',transport_record=carry)
@@ -374,11 +501,122 @@ def _released_body(ctx,state,after_open,body,old_envelope):
     return state,current,fallback_body,old_envelope,evidence
 
 
+# Bounded opening recovery. The first proposal is the original 75mm public
+# opening at the selected release height. If the actual loaded-to-open
+# material sweep is refused, narrower openings that still clear the loaded
+# bead by >=27mm are screened, then the receiver is lifted (screened held
+# motion) to the next original release height <= max_release_height and the
+# same widths are screened again from the new actual q16. The 0.5mm material
+# clearance and conditional board-margin gates are unchanged.
+_RELEASE_OPEN_WIDTHS_M=(_RELEASE_OPEN_WIDTH_M,.060,.050)
+_RELEASE_HEIGHTS_M=(.003,.006,.010)
+
+
+_ALIGNMENT_BOUND_M=.0025
+
+
+def _robust_release_height(ctx,state,scene,belief,target):
+    """Lowest original release height whose opening is safe anywhere the
+    preopen alignment contract may leave the hand (down to -2.5mm).
+
+    Planning only: native IK at the planned and lowest accepted TCP, the same
+    material opening sweep and board margin at both. The alignment loop below
+    accepts up to 2.5mm, so the opening gate is evaluated over that contract
+    before descending instead of after the hand has settled low.
+    """
+    arm=int(state['arm']);off=0 if arm==0 else 8
+    limit=float(state['parameters'].get('max_release_height',.010))
+    q16=np.asarray(belief['current_robot_encoder_values'],dtype=float)
+    R=Rotation.from_quat(c.qarr(target['rotation'])).as_matrix()
+    rp=np.asarray(belief['object_in_tcp_position']);rR=np.asarray(belief['object_in_tcp_rotation'])
+    contract={arm:[_selected_bead(state,belief)]};geometry=_material_geometry();rows=[]
+    for height in [h for h in _RELEASE_HEIGHTS_M if float(target['height'])-1e-9<=h<=limit+1e-9]:
+        planned=np.asarray(target['release_tcp'])+[0.,0.,height-float(target['height'])]
+        safe=True;record=dict(release_height_m=height,checks=[])
+        for dz in (0.,-_ALIGNMENT_BOUND_M):
+            position=planned+[0.,0.,dz]
+            ik=ctx.tool('puzzle.plan_pose',position=position.tolist(),rotation=target['rotation'],
+                        arm_id=arm,min_joint_limit_margin_rad=.035)
+            if ik['position_error_m']>.002 or ik['rotation_error_rad']>.03 or ik['joint_limit_margin_rad']<.035:
+                safe=False;record['checks'].append(dict(dz=dz,ik_refused=True));break
+            q=q16.copy();q[off:off+6]=ik['joints']
+            body=np.r_[position+R@rp,Rotation.from_matrix(R@rR).as_quat()]
+            width=float(q[off+6]-q[off+7]);passed=None
+            for open_width in _RELEASE_OPEN_WIDTHS_M:
+                proof=geometry.screen_robot_material_path(np.asarray(_width_rows(q,arm,open_width)),scene,
+                    target='cyan',target_body_poses=body,finger_target_contract=contract)
+                if not proof.get('safe'):continue
+                try:require_board_margin(proof,scene)
+                except c.PlanningRefusal:continue
+                passed=open_width;break
+            record['checks'].append(dict(dz=dz,safe_open_width_m=passed,loaded_width_m=width))
+            if passed is None:safe=False;break
+        rows.append(record)
+        if safe:return height,rows
+    return float(target['height']),rows
+
+
+def _opening_sweep(state,scene,belief,width):
+    arm=int(state['arm'])
+    rows=np.asarray(_width_rows(belief['current_robot_encoder_values'],arm,width))
+    proof=_material_geometry().screen_robot_material_path(rows,scene,target='cyan',
+        target_body_poses=np.asarray(belief['predicted_body_pose']),
+        finger_target_contract={arm:[_selected_bead(state,belief)]})
+    if not proof.get('safe'):
+        raise c.PlanningRefusal('Receiver actual opening material sweep refused: '+str(proof))
+    require_board_margin(proof,scene)
+    return proof
+
+
+def _screened_opening(ctx,state,preopen,scene,belief,target):
+    arm=int(state['arm']);off=0 if arm==0 else 8
+    limit=float(state['parameters'].get('max_release_height',.010))
+    heights=[float(target['height'])]+[h for h in _RELEASE_HEIGHTS_M if float(target['height'])<h<=limit+1e-9]
+    attempts=[];first_refusal=None
+    for height in heights:
+        if height>float(target['height']):
+            lifted=np.asarray(target['release_tcp'])+[0.,0.,height-float(target['height'])]
+            width=float(belief['current_robot_encoder_values'][off+6]-belief['current_robot_encoder_values'][off+7])
+            try:
+                motion=move_held(ctx,state,lifted,target['rotation'],scene,width,belief=belief,terminal=True)
+            except (ValueError,c.PlanningRefusal) as error:
+                attempts.append(dict(release_height_m=height,lift_refusal=str(error)[:400]));continue
+            state,preopen,scene,belief,_=_refresh(ctx,state)
+            actual,actual_q=c.hand(ctx,arm)
+            delta=float(np.linalg.norm(actual-lifted))
+            angle=float((Rotation.from_quat(c.qarr(actual_q)).inv()*Rotation.from_quat(c.qarr(target['rotation']))).magnitude())
+            if delta>.0025 or angle>.04:
+                raise c.PlanningRefusal('Receiver lifted release alignment exceeds the original 2.5mm/.04rad bound')
+            target={**target,'height':height,'release_tcp':lifted.tolist(),'opening_lift':motion}
+            attempts.append(dict(release_height_m=height,lift_executed=True,actual_alignment_m=delta))
+        for open_width in _RELEASE_OPEN_WIDTHS_M:
+            try:
+                proof=_opening_sweep(state,scene,belief,open_width)
+            except (ValueError,c.PlanningRefusal) as error:
+                first_refusal=first_refusal or str(error)
+                attempts.append(dict(release_height_m=height,open_width_m=open_width,refusal=str(error)[-300:]))
+                continue
+            attempts.append(dict(release_height_m=height,open_width_m=open_width,selected=True))
+            return state,preopen,scene,belief,target,open_width,proof,attempts
+    raise c.PlanningRefusal((first_refusal or 'Receiver actual opening material sweep refused')
+                            +' | bounded width/height opening search exhausted: '
+                            +str([{k:v for k,v in row.items() if k!='refusal'} for row in attempts]))
+
+
 def _segment_conditional_release(ctx,state):
     state=deepcopy(state);arm=int(state['arm']);off=0 if arm==0 else 8
     mark=ctx.tool('robot.execution_journal_cursor')
     state,preopen,scene,belief,admission=_refresh(ctx,state)
+    # Same bounded predicted re-observation as transport, only when this
+    # packet did not re-measure the case (dated 4mm board persistence).
+    # At the goal hover only vertical view proposals are used, so the later
+    # screened terminal descent remains the original vertical approach.
+    state,preopen,scene,belief,release_views=_renew_board_by_views(ctx,state,preopen,scene,belief,
+        grid=(0.,),lifts=(.05,.10))
     target=_select_target(ctx,state,scene,belief,lock_relative=True)
+    min_height,robust_height=_robust_release_height(ctx,state,scene,belief,target)
+    if min_height>float(target['height']):
+        target=_select_target(ctx,state,scene,belief,lock_relative=True,min_height=min_height)
     state['plan']['target_R']=target['relative_target_R']
     width=float(belief['current_robot_encoder_values'][off+6]-belief['current_robot_encoder_values'][off+7])
     descent=move_held(ctx,state,target['release_tcp'],target['rotation'],scene,width,belief=belief,terminal=True)
@@ -386,7 +624,7 @@ def _segment_conditional_release(ctx,state):
     state,preopen,scene,belief,preopen_source=_refresh(ctx,state)
     corrections=[]
     for attempt in range(3):
-        target=_select_target(ctx,state,scene,belief,lock_relative=True)
+        target=_select_target(ctx,state,scene,belief,lock_relative=True,min_height=min_height)
         actual,actual_q=c.hand(ctx,arm)
         delta=float(np.linalg.norm(actual-np.asarray(target['release_tcp'])))
         angle=float((Rotation.from_quat(c.qarr(actual_q)).inv()*Rotation.from_quat(c.qarr(target['rotation']))).magnitude())
@@ -396,17 +634,17 @@ def _segment_conditional_release(ctx,state):
         width=float(belief['current_robot_encoder_values'][off+6]-belief['current_robot_encoder_values'][off+7])
         corrections.append(move_held(ctx,state,target['release_tcp'],target['rotation'],scene,width,belief=belief,terminal=True))
         state,preopen,scene,belief,preopen_source=_refresh(ctx,state)
+    # Recheck the complete actual loaded-to-open sweep in both robot arms.
+    # Search bounded opening widths, then the next original release heights,
+    # with the same material sweep and board margin; never weaken a gate.
+    state,preopen,scene,belief,target,open_width,opening_guard,opening_search=_screened_opening(
+        ctx,state,preopen,scene,belief,target)
+    geometry=_material_geometry()
     actual,actual_q=c.hand(ctx,arm)
     width=float(belief['current_robot_encoder_values'][off+6]-belief['current_robot_encoder_values'][off+7])
-    # Recheck the complete actual loaded-to-open sweep in both robot arms.
-    geometry=_material_geometry();rows=np.asarray(_width_rows(belief['current_robot_encoder_values'],arm,_RELEASE_OPEN_WIDTH_M))
     body=np.asarray(belief['predicted_body_pose'])
-    opening_guard=geometry.screen_robot_material_path(rows,scene,target='cyan',target_body_poses=body,
-        finger_target_contract={arm:[_selected_bead(state,belief)]})
-    if not opening_guard.get('safe'):raise c.PlanningRefusal('Receiver actual opening material sweep refused: '+str(opening_guard))
-    require_board_margin(opening_guard,scene)
     source=deepcopy(belief['source'])
-    opening=ctx.tool('robot.set_grip',arm_id=arm,width_m=_RELEASE_OPEN_WIDTH_M,ramp_steps=18,settle_steps=15)
+    opening=ctx.tool('robot.set_grip',arm_id=arm,width_m=open_width,ramp_steps=18,settle_steps=15)
     if opening.get('clamped') is not False:raise RuntimeError('Receiver final opening clamped')
     # The old held lineage is now expired. Read actual empty q16 through a
     # fresh real RGB packet's synchronous encoder provenance, without using
@@ -427,7 +665,20 @@ def _segment_conditional_release(ctx,state):
         # enlarge its uncertainty union, but cannot silently move the center
         # while inheriting a smaller bound qualified for an older pose.
         delta=float(visual_memory.shape_displacement('cyan',body,current['poses']['cyan']))
-        if delta>.006:
+        # When no actual postopen pair renewed the body, the reference is the
+        # PREOPEN (in-air) estimate whose declared scope already includes the
+        # entire release drop. Test the 6mm bound against that same declared
+        # envelope: the preopen body lowered along the board normal by any
+        # drop in [0, release height]. The bound itself is unchanged, and the
+        # raw displacement still enlarges the home envelope below.
+        scoped=delta
+        if released_evidence.get('bound_source')=='old_dated_preopen6mm_plus_entire_release_drop':
+            normal=Rotation.from_quat(np.asarray(scene['board_for_planning']['pose'])[3:]).as_matrix()[:,2]
+            scoped=min(float(visual_memory.shape_displacement('cyan',np.r_[np.asarray(body)[:3]-drop*normal,np.asarray(body)[3:]],
+                                                               current['poses']['cyan']))
+                       for drop in np.linspace(0.,float(target['height']),21))
+            released_evidence['postretreat_drop_compensated_displacement_m']=scoped
+        if scoped>.006:
             raise c.PlanningRefusal('Postretreat actual RGB contradicts the original6mm released-body scope')
         remaining=(float(visual_memory.goal_error('cyan',current,state['parameters']))
                    if 'board' in current.get('poses',{}) else float(target['height']))
@@ -451,9 +702,9 @@ def _segment_conditional_release(ctx,state):
         current_target_measured_at_preopen='cyan' in preopen.get('poses',{}),
         requested_release_tcp=target['release_tcp'],requested_rotation=target['rotation'],
         actual_preopen_tcp=actual.tolist(),actual_preopen_rotation=actual_q,
-        release_height_m=target['height'],actual_preopen_width_m=width,open_width_m=_RELEASE_OPEN_WIDTH_M,
+        release_height_m=target['height'],actual_preopen_width_m=width,open_width_m=open_width,opening_search=opening_search,
         open_result=opening,descent=descent,preopen_corrections=corrections,retreat=retreat,home_result=home,
-        full_open_sweep=opening_guard,rigid_held_belief_after_open='EXPIRED',
+        full_open_sweep=opening_guard,preselection_view_renewal=release_views,robust_release_height=robust_height,rigid_held_belief_after_open='EXPIRED',
         released_body_bound_evidence=released_evidence,
         new_visual_release_receipt=receipt,receipt_refusal=reason,
         support_cleanup=dict(arm=state['transfer']['sender'],already_open_and_screened_home=True),

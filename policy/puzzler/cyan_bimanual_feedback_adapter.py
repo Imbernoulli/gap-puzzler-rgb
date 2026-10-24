@@ -157,6 +157,36 @@ def _execute_joint_pre(ctx,state,position,rotation):
             native_velocity_and_force_caps_unchanged=True))
 
 
+# Receiving-hand stand-off along its own approach axis, in the body frame of
+# the actual measured Cyan. The original 80mm stand-off is tried first. Its
+# single straight joint line passed the held target/donor wrist by <0.5mm once
+# the board-relative common position rotated with the case, so a bounded set
+# of farther body-relative stand-offs is screened before refusing. Every
+# alternative is a new native joint line with the unchanged complete geometry
+# screen (before any motor command); the final straight receiver approach is
+# separately planned and screened from the actual pregrasp.
+_PREGRASP_STANDOFFS_M=(.080,.100,.120)
+
+
+def _screened_standoff_pregrasp(ctx,state,current,candidate,preview):
+    grasp_p,grasp_q=_world_grasp(np.asarray(current['predicted_body_pose']),candidate)
+    direction=Rotation.from_quat(c.qarr(grasp_q)).as_matrix()[:,2]
+    attempts=[]
+    for standoff in _PREGRASP_STANDOFFS_M:
+        position=(preview['pregrasp_position'] if abs(standoff-.080)<1e-12
+                  else (grasp_p-standoff*direction).tolist())
+        try:
+            motion=_execute_joint_pre(ctx,state,position,grasp_q)
+        except (ValueError,c.PlanningRefusal) as error:
+            attempts.append(dict(standoff_m=standoff,refusal=str(error)[:600]))
+            continue
+        motion['pregrasp_standoff_m']=standoff
+        attempts.append(dict(standoff_m=standoff,selected=True))
+        return motion,attempts
+    raise c.PlanningRefusal('Receiver pregrasp refused at every bounded body-relative stand-off: '
+                            +str([row.get('refusal','')[:160] for row in attempts]))
+
+
 def approach_receiver(ctx,state):
     state=deepcopy(state)
     if state['piece']!='cyan' or int(state['arm'])!=0:
@@ -227,9 +257,10 @@ def approach_receiver(ctx,state):
                 # twice and a future close sweep before moving either hand.
                 # Its shallow donor lost retention during that idle interval.
                 # The actual close sweep remains mandatory at close_receiver.
-                motion=_execute_joint_pre(ctx,state,preview['pregrasp_position'],preview['pregrasp_rotation'])
+                motion,standoff_attempts=_screened_standoff_pregrasp(ctx,state,current,candidate,preview)
                 transfer['candidates'].append(dict(proposal=candidate,new_actual_common_IK=preview,
-                    single_pass_actual_pregrasp_motion=motion,selected=True))
+                    single_pass_actual_pregrasp_motion=motion,pregrasp_standoff_attempts=standoff_attempts,
+                    selected=True))
                 transfer['execution'].append(motion)
                 chosen=candidate;accepted=observed;selection_belief=deepcopy(current);break
             except (ValueError,c.PlanningRefusal) as error:
