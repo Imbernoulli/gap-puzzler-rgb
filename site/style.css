@@ -172,7 +172,8 @@ figcaption b { color: var(--ink); font-weight: 600; margin-right: 6px; }
 .hands figcaption { font-size: 13px; }
 
 /* Self-refinement */
-.loop-svg { width: 100%; height: auto; display: block; }
+.loop-wrap { overflow-x: auto; }
+.loop-svg { width: 100%; min-width: 760px; height: auto; display: block; }
 .loop-box { fill: var(--surface); stroke: var(--line); stroke-width: 1.2; }
 .loop-box.final { stroke: var(--pass); fill: var(--pass-bg); }
 .loop-title { font: 600 14px var(--display); fill: var(--ink); }

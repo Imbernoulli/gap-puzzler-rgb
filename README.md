@@ -8,6 +8,22 @@ robot's joint encoders and the parts' CAD.
 
 Site: <https://bohanlyu.com/gap-puzzler-rgb/>
 
+## Results
+
+Each run is a fresh native episode from twelve loose pieces (layout C: Lime starts 70 mm further out).
+Success means all 84 independent checkpoints pass, the RSS goal holds and the GaP workflow reaches
+its success exit.
+
+| Code | Nominal runs | Complete | Notes |
+| --- | --- | --- | --- |
+| v13 (starting point) | 1 | 0 | All 12 seated (audit 2.53 mm); last node refused. |
+| receipt recovery (b4cb667) | 2 | 0 | Cyan release; Red refused on a stale Purple flag. |
+| `full12-success-v1` (7af3462) | 3 | 1 | `nominal_fix2c`: audit 2.55 mm, 41.8 s still. |
+| fix3 (578a46f) | 3 | 1 | Two lost Cyan's release (75 mm opening sweep). |
+| fix5 (7014075, HEAD policy) | 4 | 3 | One stopped in Cyan's carry after the hand-to-hand transfer. |
+
+Perturbed scenes and scattered layouts are on the site.
+
 ## Layout
 
 | Path | What it is |

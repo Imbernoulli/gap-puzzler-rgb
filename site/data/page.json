@@ -1,16 +1,16 @@
 {
  "control_hz": 50.0,
- "steps": 32727,
- "sim_time_s": 654.5,
+ "steps": 32947,
+ "sim_time_s": 658.9,
  "rss_success": true,
- "graph_success": false,
- "checkpoints_passed": 82,
+ "graph_success": true,
+ "checkpoints_passed": 84,
  "checkpoints_total": 84,
- "pieces_placed": 11,
+ "pieces_placed": 12,
  "audit_success": true,
- "audit_max_mm": 2.53,
- "audit_stable_s": 31.7,
- "error": "workflow terminated at end node 'abort' (failure); first node error -- red_goal_verify_sg.act: Node 'red_goal_verify_sg.act' failed: StageRefusal: Final visual UNKNOWN requires the canonical explicitly enabled terminal execution scope",
+ "audit_max_mm": 2.55,
+ "audit_stable_s": 41.8,
+ "error": null,
  "pieces": [
   {
    "name": "azure",
@@ -26,7 +26,7 @@
      ],
      "exit": "planned",
      "start": 0,
-     "end": 22,
+     "end": 23,
      "passed": true,
      "checkpoint": "perceive_plan",
      "metrics": {},
@@ -41,8 +41,8 @@
       "verified"
      ],
      "exit": "verified",
-     "start": 22,
-     "end": 405,
+     "start": 23,
+     "end": 396,
      "passed": true,
      "checkpoint": "grasp",
      "metrics": {},
@@ -57,8 +57,8 @@
       "carried"
      ],
      "exit": "carried",
-     "start": 405,
-     "end": 657,
+     "start": 396,
+     "end": 640,
      "passed": true,
      "checkpoint": "transport",
      "metrics": {},
@@ -75,13 +75,13 @@
       "uncertain"
      ],
      "exit": "placed +2",
-     "start": 657,
-     "end": 1275,
+     "start": 640,
+     "end": 1262,
      "passed": true,
      "checkpoint": "release",
      "metrics": {
-      "placement_error_mm": 0.5,
-      "stable_s": 8.6
+      "placement_error_mm": 0.49,
+      "stable_s": 8.68
      },
      "relook": false
     },
@@ -96,13 +96,13 @@
       "executed_visual_unverified"
      ],
      "exit": "placed +2",
-     "start": 1275,
-     "end": 1281,
+     "start": 1262,
+     "end": 1268,
      "passed": true,
      "checkpoint": "release",
      "metrics": {
-      "placement_error_mm": 0.5,
-      "stable_s": 8.72
+      "placement_error_mm": 0.49,
+      "stable_s": 8.8
      },
      "relook": true
     },
@@ -115,21 +115,21 @@
       "advanced"
      ],
      "exit": "advanced",
-     "start": 1281,
-     "end": 1287,
+     "start": 1268,
+     "end": 1279,
      "passed": true,
      "checkpoint": "handoff",
      "metrics": {
-      "placement_error_mm": 0.5,
-      "stable_s": 8.84
+      "placement_error_mm": 0.49,
+      "stable_s": 9.02
      },
      "relook": false
     }
    ],
    "start": 0,
-   "end": 1287,
+   "end": 1279,
    "placed": true,
-   "placement_error_mm": 0.5
+   "placement_error_mm": 0.49
   },
   {
    "name": "orange",
@@ -144,12 +144,12 @@
       "planned"
      ],
      "exit": "planned",
-     "start": 1287,
-     "end": 1303,
+     "start": 1279,
+     "end": 1292,
      "passed": true,
      "checkpoint": "perceive_plan",
      "metrics": {
-      "earlier_pieces_max_mm": 0.5
+      "earlier_pieces_max_mm": 0.49
      },
      "relook": false
     },
@@ -162,12 +162,12 @@
       "verified"
      ],
      "exit": "verified",
-     "start": 1303,
-     "end": 1699,
+     "start": 1292,
+     "end": 1678,
      "passed": true,
      "checkpoint": "grasp",
      "metrics": {
-      "earlier_pieces_max_mm": 0.5
+      "earlier_pieces_max_mm": 0.49
      },
      "relook": false
     },
@@ -180,12 +180,12 @@
       "carried"
      ],
      "exit": "carried",
-     "start": 1699,
-     "end": 1941,
+     "start": 1678,
+     "end": 1904,
      "passed": true,
      "checkpoint": "transport",
      "metrics": {
-      "earlier_pieces_max_mm": 0.5
+      "earlier_pieces_max_mm": 0.49
      },
      "relook": false
     },
@@ -200,14 +200,14 @@
       "uncertain"
      ],
      "exit": "placed +2",
-     "start": 1941,
-     "end": 2594,
+     "start": 1904,
+     "end": 2540,
      "passed": true,
      "checkpoint": "release",
      "metrics": {
-      "placement_error_mm": 0.47,
-      "earlier_pieces_max_mm": 0.5,
-      "stable_s": 9.08
+      "placement_error_mm": 0.49,
+      "earlier_pieces_max_mm": 0.49,
+      "stable_s": 8.7
      },
      "relook": false
     },
@@ -222,14 +222,14 @@
       "executed_visual_unverified"
      ],
      "exit": "placed +2",
-     "start": 2594,
-     "end": 2601,
+     "start": 2540,
+     "end": 2550,
      "passed": true,
      "checkpoint": "release",
      "metrics": {
-      "placement_error_mm": 0.47,
-      "earlier_pieces_max_mm": 0.39,
-      "stable_s": 9.22
+      "placement_error_mm": 0.49,
+      "earlier_pieces_max_mm": 0.45,
+      "stable_s": 8.9
      },
      "relook": true
     },
@@ -242,22 +242,22 @@
       "advanced"
      ],
      "exit": "advanced",
-     "start": 2601,
-     "end": 2621,
+     "start": 2550,
+     "end": 2557,
      "passed": true,
      "checkpoint": "handoff",
      "metrics": {
-      "placement_error_mm": 0.47,
-      "earlier_pieces_max_mm": 0.38,
-      "stable_s": 9.62
+      "placement_error_mm": 0.49,
+      "earlier_pieces_max_mm": 0.45,
+      "stable_s": 9.04
      },
      "relook": false
     }
    ],
-   "start": 1287,
-   "end": 2621,
+   "start": 1279,
+   "end": 2557,
    "placed": true,
-   "placement_error_mm": 0.47
+   "placement_error_mm": 0.49
   },
   {
    "name": "yellow",
@@ -272,12 +272,12 @@
       "planned"
      ],
      "exit": "planned",
-     "start": 2621,
-     "end": 2638,
+     "start": 2557,
+     "end": 2576,
      "passed": true,
      "checkpoint": "perceive_plan",
      "metrics": {
-      "earlier_pieces_max_mm": 0.48
+      "earlier_pieces_max_mm": 0.49
      },
      "relook": false
     },
@@ -290,8 +290,8 @@
       "verified"
      ],
      "exit": "verified",
-     "start": 2638,
-     "end": 3068,
+     "start": 2576,
+     "end": 3056,
      "passed": true,
      "checkpoint": "grasp",
      "metrics": {
@@ -308,8 +308,8 @@
       "carried"
      ],
      "exit": "carried",
-     "start": 3068,
-     "end": 3543,
+     "start": 3056,
+     "end": 3525,
      "passed": true,
      "checkpoint": "transport",
      "metrics": {
@@ -328,14 +328,14 @@
       "uncertain"
      ],
      "exit": "placed +2",
-     "start": 3543,
-     "end": 4163,
+     "start": 3525,
+     "end": 4143,
      "passed": true,
      "checkpoint": "release",
      "metrics": {
-      "placement_error_mm": 0.6,
+      "placement_error_mm": 0.44,
       "earlier_pieces_max_mm": 0.49,
-      "stable_s": 8.62
+      "stable_s": 9.26
      },
      "relook": false
     },
@@ -350,14 +350,14 @@
       "executed_visual_unverified"
      ],
      "exit": "placed +2",
-     "start": 4163,
-     "end": 4173,
+     "start": 4143,
+     "end": 4164,
      "passed": true,
      "checkpoint": "release",
      "metrics": {
-      "placement_error_mm": 0.6,
-      "earlier_pieces_max_mm": 0.49,
-      "stable_s": 8.82
+      "placement_error_mm": 0.44,
+      "earlier_pieces_max_mm": 0.45,
+      "stable_s": 9.68
      },
      "relook": true
     },
@@ -370,22 +370,22 @@
       "advanced"
      ],
      "exit": "advanced",
-     "start": 4173,
-     "end": 4180,
+     "start": 4164,
+     "end": 4172,
      "passed": true,
      "checkpoint": "handoff",
      "metrics": {
-      "placement_error_mm": 0.6,
-      "earlier_pieces_max_mm": 0.49,
-      "stable_s": 8.96
+      "placement_error_mm": 0.44,
+      "earlier_pieces_max_mm": 0.45,
+      "stable_s": 9.84
      },
      "relook": false
     }
    ],
-   "start": 2621,
-   "end": 4180,
+   "start": 2557,
+   "end": 4172,
    "placed": true,
-   "placement_error_mm": 0.6
+   "placement_error_mm": 0.44
   },
   {
    "name": "teal",
@@ -400,12 +400,12 @@
       "planned"
      ],
      "exit": "planned",
-     "start": 4180,
-     "end": 4198,
+     "start": 4172,
+     "end": 4190,
      "passed": true,
      "checkpoint": "perceive_plan",
      "metrics": {
-      "earlier_pieces_max_mm": 0.6
+      "earlier_pieces_max_mm": 0.45
      },
      "relook": false
     },
@@ -418,12 +418,12 @@
       "verified"
      ],
      "exit": "verified",
-     "start": 4198,
-     "end": 4531,
+     "start": 4190,
+     "end": 4599,
      "passed": true,
      "checkpoint": "grasp",
      "metrics": {
-      "earlier_pieces_max_mm": 0.6
+      "earlier_pieces_max_mm": 0.45
      },
      "relook": false
     },
@@ -436,12 +436,12 @@
       "carried"
      ],
      "exit": "carried",
-     "start": 4531,
-     "end": 4697,
+     "start": 4599,
+     "end": 4753,
      "passed": true,
      "checkpoint": "transport",
      "metrics": {
-      "earlier_pieces_max_mm": 0.59
+      "earlier_pieces_max_mm": 0.45
      },
      "relook": false
     },
@@ -456,14 +456,14 @@
       "uncertain"
      ],
      "exit": "placed +2",
-     "start": 4697,
-     "end": 5325,
+     "start": 4753,
+     "end": 5399,
      "passed": true,
      "checkpoint": "release",
      "metrics": {
-      "placement_error_mm": 0.55,
-      "earlier_pieces_max_mm": 0.59,
-      "stable_s": 9.48
+      "placement_error_mm": 0.74,
+      "earlier_pieces_max_mm": 0.45,
+      "stable_s": 9.34
      },
      "relook": false
     },
@@ -478,14 +478,14 @@
       "executed_visual_unverified"
      ],
      "exit": "placed +2",
-     "start": 5325,
-     "end": 5336,
+     "start": 5399,
+     "end": 5426,
      "passed": true,
      "checkpoint": "release",
      "metrics": {
-      "placement_error_mm": 0.55,
-      "earlier_pieces_max_mm": 0.49,
-      "stable_s": 9.7
+      "placement_error_mm": 0.74,
+      "earlier_pieces_max_mm": 0.45,
+      "stable_s": 9.88
      },
      "relook": true
     },
@@ -498,22 +498,22 @@
       "advanced"
      ],
      "exit": "advanced",
-     "start": 5336,
-     "end": 5345,
+     "start": 5426,
+     "end": 5434,
      "passed": true,
      "checkpoint": "handoff",
      "metrics": {
-      "placement_error_mm": 0.55,
-      "earlier_pieces_max_mm": 0.49,
-      "stable_s": 9.88
+      "placement_error_mm": 0.74,
+      "earlier_pieces_max_mm": 0.45,
+      "stable_s": 10.04
      },
      "relook": false
     }
    ],
-   "start": 4180,
-   "end": 5345,
+   "start": 4172,
+   "end": 5434,
    "placed": true,
-   "placement_error_mm": 0.55
+   "placement_error_mm": 0.74
   },
   {
    "name": "purple",
@@ -528,12 +528,12 @@
       "planned"
      ],
      "exit": "planned",
-     "start": 5345,
-     "end": 5377,
+     "start": 5434,
+     "end": 5450,
      "passed": true,
      "checkpoint": "perceive_plan",
      "metrics": {
-      "earlier_pieces_max_mm": 0.55
+      "earlier_pieces_max_mm": 0.74
      },
      "relook": false
     },
@@ -546,12 +546,12 @@
       "verified"
      ],
      "exit": "verified",
-     "start": 5377,
-     "end": 5775,
+     "start": 5450,
+     "end": 5826,
      "passed": true,
      "checkpoint": "grasp",
      "metrics": {
-      "earlier_pieces_max_mm": 0.56
+      "earlier_pieces_max_mm": 0.74
      },
      "relook": false
     },
@@ -564,12 +564,12 @@
       "carried"
      ],
      "exit": "carried",
-     "start": 5775,
-     "end": 6079,
+     "start": 5826,
+     "end": 6133,
      "passed": true,
      "checkpoint": "transport",
      "metrics": {
-      "earlier_pieces_max_mm": 0.56
+      "earlier_pieces_max_mm": 0.74
      },
      "relook": false
     },
@@ -584,14 +584,14 @@
       "uncertain"
      ],
      "exit": "placed +2",
-     "start": 6079,
-     "end": 6693,
+     "start": 6133,
+     "end": 6792,
      "passed": true,
      "checkpoint": "release",
      "metrics": {
-      "placement_error_mm": 0.42,
-      "earlier_pieces_max_mm": 0.61,
-      "stable_s": 6.76
+      "placement_error_mm": 0.72,
+      "earlier_pieces_max_mm": 0.76,
+      "stable_s": 6.7
      },
      "relook": false
     },
@@ -606,14 +606,14 @@
       "executed_visual_unverified"
      ],
      "exit": "placed +2",
-     "start": 6693,
-     "end": 6702,
+     "start": 6792,
+     "end": 6802,
      "passed": true,
      "checkpoint": "release",
      "metrics": {
-      "placement_error_mm": 0.42,
-      "earlier_pieces_max_mm": 0.61,
-      "stable_s": 6.94
+      "placement_error_mm": 0.72,
+      "earlier_pieces_max_mm": 0.7,
+      "stable_s": 6.9
      },
      "relook": true
     },
@@ -626,22 +626,22 @@
       "advanced"
      ],
      "exit": "advanced",
-     "start": 6702,
-     "end": 6711,
+     "start": 6802,
+     "end": 6828,
      "passed": true,
      "checkpoint": "handoff",
      "metrics": {
-      "placement_error_mm": 0.42,
-      "earlier_pieces_max_mm": 0.61,
-      "stable_s": 7.12
+      "placement_error_mm": 0.71,
+      "earlier_pieces_max_mm": 0.7,
+      "stable_s": 7.42
      },
      "relook": false
     }
    ],
-   "start": 5345,
-   "end": 6711,
+   "start": 5434,
+   "end": 6828,
    "placed": true,
-   "placement_error_mm": 0.42
+   "placement_error_mm": 0.72
   },
   {
    "name": "cyan",
@@ -656,12 +656,12 @@
       "planned"
      ],
      "exit": "planned",
-     "start": 6711,
-     "end": 6743,
+     "start": 6828,
+     "end": 6866,
      "passed": true,
      "checkpoint": "perceive_plan",
      "metrics": {
-      "earlier_pieces_max_mm": 0.61
+      "earlier_pieces_max_mm": 0.71
      },
      "relook": false
     },
@@ -674,12 +674,12 @@
       "verified"
      ],
      "exit": "verified",
-     "start": 6743,
-     "end": 7603,
+     "start": 6866,
+     "end": 7777,
      "passed": true,
      "checkpoint": "grasp",
      "metrics": {
-      "earlier_pieces_max_mm": 0.61
+      "earlier_pieces_max_mm": 0.71
      },
      "relook": false
     },
@@ -692,12 +692,12 @@
       "receiver_ready"
      ],
      "exit": "receiver_ready",
-     "start": 7603,
-     "end": 8966,
+     "start": 7777,
+     "end": 9143,
      "passed": true,
      "checkpoint": "handoff_approach",
      "metrics": {
-      "earlier_pieces_max_mm": 0.61
+      "earlier_pieces_max_mm": 0.7
      },
      "relook": false
     },
@@ -710,12 +710,12 @@
       "receiver_closed"
      ],
      "exit": "receiver_closed",
-     "start": 8966,
-     "end": 9352,
+     "start": 9143,
+     "end": 9512,
      "passed": true,
      "checkpoint": "handoff_dualhold",
      "metrics": {
-      "earlier_pieces_max_mm": 0.61
+      "earlier_pieces_max_mm": 0.7
      },
      "relook": false
     },
@@ -728,12 +728,12 @@
       "donor_released"
      ],
      "exit": "donor_released",
-     "start": 9352,
-     "end": 9728,
+     "start": 9512,
+     "end": 9895,
      "passed": true,
      "checkpoint": "handoff_receiveronly",
      "metrics": {
-      "earlier_pieces_max_mm": 0.61
+      "earlier_pieces_max_mm": 0.7
      },
      "relook": false
     },
@@ -746,12 +746,12 @@
       "receiver_verified"
      ],
      "exit": "receiver_verified",
-     "start": 9728,
-     "end": 9780,
+     "start": 9895,
+     "end": 9942,
      "passed": true,
      "checkpoint": "handoff_receiver_hold",
      "metrics": {
-      "earlier_pieces_max_mm": 0.61
+      "earlier_pieces_max_mm": 0.7
      },
      "relook": false
     },
@@ -764,12 +764,12 @@
       "carried"
      ],
      "exit": "carried",
-     "start": 9780,
-     "end": 11943,
+     "start": 9942,
+     "end": 12098,
      "passed": true,
      "checkpoint": "transport",
      "metrics": {
-      "earlier_pieces_max_mm": 0.61
+      "earlier_pieces_max_mm": 0.7
      },
      "relook": false
     },
@@ -784,14 +784,14 @@
       "uncertain"
      ],
      "exit": "placed +2",
-     "start": 11943,
-     "end": 13170,
+     "start": 12098,
+     "end": 13372,
      "passed": true,
      "checkpoint": "release",
      "metrics": {
-      "placement_error_mm": 0.78,
-      "earlier_pieces_max_mm": 0.61,
-      "stable_s": 14.7
+      "placement_error_mm": 1.29,
+      "earlier_pieces_max_mm": 0.7,
+      "stable_s": 15.58
      },
      "relook": false
     },
@@ -806,14 +806,14 @@
       "executed_visual_unverified"
      ],
      "exit": "placed +2",
-     "start": 13170,
-     "end": 13238,
+     "start": 13372,
+     "end": 13468,
      "passed": true,
      "checkpoint": "release",
      "metrics": {
-      "placement_error_mm": 0.78,
-      "earlier_pieces_max_mm": 0.61,
-      "stable_s": 16.06
+      "placement_error_mm": 1.29,
+      "earlier_pieces_max_mm": 0.7,
+      "stable_s": 17.5
      },
      "relook": true
     },
@@ -826,22 +826,22 @@
       "advanced"
      ],
      "exit": "advanced",
-     "start": 13238,
-     "end": 13287,
+     "start": 13468,
+     "end": 13519,
      "passed": true,
      "checkpoint": "handoff",
      "metrics": {
-      "placement_error_mm": 0.78,
-      "earlier_pieces_max_mm": 0.61,
-      "stable_s": 17.04
+      "placement_error_mm": 1.29,
+      "earlier_pieces_max_mm": 0.7,
+      "stable_s": 18.52
      },
      "relook": false
     }
    ],
-   "start": 6711,
-   "end": 13287,
+   "start": 6828,
+   "end": 13519,
    "placed": true,
-   "placement_error_mm": 0.78
+   "placement_error_mm": 1.29
   },
   {
    "name": "mint",
@@ -856,12 +856,12 @@
       "planned"
      ],
      "exit": "planned",
-     "start": 13287,
-     "end": 13325,
+     "start": 13519,
+     "end": 13559,
      "passed": true,
      "checkpoint": "perceive_plan",
      "metrics": {
-      "earlier_pieces_max_mm": 0.78
+      "earlier_pieces_max_mm": 1.29
      },
      "relook": false
     },
@@ -874,12 +874,12 @@
       "verified"
      ],
      "exit": "verified",
-     "start": 13325,
-     "end": 13759,
+     "start": 13559,
+     "end": 14026,
      "passed": true,
      "checkpoint": "grasp",
      "metrics": {
-      "earlier_pieces_max_mm": 0.78
+      "earlier_pieces_max_mm": 1.29
      },
      "relook": false
     },
@@ -892,12 +892,12 @@
       "carried"
      ],
      "exit": "carried",
-     "start": 13759,
-     "end": 14254,
+     "start": 14026,
+     "end": 14544,
      "passed": true,
      "checkpoint": "transport",
      "metrics": {
-      "earlier_pieces_max_mm": 0.88
+      "earlier_pieces_max_mm": 1.3
      },
      "relook": false
     },
@@ -912,14 +912,14 @@
       "uncertain"
      ],
      "exit": "placed +2",
-     "start": 14254,
-     "end": 14892,
+     "start": 14544,
+     "end": 15185,
      "passed": true,
      "checkpoint": "release",
      "metrics": {
-      "placement_error_mm": 1.35,
-      "earlier_pieces_max_mm": 1.25,
-      "stable_s": 7.28
+      "placement_error_mm": 1.12,
+      "earlier_pieces_max_mm": 1.31,
+      "stable_s": 7.06
      },
      "relook": false
     },
@@ -934,14 +934,14 @@
       "executed_visual_unverified"
      ],
      "exit": "placed +2",
-     "start": 14892,
-     "end": 14927,
+     "start": 15185,
+     "end": 15230,
      "passed": true,
      "checkpoint": "release",
      "metrics": {
-      "placement_error_mm": 1.34,
-      "earlier_pieces_max_mm": 1.28,
-      "stable_s": 7.98
+      "placement_error_mm": 1.12,
+      "earlier_pieces_max_mm": 1.31,
+      "stable_s": 7.96
      },
      "relook": true
     },
@@ -954,22 +954,22 @@
       "advanced"
      ],
      "exit": "advanced",
-     "start": 14927,
-     "end": 14959,
+     "start": 15230,
+     "end": 15265,
      "passed": true,
      "checkpoint": "handoff",
      "metrics": {
-      "placement_error_mm": 1.34,
-      "earlier_pieces_max_mm": 1.32,
-      "stable_s": 8.62
+      "placement_error_mm": 1.13,
+      "earlier_pieces_max_mm": 1.31,
+      "stable_s": 8.66
      },
      "relook": false
     }
    ],
-   "start": 13287,
-   "end": 14959,
+   "start": 13519,
+   "end": 15265,
    "placed": true,
-   "placement_error_mm": 1.35
+   "placement_error_mm": 1.12
   },
   {
    "name": "lime",
@@ -984,12 +984,12 @@
       "planned"
      ],
      "exit": "planned",
-     "start": 14959,
-     "end": 15006,
+     "start": 15265,
+     "end": 15320,
      "passed": true,
      "checkpoint": "perceive_plan",
      "metrics": {
-      "earlier_pieces_max_mm": 1.35
+      "earlier_pieces_max_mm": 1.31
      },
      "relook": false
     },
@@ -1002,12 +1002,12 @@
       "verified"
      ],
      "exit": "verified",
-     "start": 15006,
-     "end": 15439,
+     "start": 15320,
+     "end": 15760,
      "passed": true,
      "checkpoint": "grasp",
      "metrics": {
-      "earlier_pieces_max_mm": 1.37
+      "earlier_pieces_max_mm": 1.31
      },
      "relook": false
     },
@@ -1020,12 +1020,12 @@
       "carried"
      ],
      "exit": "carried",
-     "start": 15439,
-     "end": 15810,
+     "start": 15760,
+     "end": 16112,
      "passed": true,
      "checkpoint": "transport",
      "metrics": {
-      "earlier_pieces_max_mm": 1.36
+      "earlier_pieces_max_mm": 1.32
      },
      "relook": false
     },
@@ -1040,14 +1040,14 @@
       "uncertain"
      ],
      "exit": "placed +2",
-     "start": 15810,
-     "end": 16436,
+     "start": 16112,
+     "end": 16783,
      "passed": true,
      "checkpoint": "release",
      "metrics": {
-      "placement_error_mm": 1.02,
-      "earlier_pieces_max_mm": 1.34,
-      "stable_s": 7.2
+      "placement_error_mm": 1.04,
+      "earlier_pieces_max_mm": 1.32,
+      "stable_s": 7.66
      },
      "relook": false
     },
@@ -1062,14 +1062,14 @@
       "executed_visual_unverified"
      ],
      "exit": "placed +2",
-     "start": 16436,
-     "end": 16471,
+     "start": 16783,
+     "end": 16834,
      "passed": true,
      "checkpoint": "release",
      "metrics": {
-      "placement_error_mm": 1.02,
+      "placement_error_mm": 1.03,
       "earlier_pieces_max_mm": 1.32,
-      "stable_s": 7.9
+      "stable_s": 8.68
      },
      "relook": true
     },
@@ -1082,22 +1082,22 @@
       "advanced"
      ],
      "exit": "advanced",
-     "start": 16471,
-     "end": 16504,
+     "start": 16834,
+     "end": 16868,
      "passed": true,
      "checkpoint": "handoff",
      "metrics": {
       "placement_error_mm": 1.03,
       "earlier_pieces_max_mm": 1.32,
-      "stable_s": 8.56
+      "stable_s": 9.36
      },
      "relook": false
     }
    ],
-   "start": 14959,
-   "end": 16504,
+   "start": 15265,
+   "end": 16868,
    "placed": true,
-   "placement_error_mm": 1.02
+   "placement_error_mm": 1.04
   },
   {
    "name": "maroon",
@@ -1112,8 +1112,8 @@
       "planned"
      ],
      "exit": "planned",
-     "start": 16504,
-     "end": 17024,
+     "start": 16868,
+     "end": 17393,
      "passed": true,
      "checkpoint": "perceive_plan",
      "metrics": {
@@ -1130,12 +1130,12 @@
       "verified"
      ],
      "exit": "verified",
-     "start": 17024,
-     "end": 17480,
+     "start": 17393,
+     "end": 17871,
      "passed": true,
      "checkpoint": "grasp",
      "metrics": {
-      "earlier_pieces_max_mm": 1.28
+      "earlier_pieces_max_mm": 1.32
      },
      "relook": false
     },
@@ -1148,12 +1148,12 @@
       "carried"
      ],
      "exit": "carried",
-     "start": 17480,
-     "end": 17760,
+     "start": 17871,
+     "end": 18145,
      "passed": true,
      "checkpoint": "transport",
      "metrics": {
-      "earlier_pieces_max_mm": 1.29
+      "earlier_pieces_max_mm": 1.32
      },
      "relook": false
     },
@@ -1168,14 +1168,14 @@
       "uncertain"
      ],
      "exit": "placed +2",
-     "start": 17760,
-     "end": 19565,
+     "start": 18145,
+     "end": 19806,
      "passed": true,
      "checkpoint": "release",
      "metrics": {
-      "placement_error_mm": 1.88,
-      "earlier_pieces_max_mm": 1.34,
-      "stable_s": 10.0
+      "placement_error_mm": 1.54,
+      "earlier_pieces_max_mm": 1.33,
+      "stable_s": 9.94
      },
      "relook": false
     },
@@ -1190,14 +1190,14 @@
       "executed_visual_unverified"
      ],
      "exit": "placed +2",
-     "start": 19565,
-     "end": 19613,
+     "start": 19806,
+     "end": 19817,
      "passed": true,
      "checkpoint": "release",
      "metrics": {
-      "placement_error_mm": 1.88,
-      "earlier_pieces_max_mm": 1.29,
-      "stable_s": 10.96
+      "placement_error_mm": 1.54,
+      "earlier_pieces_max_mm": 1.33,
+      "stable_s": 10.16
      },
      "relook": true
     },
@@ -1210,22 +1210,22 @@
       "advanced"
      ],
      "exit": "advanced",
-     "start": 19613,
-     "end": 19648,
+     "start": 19817,
+     "end": 19829,
      "passed": true,
      "checkpoint": "handoff",
      "metrics": {
-      "placement_error_mm": 1.88,
-      "earlier_pieces_max_mm": 1.29,
-      "stable_s": 11.66
+      "placement_error_mm": 1.54,
+      "earlier_pieces_max_mm": 1.33,
+      "stable_s": 10.4
      },
      "relook": false
     }
    ],
-   "start": 16504,
-   "end": 19648,
+   "start": 16868,
+   "end": 19829,
    "placed": true,
-   "placement_error_mm": 1.88
+   "placement_error_mm": 1.54
   },
   {
    "name": "navy",
@@ -1240,12 +1240,12 @@
       "planned"
      ],
      "exit": "planned",
-     "start": 19648,
-     "end": 19692,
+     "start": 19829,
+     "end": 19845,
      "passed": true,
      "checkpoint": "perceive_plan",
      "metrics": {
-      "earlier_pieces_max_mm": 1.89
+      "earlier_pieces_max_mm": 1.54
      },
      "relook": false
     },
@@ -1258,12 +1258,12 @@
       "verified"
      ],
      "exit": "verified",
-     "start": 19692,
-     "end": 20174,
+     "start": 19845,
+     "end": 20309,
      "passed": true,
      "checkpoint": "grasp",
      "metrics": {
-      "earlier_pieces_max_mm": 1.9
+      "earlier_pieces_max_mm": 1.63
      },
      "relook": false
     },
@@ -1276,12 +1276,12 @@
       "carried"
      ],
      "exit": "carried",
-     "start": 20174,
-     "end": 20556,
+     "start": 20309,
+     "end": 20666,
      "passed": true,
      "checkpoint": "transport",
      "metrics": {
-      "earlier_pieces_max_mm": 1.91
+      "earlier_pieces_max_mm": 1.68
      },
      "relook": false
     },
@@ -1296,14 +1296,14 @@
       "uncertain"
      ],
      "exit": "placed +2",
-     "start": 20556,
-     "end": 21238,
+     "start": 20666,
+     "end": 21258,
      "passed": true,
      "checkpoint": "release",
      "metrics": {
-      "placement_error_mm": 2.02,
-      "earlier_pieces_max_mm": 1.93,
-      "stable_s": 7.8
+      "placement_error_mm": 2.03,
+      "earlier_pieces_max_mm": 1.72,
+      "stable_s": 6.94
      },
      "relook": false
     },
@@ -1318,14 +1318,14 @@
       "executed_visual_unverified"
      ],
      "exit": "placed +2",
-     "start": 21238,
-     "end": 21274,
+     "start": 21258,
+     "end": 21268,
      "passed": true,
      "checkpoint": "conditional_release",
      "metrics": {
-      "placement_error_mm": 2.02,
-      "earlier_pieces_max_mm": 1.92,
-      "stable_s": 8.52
+      "placement_error_mm": 2.03,
+      "earlier_pieces_max_mm": 1.72,
+      "stable_s": 7.14
      },
      "relook": true
     },
@@ -1338,22 +1338,22 @@
       "advanced"
      ],
      "exit": "advanced",
-     "start": 21274,
-     "end": 21304,
+     "start": 21268,
+     "end": 21279,
      "passed": true,
      "checkpoint": "handoff",
      "metrics": {
-      "placement_error_mm": 2.02,
-      "earlier_pieces_max_mm": 1.92,
-      "stable_s": 9.12
+      "placement_error_mm": 2.03,
+      "earlier_pieces_max_mm": 1.72,
+      "stable_s": 7.36
      },
      "relook": false
     }
    ],
-   "start": 19648,
-   "end": 21304,
+   "start": 19829,
+   "end": 21279,
    "placed": true,
-   "placement_error_mm": 2.02
+   "placement_error_mm": 2.03
   },
   {
    "name": "pink",
@@ -1368,12 +1368,12 @@
       "planned"
      ],
      "exit": "planned",
-     "start": 21304,
-     "end": 21343,
+     "start": 21279,
+     "end": 21296,
      "passed": true,
      "checkpoint": "perceive_plan",
      "metrics": {
-      "earlier_pieces_max_mm": 2.02
+      "earlier_pieces_max_mm": 2.03
      },
      "relook": false
     },
@@ -1386,8 +1386,8 @@
       "verified"
      ],
      "exit": "verified",
-     "start": 21343,
-     "end": 21771,
+     "start": 21296,
+     "end": 21692,
      "passed": true,
      "checkpoint": "grasp",
      "metrics": {
@@ -1404,8 +1404,8 @@
       "carried"
      ],
      "exit": "carried",
-     "start": 21771,
-     "end": 22211,
+     "start": 21692,
+     "end": 22093,
      "passed": true,
      "checkpoint": "transport",
      "metrics": {
@@ -1424,14 +1424,14 @@
       "uncertain"
      ],
      "exit": "placed +2",
-     "start": 22211,
-     "end": 23011,
+     "start": 22093,
+     "end": 22827,
      "passed": true,
      "checkpoint": "release",
      "metrics": {
-      "placement_error_mm": 2.51,
-      "earlier_pieces_max_mm": 2.07,
-      "stable_s": 7.44
+      "placement_error_mm": 2.63,
+      "earlier_pieces_max_mm": 2.06,
+      "stable_s": 6.86
      },
      "relook": false
     },
@@ -1446,14 +1446,14 @@
       "executed_visual_unverified"
      ],
      "exit": "placed +2",
-     "start": 23011,
-     "end": 23052,
+     "start": 22827,
+     "end": 22850,
      "passed": true,
      "checkpoint": "conditional_release",
      "metrics": {
-      "placement_error_mm": 2.52,
+      "placement_error_mm": 2.63,
       "earlier_pieces_max_mm": 2.06,
-      "stable_s": 8.26
+      "stable_s": 7.32
      },
      "relook": true
     },
@@ -1466,22 +1466,22 @@
       "advanced"
      ],
      "exit": "advanced",
-     "start": 23052,
-     "end": 23085,
+     "start": 22850,
+     "end": 22867,
      "passed": true,
      "checkpoint": "handoff",
      "metrics": {
-      "placement_error_mm": 2.52,
+      "placement_error_mm": 2.63,
       "earlier_pieces_max_mm": 2.06,
-      "stable_s": 8.92
+      "stable_s": 7.66
      },
      "relook": false
     }
    ],
-   "start": 21304,
-   "end": 23085,
+   "start": 21279,
+   "end": 22867,
    "placed": true,
-   "placement_error_mm": 2.51
+   "placement_error_mm": 2.63
   },
   {
    "name": "red",
@@ -1496,12 +1496,12 @@
       "planned"
      ],
      "exit": "planned",
-     "start": 23085,
-     "end": 23134,
+     "start": 22867,
+     "end": 22908,
      "passed": true,
      "checkpoint": "perceive_plan",
      "metrics": {
-      "earlier_pieces_max_mm": 2.52
+      "earlier_pieces_max_mm": 2.63
      },
      "relook": false
     },
@@ -1514,12 +1514,12 @@
       "verified"
      ],
      "exit": "verified",
-     "start": 23134,
-     "end": 23577,
+     "start": 22908,
+     "end": 23323,
      "passed": true,
      "checkpoint": "grasp",
      "metrics": {
-      "earlier_pieces_max_mm": 2.54
+      "earlier_pieces_max_mm": 2.64
      },
      "relook": false
     },
@@ -1532,12 +1532,12 @@
       "prepared"
      ],
      "exit": "prepared",
-     "start": 23577,
-     "end": 25863,
+     "start": 23323,
+     "end": 25638,
      "passed": true,
      "checkpoint": "handoff_prepared",
      "metrics": {
-      "earlier_pieces_max_mm": 2.59
+      "earlier_pieces_max_mm": 2.65
      },
      "relook": false
     },
@@ -1550,8 +1550,8 @@
       "dual_held"
      ],
      "exit": "dual_held",
-     "start": 25863,
-     "end": 26208,
+     "start": 25638,
+     "end": 26004,
      "passed": true,
      "checkpoint": "handoff_dualhold",
      "metrics": {
@@ -1568,12 +1568,12 @@
       "transferred"
      ],
      "exit": "transferred",
-     "start": 26208,
-     "end": 26596,
+     "start": 26004,
+     "end": 26408,
      "passed": true,
      "checkpoint": "handoff_receiver_only",
      "metrics": {
-      "earlier_pieces_max_mm": 2.66
+      "earlier_pieces_max_mm": 2.6
      },
      "relook": false
     },
@@ -1586,12 +1586,12 @@
       "verified"
      ],
      "exit": "verified",
-     "start": 26596,
-     "end": 26675,
+     "start": 26408,
+     "end": 26526,
      "passed": true,
      "checkpoint": "handoff_receiver_bound",
      "metrics": {
-      "earlier_pieces_max_mm": 2.67
+      "earlier_pieces_max_mm": 2.58
      },
      "relook": false
     },
@@ -1604,12 +1604,12 @@
       "prepared"
      ],
      "exit": "prepared",
-     "start": 26675,
-     "end": 28171,
+     "start": 26526,
+     "end": 28042,
      "passed": true,
      "checkpoint": "return_handoff_prepared",
      "metrics": {
-      "earlier_pieces_max_mm": 2.67
+      "earlier_pieces_max_mm": 2.58
      },
      "relook": false
     },
@@ -1622,12 +1622,12 @@
       "dual_held"
      ],
      "exit": "dual_held",
-     "start": 28171,
-     "end": 28548,
+     "start": 28042,
+     "end": 28422,
      "passed": true,
      "checkpoint": "return_handoff_dualhold",
      "metrics": {
-      "earlier_pieces_max_mm": 2.67
+      "earlier_pieces_max_mm": 2.58
      },
      "relook": false
     },
@@ -1640,12 +1640,12 @@
       "transferred"
      ],
      "exit": "transferred",
-     "start": 28548,
-     "end": 29091,
+     "start": 28422,
+     "end": 28833,
      "passed": true,
      "checkpoint": "return_handoff_receiver_only",
      "metrics": {
-      "earlier_pieces_max_mm": 2.67
+      "earlier_pieces_max_mm": 2.59
      },
      "relook": false
     },
@@ -1658,12 +1658,12 @@
       "verified"
      ],
      "exit": "verified",
-     "start": 29091,
-     "end": 29184,
+     "start": 28833,
+     "end": 28927,
      "passed": true,
      "checkpoint": "return_handoff_receiver_bound",
      "metrics": {
-      "earlier_pieces_max_mm": 2.67
+      "earlier_pieces_max_mm": 2.59
      },
      "relook": false
     },
@@ -1676,12 +1676,12 @@
       "carried"
      ],
      "exit": "carried",
-     "start": 29184,
-     "end": 30557,
+     "start": 28927,
+     "end": 30347,
      "passed": true,
      "checkpoint": "transport",
      "metrics": {
-      "earlier_pieces_max_mm": 2.76
+      "earlier_pieces_max_mm": 2.61
      },
      "relook": false
     },
@@ -1696,14 +1696,14 @@
       "uncertain"
      ],
      "exit": "placed +2",
-     "start": 30557,
-     "end": 32502,
+     "start": 30347,
+     "end": 32304,
      "passed": true,
      "checkpoint": "release",
      "metrics": {
-      "placement_error_mm": 2.53,
-      "earlier_pieces_max_mm": 2.75,
-      "stable_s": 4.88
+      "placement_error_mm": 2.48,
+      "earlier_pieces_max_mm": 2.63,
+      "stable_s": 4.54
      },
      "relook": false
     },
@@ -1716,18 +1716,22 @@
       "advanced"
      ],
      "exit": "advanced",
-     "start": 32502,
-     "end": null,
-     "passed": false,
-     "checkpoint": null,
-     "metrics": {},
+     "start": 32304,
+     "end": 32388,
+     "passed": true,
+     "checkpoint": "handoff",
+     "metrics": {
+      "placement_error_mm": 2.47,
+      "earlier_pieces_max_mm": 2.54,
+      "stable_s": 6.22
+     },
      "relook": false
     }
    ],
-   "start": 23085,
-   "end": 32502,
-   "placed": false,
-   "placement_error_mm": 2.53
+   "start": 22867,
+   "end": 32388,
+   "placed": true,
+   "placement_error_mm": 2.48
   },
   {
    "name": "finish",
@@ -1742,17 +1746,21 @@
       "completed"
      ],
      "exit": "completed",
-     "start": 32502,
-     "end": null,
-     "passed": false,
-     "checkpoint": null,
-     "metrics": {},
+     "start": 32388,
+     "end": 32794,
+     "passed": true,
+     "checkpoint": "finish",
+     "metrics": {
+      "placement_error_mm": 2.42,
+      "earlier_pieces_max_mm": 2.55,
+      "stable_s": 14.34
+     },
      "relook": true
     }
    ],
-   "start": 32502,
-   "end": null,
-   "placed": false,
+   "start": 32388,
+   "end": 32794,
+   "placed": true,
    "placement_error_mm": null
   }
  ],
@@ -1785,7 +1793,18 @@
     "stopped_node": "cyan_approach",
     "refusal": "Screened common-position regrasp proposals exhausted; donor remains closed"
    },
-   "after": null
+   "after": {
+    "variant": "board_a",
+    "label": "Case +6 mm x, \u22126 mm y, +2.9\u00b0 yaw",
+    "scene": {
+     "board_dx": 0.006,
+     "board_dy": -0.006,
+     "board_yaw": 0.05
+    },
+    "seed": 0,
+    "placed": 9,
+    "done": false
+   }
   },
   {
    "variant": "board_b",
@@ -1810,7 +1829,25 @@
     "stopped_node": "cyan_receiver_transport",
     "refusal": "Actual bounded receiver views did not renew required environment RGB; donor remains withdrawn, do not home on old occupancy"
    },
-   "after": null
+   "after": {
+    "variant": "board_b",
+    "label": "Case \u22126 mm x, +6 mm y, \u22122.9\u00b0 yaw",
+    "scene": {
+     "board_dx": -0.006,
+     "board_dy": 0.006,
+     "board_yaw": -0.05
+    },
+    "seed": 0,
+    "placed": 8,
+    "done": true,
+    "rss_success": false,
+    "graph_success": false,
+    "sim_time_s": 395.6,
+    "audit_max_mm": null,
+    "stopped_piece": "maroon",
+    "stopped_node": null,
+    "refusal": "subgraph 'release_sg': 1 validate=True checkpoint(s) failed: ['release_independent_postcondition']"
+   }
   },
   {
    "variant": "jitter_a",
@@ -1834,7 +1871,17 @@
     "stopped_node": "release",
     "refusal": "Current accepted RGB contradicts the bounded held estimate"
    },
-   "after": null
+   "after": {
+    "variant": "jitter_a",
+    "label": "Loose pieces \u00b15 mm, \u00b14\u00b0 (seed 4)",
+    "scene": {
+     "piece_jitter": 0.005,
+     "piece_yaw": 0.07
+    },
+    "seed": 4,
+    "placed": 10,
+    "done": false
+   }
   },
   {
    "variant": "jitter_b",
@@ -1858,7 +1905,24 @@
     "stopped_node": "release",
     "refusal": "Current accepted RGB contradicts the bounded held estimate"
    },
-   "after": null
+   "after": {
+    "variant": "jitter_b",
+    "label": "Loose pieces \u00b15 mm, \u00b14\u00b0 (seed 104)",
+    "scene": {
+     "piece_jitter": 0.005,
+     "piece_yaw": 0.07
+    },
+    "seed": 104,
+    "placed": 5,
+    "done": true,
+    "rss_success": false,
+    "graph_success": false,
+    "sim_time_s": 156.8,
+    "audit_max_mm": null,
+    "stopped_piece": "cyan",
+    "stopped_node": "grasp",
+    "refusal": "Fresh board and remaining source RGB missing: ['mint']"
+   }
   },
   {
    "variant": "friction_050",
@@ -1881,7 +1945,23 @@
     "stopped_node": "cyan_receiver_transport",
     "refusal": "Actual receiver attachment has no original-margin 3\u201310mm release"
    },
-   "after": null
+   "after": {
+    "variant": "friction_050",
+    "label": "Friction \u03bc = 0.50",
+    "scene": {
+     "friction": 0.5
+    },
+    "seed": 0,
+    "placed": 5,
+    "done": true,
+    "rss_success": false,
+    "graph_success": false,
+    "sim_time_s": 215.9,
+    "audit_max_mm": null,
+    "stopped_piece": "cyan",
+    "stopped_node": "cyan_receiver_transport",
+    "refusal": "Actual receiver attachment has no original-margin 3\u201310mm release"
+   }
   },
   {
    "variant": "friction_080",
@@ -1904,7 +1984,16 @@
     "stopped_node": "red_goal_verify",
     "refusal": "Final visual UNKNOWN requires the canonical explicitly enabled terminal execution scope"
    },
-   "after": null
+   "after": {
+    "variant": "friction_080",
+    "label": "Friction \u03bc = 0.80",
+    "scene": {
+     "friction": 0.8
+    },
+    "seed": 0,
+    "placed": 9,
+    "done": false
+   }
   },
   {
    "variant": "combined",
@@ -1932,7 +2021,21 @@
     "stopped_node": "release",
     "refusal": "Current accepted RGB contradicts the bounded held estimate"
    },
-   "after": null
+   "after": {
+    "variant": "combined",
+    "label": "Case, pieces and friction together (seed 201)",
+    "scene": {
+     "board_dx": -0.004,
+     "board_dy": -0.004,
+     "board_yaw": 0.03,
+     "piece_jitter": 0.003,
+     "piece_yaw": 0.035,
+     "friction": 0.6
+    },
+    "seed": 201,
+    "placed": 9,
+    "done": false
+   }
   },
   {
    "variant": "shuffled",

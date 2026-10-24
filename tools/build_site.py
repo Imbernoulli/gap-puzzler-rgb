@@ -331,6 +331,7 @@ def main():
     parser.add_argument('--before', nargs='*', default=[])
     parser.add_argument('--after', nargs='*', default=[])
     parser.add_argument('--repeats-before', nargs='*', default=[])
+    parser.add_argument('--note', default='', help='which code produced each column')
     parser.add_argument('--repeats-after', nargs='*', default=[])
     args = parser.parse_args()
     from PIL import Image
@@ -374,7 +375,7 @@ def main():
         SIM_TIME=f"{data['sim_time_s']:.0f}", AUDIT_MAX=f"{data['audit_max_mm']:.1f}" if data['audit_max_mm'] else '—',
         VARIANT_ROWS=variants_html(variants, repeats_html([variant_row(r) for r in args.repeats_before],
                                                           [variant_row(r) for r in args.repeats_after])),
-        GRID=grid, LOOP_SVG=loop_svg(),
+        GRID=grid, LOOP_SVG=loop_svg(), GEN_NOTE=esc(args.note),
         GENERALIZATION_CASES=(SRC / 'generalization_cases.html').read_text() if (SRC / 'generalization_cases.html').exists() else '',
         DRIFT_SVG=drift_svg(SRC / 'data/v13_board_drift.json'),
         WITNESS=f"{witness['complete']['matched']}/{witness['complete']['decisive']} views",
