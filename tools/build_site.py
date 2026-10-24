@@ -168,11 +168,16 @@ def variant_row(run_dir):
         if not result['graph_success'] and rows:
             done = set(placed)
             piece = next((p for p in manifest['ordered_stages'] if p not in done), None)
+        refusal = match.group(3) if match else error
+        refusal = refusal.split(' {')[0].split(': {')[0].split(" {'")[0].strip()
+        checkpoint = re.search(r"subgraph '(\w+)_sg': \d+ validate=True checkpoint\(s\) failed", error)
+        if checkpoint:
+            refusal = f"independent physical checkpoint failed after {checkpoint.group(1)}"
         out.update(done=True, rss_success=result['rss_success'], graph_success=result['graph_success'],
                    sim_time_s=round(result['sim_time_s'], 1),
                    audit_max_mm=round(1000 * audit['final_max_bead_error_m'], 2) if audit.get('success') else None,
                    stopped_piece=piece, stopped_node=match.group(1) if match else None,
-                   refusal=match.group(3)[:160] if match else (error[:160] or None))
+                   refusal=refusal[:160] or None)
     return out
 
 
@@ -230,7 +235,7 @@ def outcome_cell(row):
     where = row['stopped_piece'].capitalize() if row.get('stopped_piece') else 'start'
     node = (row.get('stopped_node') or '').replace('_', ' ')
     return (f'<td><span class="pill fail">{row["placed"]}/12</span> stopped at {esc(where)}'
-            f'<small>{esc(node)}: {esc(row.get("refusal") or "")}</small></td>')
+            f'<small>{esc(node + ": " if node else "")}{esc(row.get("refusal") or "")}</small></td>')
 
 
 def repeats_html(before, after):
