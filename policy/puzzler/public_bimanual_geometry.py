@@ -335,6 +335,16 @@ class PublicBimanualGeometry:
                     worst_sample=k, samples=len(rows), witness=rows[k]["witness"],
                     rows=rows, scope="Supplied discrete q16 samples, cross-arm material only")
 
+    def robot_material(self, q16):
+        """Robot-only material groups at one q16: cross-arm, same-arm, table.
+
+        Uses the unchanged public colliders and adjacency exclusions; it says
+        nothing about scene, held object, board or interpolation between samples.
+        """
+        cross = self.cross_arm(q16)  # evaluates FK for the groups below
+        return dict(cross_arm=cross, same_arm_nonadjacent=self._same_arm_current(),
+                    moving_robot_table=self._robot_table_current())
+
     @staticmethod
     def _arm(arm):
         if arm in (0, "0", "left"):

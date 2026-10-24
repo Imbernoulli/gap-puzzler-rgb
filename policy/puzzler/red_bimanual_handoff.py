@@ -202,9 +202,8 @@ def _expand(q16, path, arm):
     return np.asarray(out)
 
 
-def _screen(ctx, state, scene, belief, held_arm, moving_arm, waypoints, contract, *, q16=None):
-    actual = base.proprio(ctx, moving_arm)
-    seed = np.asarray(actual['robot_encoder_values'] if q16 is None else q16, float)
+def _plan(ctx, state, waypoints, moving_arm):
+    """Native reserved IK chain from the moving arm's current encoders."""
     started=time.perf_counter()
     path = ctx.tool('puzzle.plan_pose_sequence', waypoints=waypoints, arm_id=moving_arm,
                     min_joint_limit_margin_rad=RESERVE)
@@ -212,7 +211,22 @@ def _screen(ctx, state, scene, belief, held_arm, moving_arm, waypoints, contract
     print(json.dumps(dict(event='red_handoff_plan',hop=state.get('handoff',{}).get('hop',1),arm=moving_arm,
         feasible=bool(path.get('feasible')),reserve_rad=path.get('min_joint_limit_margin_rad'),
         wall_s=round(plan_wall,4),samples=len(path.get('path',[])))),flush=True)
-    if not path.get('feasible') or path.get('min_joint_limit_margin_rad', -1.) < RESERVE:
+    path['_plan_wall_s']=plan_wall
+    return path
+
+
+def _plan_ok(path):
+    return bool(path.get('feasible')) and path.get('min_joint_limit_margin_rad', -1.) >= RESERVE
+
+
+def _screen(ctx, state, scene, belief, held_arm, moving_arm, waypoints, contract, *, q16=None, path=None):
+    actual = base.proprio(ctx, moving_arm)
+    seed = np.asarray(actual['robot_encoder_values'] if q16 is None else q16, float)
+    if path is None:path=_plan(ctx,state,waypoints,moving_arm)
+    elif np.max(np.abs(np.asarray(path['path'][0],float)-np.asarray(actual['robot_encoder_values'],float)[8*moving_arm:8*moving_arm+6]))>.002:
+        raise c.PlanningRefusal('Precomputed native path no longer starts at actual encoders')
+    plan_wall=float(path.get('_plan_wall_s',0.))
+    if not _plan_ok(path):
         raise c.PlanningRefusal('Handoff native reserved path refused '+json.dumps((path.get('errors') or [{}])[-1]))
     qpath = _expand(seed, path['path'], moving_arm)
     # Derive the first held pose from exactly this proposed q16's public FK,
@@ -349,6 +363,107 @@ def _candidate_body_poses(state,board,current):
         for offset in offsets:
             pose=np.r_[board[:3]+br@np.asarray(offset,float),Rotation.from_matrix(rotation).as_quat()]
             yield pose
+
+
+# A station whose native paths keep only a few mrad above the 0.035rad reserve
+# is consumed by the ~3mm sender endpoint residual that the stable-actual
+# adaptation accepts; the receiver is then replanned from the actual body.
+# Prefer stations with this much extra reserve; never relax the reserve itself.
+STATION_RESERVE_BUFFER=.025
+MAX_STATION_ATTEMPTS=3
+
+
+def _extended_body_poses(state,board,current):
+    """Additional public station proposals, searched only after the originals."""
+    br=Rotation.from_quat(board[3:]).as_matrix();normal=br[:,2]
+    base_rotations=[Rotation.from_quat(current[3:]).as_matrix()]
+    if int(state.get('handoff',{}).get('hop',1))==2:
+        from .vision_observer import goals
+        _,public_R=goals('pyramid',state['parameters']['pyramid_plan'])['red']
+        base_rotations.insert(0,br@public_R)
+    offsets=state['parameters'].get('red_handoff_common_offsets',
+        [[-.055,-.035,.19],[-.055,0.,.15],[-.055,0.,.19],[-.085,0.,.19],
+         [-.025,0.,.19],[-.055,.035,.19],[-.055,0.,.23]])
+    extra=[[-.055,-.07,.19],[-.055,.07,.19],[-.085,-.035,.19],[-.025,-.035,.19],
+           [-.085,.035,.19],[-.025,.035,.19],[-.055,-.035,.15],[-.055,.035,.15],[-.055,0.,.21]]
+    for yaw in (.3,-.3,.6,-.6):
+        turn=Rotation.from_rotvec(normal*yaw).as_matrix()
+        for rotation in base_rotations:
+            for offset in offsets:
+                yield np.r_[board[:3]+br@np.asarray(offset,float),Rotation.from_matrix(turn@rotation).as_quat()]
+    for rotation in base_rotations:
+        for offset in extra:
+            yield np.r_[board[:3]+br@np.asarray(offset,float),Rotation.from_matrix(rotation).as_quat()]
+
+
+def _near_station(a,b,position=.006,angle=.05):
+    a=np.asarray(a,float);b=np.asarray(b,float)
+    return bool(np.linalg.norm(a[:3]-b[:3])<position and
+                (Rotation.from_quat(a[3:]).inv()*Rotation.from_quat(b[3:])).magnitude()<angle)
+
+
+def _receiver_waypoints(proposal,candidate):
+    rr=Rotation.from_quat(np.asarray(proposal)[3:]).as_matrix()
+    rotation=rr@np.asarray(candidate['hand_in_body_rotation']);point=np.asarray(proposal)[:3]+rr@np.asarray(candidate['hand_in_body_position'])
+    return [_waypoint(point-rotation[:,2]*.030,rotation),_waypoint(point,rotation)]
+
+
+def _search_station(ctx,state,scene,belief,board,body,sender,receiver,source_bead,attempts,*,avoid=()):
+    """Search public stations for both arms under the unchanged screens.
+
+    Native reserved IK is cheap and runs first for sender and receiver. Full
+    public robot/scene geometry runs on stations with the preferred reserve
+    buffer in declared order; if none passes, on the remaining feasible
+    stations by decreasing reserve. Stations refused after an actual sender
+    arrival are skipped.
+    """
+    deferred=[]
+    def full(candidate,proposal,contract,sender_path,receiver_path):
+        state['handoff']['active_candidate']=candidate
+        sender_motion=_screen(ctx,state,scene,belief,sender,sender,[_sender_waypoint(proposal,belief)],
+                              {sender:[source_bead]},path=sender_path)
+        future=np.asarray(sender_motion['q16_path'][-1])
+        receiver_motion=_screen(ctx,state,scene,belief,sender,receiver,_receiver_waypoints(proposal,candidate),
+                                contract,q16=future,path=receiver_path)
+        return dict(candidate=deepcopy(candidate),body_pose_proposal=np.asarray(proposal).tolist(),
+                    sender_motion=sender_motion,receiver_motion_preflight=receiver_motion,contract=contract,
+                    station_reserve_rad=min(sender_path['min_joint_limit_margin_rad'],receiver_path['min_joint_limit_margin_rad']))
+    for extended in (False,True):
+        for candidate in _receiver_candidates(state):
+            if int(candidate.get('arm',receiver))!=receiver:continue
+            state['handoff']['active_candidate']=candidate
+            bead=int(candidate['bead']);contract={sender:[source_bead],receiver:[bead]}
+            proposals=_extended_body_poses(state,board,body) if extended else _candidate_body_poses(state,board,body)
+            for proposal in proposals:
+                row=dict(bead=bead,body_pose_proposal=np.asarray(proposal).tolist(),extended=extended)
+                if any(_near_station(proposal,old) for old in avoid):
+                    attempts.append({**row,'refusal':'station refused after an actual sender arrival'});continue
+                try:
+                    sender_path=_plan(ctx,state,[_sender_waypoint(proposal,belief)],sender)
+                    if not _plan_ok(sender_path):
+                        raise c.PlanningRefusal('Handoff native reserved path refused '+json.dumps((sender_path.get('errors') or [{}])[-1]))
+                    receiver_path=_plan(ctx,state,_receiver_waypoints(proposal,candidate),receiver)
+                    if not _plan_ok(receiver_path):
+                        raise c.PlanningRefusal('Handoff native reserved path refused '+json.dumps((receiver_path.get('errors') or [{}])[-1]))
+                    reserve=min(sender_path['min_joint_limit_margin_rad'],receiver_path['min_joint_limit_margin_rad'])
+                    if reserve<RESERVE+STATION_RESERVE_BUFFER:
+                        deferred.append((reserve,len(deferred),candidate,np.asarray(proposal),contract,sender_path,receiver_path))
+                        attempts.append({**row,'deferred_station_reserve_rad':reserve});continue
+                    return full(candidate,proposal,contract,sender_path,receiver_path)
+                except c.PlanningRefusal as error:
+                    attempts.append({**row,'refusal':str(error)})
+        if deferred and not extended:
+            # Originals found only low-reserve stations: also look at the
+            # extended set before accepting one of them.
+            continue
+    for reserve,_,candidate,proposal,contract,sender_path,receiver_path in sorted(deferred,key=lambda r:(-r[0],r[1])):
+        try:
+            # Encoders are unchanged since planning (no motion in this search).
+            return full(candidate,proposal,contract,sender_path,receiver_path)
+        except c.PlanningRefusal as error:
+            attempts.append(dict(bead=int(candidate['bead']),body_pose_proposal=proposal.tolist(),
+                                 deferred_station_reserve_rad=reserve,refusal=str(error)))
+    raise c.PlanningRefusal('No full-path bimanual candidate '+json.dumps(attempts[-40:],separators=(',',':')))
 
 
 def scene_for_motion(ctx,state,belief):
@@ -524,51 +639,55 @@ def handoff_prepare(ctx, state):
             raise c.PlanningRefusal('Receiver opening public geometry refused '+json.dumps(_failure_summary(guard)))
         sweep.append(guard)
     opening=ctx.tool('robot.set_grip',arm_id=receiver,width_m=OPEN,ramp_steps=12,settle_steps=8)
-    attempts=[];chosen=None
-    for candidate in _receiver_candidates(state):
-        if int(candidate.get('arm',receiver))!=receiver:continue
+    attempts=[];avoid=[];station_retries=[];sender_executions=[]
+    chosen=_search_station(ctx,state,scene,belief,board,body,sender,receiver,source_bead,attempts)
+    receiver_motion=None
+    for station_attempt in range(MAX_STATION_ATTEMPTS):
+        # Candidate search consumes real native time. Reacquire/authenticate the
+        # sender source and recompute both arm paths before the first motor move.
+        state,belief,preexecute_refresh=_fresh_sender(ctx,state,sender,optimizer_belief=belief)
+        scene=scene_belief(state,state['observation'])
+        proposal=np.asarray(chosen['body_pose_proposal']);candidate=chosen['candidate']
         state['handoff']['active_candidate']=candidate
-        ph=np.asarray(candidate['hand_in_body_position']);rh=np.asarray(candidate['hand_in_body_rotation'])
-        bead=int(candidate['bead']);contract={sender:[source_bead],receiver:[bead]}
-        for proposal in _candidate_body_poses(state,board,body):
-            try:
-                sp=_sender_waypoint(proposal,belief)
-                sender_motion=_screen(ctx,state,scene,belief,sender,sender,[sp],{sender:[source_bead]})
-                future=np.asarray(sender_motion['q16_path'][-1]);rr=Rotation.from_quat(proposal[3:]).as_matrix()
-                rotation=rr@rh;point=proposal[:3]+rr@ph
-                approach=_waypoint(point-rotation[:,2]*.030,rotation);touch=_waypoint(point,rotation)
-                receiver_motion=_screen(ctx,state,scene,belief,sender,receiver,[approach,touch],contract,q16=future)
-                chosen=dict(candidate=deepcopy(candidate),body_pose_proposal=proposal.tolist(),
-                    sender_motion=sender_motion,receiver_motion_preflight=receiver_motion,contract=contract)
-                break
-            except c.PlanningRefusal as error:
-                attempts.append(dict(bead=bead,body_pose_proposal=proposal.tolist(),refusal=str(error)))
-        if chosen is not None:break
-    if chosen is None:raise c.PlanningRefusal('No full-path bimanual candidate '+json.dumps(attempts,separators=(',',':')))
-    # Candidate search consumes real native time. Reacquire/authenticate the
-    # sender source and recompute both arm paths before the first motor move.
-    state,belief,preexecute_refresh=_fresh_sender(ctx,state,sender,optimizer_belief=belief)
-    scene=scene_belief(state,state['observation'])
-    proposal=np.asarray(chosen['body_pose_proposal'])
-    sender_motion=_screen(ctx,state,scene,belief,sender,sender,[_sender_waypoint(proposal,belief)],{sender:[source_bead]})
-    rr=Rotation.from_quat(proposal[3:]).as_matrix();candidate=chosen['candidate']
-    receiver_R=rr@np.asarray(candidate['hand_in_body_rotation']);receiver_p=proposal[:3]+rr@np.asarray(candidate['hand_in_body_position'])
-    receiver_way=[_waypoint(receiver_p-receiver_R[:,2]*.030,receiver_R),_waypoint(receiver_p,receiver_R)]
-    chosen['sender_motion']=sender_motion
-    chosen['receiver_motion_preflight']=_screen(ctx,state,scene,belief,sender,receiver,receiver_way,chosen['contract'],q16=sender_motion['q16_path'][-1])
-    chosen['preexecute_source_refresh']=preexecute_refresh
-    sender_execution=_execute(ctx,state,chosen['sender_motion'],retained_arm=sender,
-        stable_actual_handoff=dict(scene=scene,belief=belief,held_arm=sender,contract={sender:[source_bead]}))
-    sender_arrival=float(sender_execution['actual_after']['timestamp'])
-    state,belief,post_sender_refresh=_fresh_sender(ctx,state,sender,optimizer_belief=belief)
-    if (sender_execution.get('stable_actual_endpoint') is not None and
-            post_sender_refresh.get('status')!='actual_RGB_q16_rebound'):
-        raise StageRefusal('Adapted actual sender endpoint requires fresh real Red RGB/q16 attachment before receiver motion')
-    scene=scene_belief(state,state['observation']);actual=base.proprio(ctx,sender);body=_body(actual,belief)
-    candidate=chosen['candidate'];rr=Rotation.from_quat(body[3:]).as_matrix();rotation=rr@np.asarray(candidate['hand_in_body_rotation'])
-    point=body[:3]+rr@np.asarray(candidate['hand_in_body_position'])
-    waypoints=[_waypoint(point-rotation[:,2]*.030,rotation),_waypoint(point,rotation)]
-    receiver_motion=_screen(ctx,state,scene,belief,sender,receiver,waypoints,chosen['contract'])
+        try:
+            sender_motion=_screen(ctx,state,scene,belief,sender,sender,[_sender_waypoint(proposal,belief)],{sender:[source_bead]})
+            chosen['sender_motion']=sender_motion
+            chosen['receiver_motion_preflight']=_screen(ctx,state,scene,belief,sender,receiver,
+                _receiver_waypoints(proposal,candidate),chosen['contract'],q16=sender_motion['q16_path'][-1])
+        except c.PlanningRefusal as error:
+            # Bounded re-plan: the refreshed source moved this station out of
+            # the screens before any motor command; search again from here.
+            if station_attempt==MAX_STATION_ATTEMPTS-1:raise
+            station_retries.append(dict(stage='preexecute_rescreen',body_pose_proposal=proposal.tolist(),refusal=str(error)))
+            avoid.append(proposal)
+            actual=base.proprio(ctx,sender);body=_body(actual,belief);board=np.asarray(scene['board_for_planning']['pose'])
+            chosen=_search_station(ctx,state,scene,belief,board,body,sender,receiver,source_bead,attempts,avoid=avoid)
+            continue
+        chosen['preexecute_source_refresh']=preexecute_refresh
+        sender_execution=_execute(ctx,state,chosen['sender_motion'],retained_arm=sender,
+            stable_actual_handoff=dict(scene=scene,belief=belief,held_arm=sender,contract={sender:[source_bead]}))
+        sender_executions.append(sender_execution)
+        sender_arrival=float(sender_execution['actual_after']['timestamp'])
+        state,belief,post_sender_refresh=_fresh_sender(ctx,state,sender,optimizer_belief=belief)
+        if (sender_execution.get('stable_actual_endpoint') is not None and
+                post_sender_refresh.get('status')!='actual_RGB_q16_rebound'):
+            raise StageRefusal('Adapted actual sender endpoint requires fresh real Red RGB/q16 attachment before receiver motion')
+        scene=scene_belief(state,state['observation']);actual=base.proprio(ctx,sender);body=_body(actual,belief)
+        try:
+            receiver_motion=_screen(ctx,state,scene,belief,sender,receiver,_receiver_waypoints(body,candidate),chosen['contract'])
+            break
+        except c.PlanningRefusal as error:
+            # The actual sender endpoint/source differs from the proposal.
+            # Re-plan a station from this actual state under the same screens;
+            # the sender keeps holding and the receiver has not moved.
+            if station_attempt==MAX_STATION_ATTEMPTS-1:raise
+            station_retries.append(dict(stage='actual_sender_arrival',body_pose_proposal=proposal.tolist(),
+                actual_body=body.tolist(),refusal=str(error)))
+            print(json.dumps(dict(event='red_handoff_station_retry',hop=hop,attempt=station_attempt+1,refusal=str(error)[:200])),flush=True)
+            avoid.extend([proposal,body.copy()])
+            board=np.asarray(scene['board_for_planning']['pose'])
+            chosen=_search_station(ctx,state,scene,belief,board,body,sender,receiver,source_bead,attempts,avoid=avoid)
+    if receiver_motion is None:raise c.PlanningRefusal('Bounded station re-plan exhausted '+json.dumps(station_retries))
     receiver_execution=_execute(ctx,state,receiver_motion,retained_arm=sender)
     # Receiver approach can make the target slip/rotate in the sender. A
     # new actual RGB/q16 body rebinds the sender and recenters the open receiver.
@@ -579,6 +698,7 @@ def handoff_prepare(ctx, state):
         sender_belief=belief,sender_arrival_timestamp=sender_arrival,preclose_rgb=preclose,body_before_close=_body(base.proprio(ctx,sender),belief).tolist(),
         record=dict(source_refresh=refresh,scene_refresh=scene_refresh,receiver_opening=opening,opening_guards=sweep,
             candidate_refusals=attempts,chosen=chosen,sender_execution=sender_execution,
+            station_retries=station_retries,sender_executions=sender_executions,
             post_sender_refresh=post_sender_refresh,receiver_execution=receiver_execution,preclose_recenter=preclose_recenter))
     return result('prepared',state,state['observation'],'handoff_prepare',handoff=state['handoff'])
 

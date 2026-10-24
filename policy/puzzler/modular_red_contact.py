@@ -35,6 +35,68 @@ def profile_parameters(state):
     p['release_width']=p.get('release_open_width',p.get('release_width',.09))
     return p
 
+# The lift ends where the sender starts the hand-to-hand transfer, whose full
+# public guard needs 0.5mm same-arm clearance at the actual encoders. A
+# straight vertical lift can fold link_3 onto link_5 when Red's yaw changes the
+# wrist; keep 0.5mm extra so loaded tracking cannot consume the floor.
+LIFT_SELF_CLEARANCE_M=.001
+LIFT_PATH_FLOOR_M=.0005
+
+
+def _lift_proposals(arm,lift):
+    """Public Cartesian lift endpoints relative to the actual closed TCP."""
+    up=np.array([0.,0.,1.]);inboard=np.array([0.,1. if arm==1 else -1.,0.]);forward=np.array([1.,0.,0.])
+    rows=[('vertical',up*lift)]
+    rows+=[('inboard_%dmm'%round(d*1000),up*lift+inboard*d) for d in (.03,.06)]
+    rows+=[('vertical_%dmm'%round((lift-d)*1000),up*(lift-d)) for d in (.015,.03)]
+    rows+=[('inboard_30mm_forward_%+dmm'%round(d*1000),up*lift+inboard*.03+forward*d) for d in (.03,-.03)]
+    return rows
+
+
+def screened_lift(ctx,arm,start,rotation,lift,reserve):
+    """Choose the first lift whose joint segment keeps robot material clear.
+
+    Every proposal uses fresh native IK from current encoders with the
+    profile joint reserve, then public robot colliders on the dense joint
+    segment. If none passes, the original vertical lift is returned unchanged
+    (the later full transfer guard still decides).
+    """
+    from .red_bimanual_handoff import geometry
+    from . import modular_red_placement as base
+    q16=np.asarray(base.proprio(ctx,arm)['robot_encoder_values'],float);off=8*arm
+    g=geometry();rows=[]
+    for name,offset in _lift_proposals(arm,lift):
+        point=np.asarray(start,float)+offset
+        ik=ctx.tool('puzzle.plan_pose',position=point.tolist(),rotation=rotation,arm_id=arm,min_joint_limit_margin_rad=reserve)
+        row=dict(name=name,offset_m=offset.tolist(),position_error_m=float(ik['position_error_m']),
+                 rotation_error_rad=float(ik['rotation_error_rad']),joint_limit_margin_rad=float(ik['joint_limit_margin_rad']))
+        rows.append(row)
+        if ik['position_error_m']>.002 or ik['rotation_error_rad']>.03 or ik['joint_limit_margin_rad']<reserve:
+            row['status']='native_ik_or_reserve_refused';continue
+        a=np.asarray(ik['current'],float);b=np.asarray(ik['joints'],float)
+        if np.max(np.abs(a-q16[off:off+6]))>.002:
+            row['status']='planner_seed_differs_from_actual_encoders';continue
+        count=max(8,int(np.ceil(np.max(np.abs(b-a))/.012)))
+        worst_path=np.inf;cross=np.inf
+        for u in np.linspace(0.,1.,count+1):
+            qq=q16.copy();qq[off:off+6]=a+(b-a)*u
+            groups=g.robot_material(qq)
+            worst_path=min(worst_path,groups['same_arm_nonadjacent']['clearance_m']);cross=min(cross,groups['cross_arm']['clearance_m'])
+        endpoint=groups['same_arm_nonadjacent']['clearance_m'];table=groups['moving_robot_table']['clearance_m']
+        row.update(path_same_arm_clearance_m=float(worst_path),endpoint_same_arm_clearance_m=float(endpoint),
+                   path_cross_arm_clearance_m=float(cross),endpoint_table_clearance_m=float(table),samples=count+1)
+        if worst_path<LIFT_PATH_FLOOR_M or cross<LIFT_PATH_FLOOR_M or table<LIFT_PATH_FLOOR_M or endpoint<LIFT_SELF_CLEARANCE_M:
+            row['status']='robot_material_refused';continue
+        row['status']='selected'
+        print(json.dumps(dict(event='red_screened_lift',arm=arm,selected=name,endpoint_same_arm_clearance_m=float(endpoint),
+            refused=[r['name'] for r in rows[:-1]])),flush=True)
+        return point,dict(selected=name,proposals=rows,plan=ik,required_endpoint_same_arm_clearance_m=LIFT_SELF_CLEARANCE_M,
+                          required_path_floor_m=LIFT_PATH_FLOOR_M)
+    print(json.dumps(dict(event='red_screened_lift',arm=arm,selected=None,refused=[r['name'] for r in rows])),flush=True)
+    return np.asarray(start,float)+np.array([0.,0.,lift]),dict(selected=None,proposals=rows,plan=None,
+        fallback='original vertical lift; later full transfer guard decides')
+
+
 def execute_contact_source(ctx,state,observed,plan):
     """Run the first-feasible RED contact fan with strict fresh RGB gates.
 
@@ -156,9 +218,15 @@ def execute_contact_source(ctx,state,observed,plan):
     opening_reference=dict(actual_tcp=tcp.tolist(),actual_rotation=qr,requested_tcp=g.tolist(),requested_rotation=q,requested_endpoint_precisely_reached=residual<.0025 and rotation_error<.04,actual_tcp_residual_m=residual,actual_rotation_residual_rad=rotation_error,original_motor_accuracy_error=accuracy_error,contact_supported_label=True,default_free_space_accuracy_contract_unchanged=True,source_RGB_epochs=[packed_observation(before),packed_observation(current)],robot_encoder_epochs=[ep1,ep2],max_tcp_drift_m=drift,max_angular_drift_rad=angular,public_selected_bead_region=region,actual_width_closing_CAD_checks=closing,candidate_attempts=attempts,prefix_reacquisition=prefix_reacquisition,prefix_reacquisition_observation=packed_observation(current_state['observation']),prefix_reacquisition_rgb_packets=prefix_packets)
     close=ctx.tool('robot.set_grip',arm_id=arm,width_m=float(p.get('close_width',0.)),ramp_steps=18,settle_steps=15)
     if not isinstance(close,dict)or close.get('clamped')is not False:raise ContactSourceRefusal('Source close command refused or clamped')
-    actual_lift_start,actual_lift_q=c.hand(ctx,arm);requested_lift=actual_lift_start+[0,0,float(p['lift'])];c.move(ctx,requested_lift,actual_lift_q,arm,cartesian=False);actual_end,actual_end_q=c.hand(ctx,arm)
-    prediction=np.asarray(current['poses']['red']).copy();prediction[2]+=float(p['lift']);postlift=ctx.tool('vision.observe',hints={'red':prediction.tolist()});post_epoch=encoder_epoch(postlift);held='UNKNOWN';rise=None;gap=None
+    actual_lift_start,actual_lift_q=c.hand(ctx,arm)
+    requested_lift,lift_screen=screened_lift(ctx,arm,actual_lift_start,actual_lift_q,float(p['lift']),float(p.get('min_ik_joint_margin_rad',.035)))
+    if lift_screen['plan'] is not None:
+        # Execute exactly the joint segment that was screened (as c.move would).
+        c.feed_joint_plan(ctx,lift_screen['plan'],arm);c.settle_motion(ctx,requested_lift,actual_lift_q,arm,False,.006)
+    else:c.move(ctx,requested_lift,actual_lift_q,arm,cartesian=False)
+    actual_end,actual_end_q=c.hand(ctx,arm)
+    prediction=np.asarray(current['poses']['red']).copy();prediction[:3]+=requested_lift-actual_lift_start;postlift=ctx.tool('vision.observe',hints={'red':prediction.tolist()});post_epoch=encoder_epoch(postlift);held='UNKNOWN';rise=None;gap=None
     if 'red'in postlift.get('poses',{}):
         rise=float(np.asarray(postlift['poses']['red'])[2]-np.asarray(current['poses']['red'])[2]);gap=c.part_hand_gap('red',postlift['poses']['red'],actual_end)
         if rise>=spec['min_lift_rgb_rise_m']and gap<=spec['max_held_bead_tcp_gap_m']:held='rgb_verified'
-    return dict(contract='red_source_RGB_CAD_proprio_contact_v1',piece='red',arm=arm,original_source_rgb=packed_observation(observed),original_source_encoder_epoch=epoch0,source_plan={k:(candidate[k].tolist()if isinstance(candidate[k],np.ndarray)else deepcopy(candidate[k]))for k in ('index','heading','lean','grasp_height_m','target_center','target_R')},selected_contact_candidate=deepcopy(candidate.get('selected_contact_candidate',{})),candidate_policy='gap_first_feasible_online_rgb_cad_fk_ik',updated_memory=memory,updated_belief_ledger=scene.get('belief_ledger',{}),preclose_planning_scene=scene,contact_endpoint=opening_reference,actual_close_result=close,lift_reference='Actual measured TCP after closing, never failed requested grasp TCP',actual_lift_start_tcp=actual_lift_start.tolist(),actual_lift_start_rotation=actual_lift_q,requested_lift_tcp=requested_lift.tolist(),actual_postlift_tcp=actual_end.tolist(),actual_postlift_rotation=actual_end_q,postlift_rgb=packed_observation(postlift),postlift_encoder_epoch=post_epoch,actual_postlift_jaw_width_m=float(post_epoch['values'][14]-post_epoch['values'][15]),held_status=held,RGB_measured_rise_m=rise,RGB_measured_bead_tcp_gap_m=gap,current_pose_never_filled=True,object_GT_contact_evaluator_read=False,scope='Strict fresh RGB/q16/FK/CAD source primitive; occluded candidates are refused and never pose-filled.')
+    return dict(contract='red_source_RGB_CAD_proprio_contact_v1',piece='red',arm=arm,original_source_rgb=packed_observation(observed),original_source_encoder_epoch=epoch0,source_plan={k:(candidate[k].tolist()if isinstance(candidate[k],np.ndarray)else deepcopy(candidate[k]))for k in ('index','heading','lean','grasp_height_m','target_center','target_R')},selected_contact_candidate=deepcopy(candidate.get('selected_contact_candidate',{})),candidate_policy='gap_first_feasible_online_rgb_cad_fk_ik',updated_memory=memory,updated_belief_ledger=scene.get('belief_ledger',{}),preclose_planning_scene=scene,contact_endpoint=opening_reference,actual_close_result=close,lift_reference='Actual measured TCP after closing, never failed requested grasp TCP',lift_screen={k:v for k,v in lift_screen.items() if k!='plan'},actual_lift_start_tcp=actual_lift_start.tolist(),actual_lift_start_rotation=actual_lift_q,requested_lift_tcp=requested_lift.tolist(),actual_postlift_tcp=actual_end.tolist(),actual_postlift_rotation=actual_end_q,postlift_rgb=packed_observation(postlift),postlift_encoder_epoch=post_epoch,actual_postlift_jaw_width_m=float(post_epoch['values'][14]-post_epoch['values'][15]),held_status=held,RGB_measured_rise_m=rise,RGB_measured_bead_tcp_gap_m=gap,current_pose_never_filled=True,object_GT_contact_evaluator_read=False,scope='Strict fresh RGB/q16/FK/CAD source primitive; occluded candidates are refused and never pose-filled.')
