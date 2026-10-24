@@ -23,11 +23,13 @@ its success exit.
 | fix5 (7014075) | 4 | 3 | One stopped in Cyan's carry after the hand-to-hand transfer. |
 | fix6 (81e08f7, Cyan transfer fixes) | 4 | 3 | One refused Mint's release on a 1.5-2 mm case shift (fixed next). |
 | fix7 (a7491b9, + case-shift fix) | 4 | 4 | |
+| fix9 (5522892, + alias and Maroon fixes) | 4 | 3 | One stopped in Cyan's carry after the hand-to-hand transfer. |
 
-Perturbed scenes, all fresh full runs from loose pieces (fix5-fix8 code):
-case moved and turned (both directions), friction 0.50, friction 0.80 and all
-perturbations combined have each been completed at least once (7 complete
-runs). The v13 policy completed none of them.
+Perturbed scenes, all fresh full runs from loose pieces (fix5-fix9 code):
+case moved and turned (both directions), both jittered layouts, friction 0.50,
+friction 0.80 and all perturbations combined have each been completed at least
+once. fix9 alone completed 5 of 7 perturbed scenes; the other two stopped at
+Red, the last piece. The v13 policy completed none of them.
 
 Perturbed scenes and scattered layouts are on the site.
 

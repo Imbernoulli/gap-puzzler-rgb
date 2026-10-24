@@ -1850,6 +1850,25 @@
      "stopped_piece": null,
      "stopped_node": null,
      "refusal": null
+    },
+    {
+     "variant": "board_a",
+     "label": "Case +6 mm x, \u22126 mm y, +2.9\u00b0 yaw",
+     "scene": {
+      "board_dx": 0.006,
+      "board_dy": -0.006,
+      "board_yaw": 0.05
+     },
+     "seed": 0,
+     "placed": 12,
+     "done": true,
+     "rss_success": true,
+     "graph_success": true,
+     "sim_time_s": 707.7,
+     "audit_max_mm": 2.45,
+     "stopped_piece": null,
+     "stopped_node": null,
+     "refusal": null
     }
    ]
   },
@@ -1933,6 +1952,25 @@
      "stopped_piece": "maroon",
      "stopped_node": null,
      "refusal": "independent physical checkpoint failed after release"
+    },
+    {
+     "variant": "board_b",
+     "label": "Case \u22126 mm x, +6 mm y, \u22122.9\u00b0 yaw",
+     "scene": {
+      "board_dx": -0.006,
+      "board_dy": 0.006,
+      "board_yaw": -0.05
+     },
+     "seed": 0,
+     "placed": 12,
+     "done": true,
+     "rss_success": true,
+     "graph_success": true,
+     "sim_time_s": 655.6,
+     "audit_max_mm": 2.63,
+     "stopped_piece": null,
+     "stopped_node": null,
+     "refusal": null
     }
    ]
   },
@@ -1994,6 +2032,42 @@
      "stopped_piece": "red",
      "stopped_node": "red_handoff_prepare",
      "refusal": "Receiver opening public geometry refused"
+    },
+    {
+     "variant": "jitter_a",
+     "label": "Loose pieces \u00b15 mm, \u00b14\u00b0 (seed 4)",
+     "scene": {
+      "piece_jitter": 0.005,
+      "piece_yaw": 0.07
+     },
+     "seed": 4,
+     "placed": 11,
+     "done": true,
+     "rss_success": false,
+     "graph_success": false,
+     "sim_time_s": 459.2,
+     "audit_max_mm": null,
+     "stopped_piece": "red",
+     "stopped_node": "red_handoff_prepare",
+     "refusal": "Receiver opening public geometry refused"
+    },
+    {
+     "variant": "jitter_a",
+     "label": "Loose pieces \u00b15 mm, \u00b14\u00b0 (seed 4)",
+     "scene": {
+      "piece_jitter": 0.005,
+      "piece_yaw": 0.07
+     },
+     "seed": 4,
+     "placed": 12,
+     "done": true,
+     "rss_success": true,
+     "graph_success": true,
+     "sim_time_s": 650.8,
+     "audit_max_mm": 2.67,
+     "stopped_piece": null,
+     "stopped_node": null,
+     "refusal": null
     }
    ]
   },
@@ -2073,6 +2147,24 @@
      "stopped_piece": "cyan",
      "stopped_node": "cyan_receiver_close",
      "refusal": "Motor did not settle at requested pose: position=0.000848m rotation=0.002309rad drift=0.000000m arm=1 contact=False target=[0.6531657006492486, 0.19436828743034"
+    },
+    {
+     "variant": "jitter_b",
+     "label": "Loose pieces \u00b15 mm, \u00b14\u00b0 (seed 104)",
+     "scene": {
+      "piece_jitter": 0.005,
+      "piece_yaw": 0.07
+     },
+     "seed": 104,
+     "placed": 12,
+     "done": true,
+     "rss_success": true,
+     "graph_success": true,
+     "sim_time_s": 668.4,
+     "audit_max_mm": 2.52,
+     "stopped_piece": null,
+     "stopped_node": null,
+     "refusal": null
     }
    ]
   },
@@ -2148,6 +2240,23 @@
      "stopped_piece": null,
      "stopped_node": null,
      "refusal": null
+    },
+    {
+     "variant": "friction_050",
+     "label": "Friction \u03bc = 0.50",
+     "scene": {
+      "friction": 0.5
+     },
+     "seed": 0,
+     "placed": 12,
+     "done": true,
+     "rss_success": true,
+     "graph_success": true,
+     "sim_time_s": 644.9,
+     "audit_max_mm": 2.61,
+     "stopped_piece": null,
+     "stopped_node": null,
+     "refusal": null
     }
    ]
   },
@@ -2206,6 +2315,23 @@
      "stopped_piece": null,
      "stopped_node": null,
      "refusal": null
+    },
+    {
+     "variant": "friction_080",
+     "label": "Friction \u03bc = 0.80",
+     "scene": {
+      "friction": 0.8
+     },
+     "seed": 0,
+     "placed": 11,
+     "done": true,
+     "rss_success": false,
+     "graph_success": false,
+     "sim_time_s": 617.6,
+     "audit_max_mm": null,
+     "stopped_piece": "red",
+     "stopped_node": "red_goal_release",
+     "refusal": "RED current prefix RGB conflict remains after bounded independent plain fits [{\"timestamp\":614.48,\"frame_sha256\":{\"top\":\"93c33fad65ae6fb9c3845942f077d7bd4357616"
     }
    ]
   },
@@ -2276,6 +2402,50 @@
      "graph_success": true,
      "sim_time_s": 653.7,
      "audit_max_mm": 2.56,
+     "stopped_piece": null,
+     "stopped_node": null,
+     "refusal": null
+    },
+    {
+     "variant": "combined",
+     "label": "Case, pieces and friction together (seed 201)",
+     "scene": {
+      "board_dx": -0.004,
+      "board_dy": -0.004,
+      "board_yaw": 0.03,
+      "piece_jitter": 0.003,
+      "piece_yaw": 0.035,
+      "friction": 0.6
+     },
+     "seed": 201,
+     "placed": 12,
+     "done": true,
+     "rss_success": true,
+     "graph_success": true,
+     "sim_time_s": 653.5,
+     "audit_max_mm": 2.62,
+     "stopped_piece": null,
+     "stopped_node": null,
+     "refusal": null
+    },
+    {
+     "variant": "combined",
+     "label": "Case, pieces and friction together (seed 201)",
+     "scene": {
+      "board_dx": -0.004,
+      "board_dy": -0.004,
+      "board_yaw": 0.03,
+      "piece_jitter": 0.003,
+      "piece_yaw": 0.035,
+      "friction": 0.6
+     },
+     "seed": 201,
+     "placed": 12,
+     "done": true,
+     "rss_success": true,
+     "graph_success": true,
+     "sim_time_s": 711.5,
+     "audit_max_mm": 2.82,
      "stopped_piece": null,
      "stopped_node": null,
      "refusal": null
