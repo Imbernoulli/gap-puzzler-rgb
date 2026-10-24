@@ -185,6 +185,25 @@ def observe_and_plan(ctx,state:ModularState)->ModularResult:
                 plan=c.plan(ctx,state['piece'],fallback,candidate_arm,observation=observed,planning_scene=scene);arm=candidate_arm;preferred_refusal=planning_errors;break
             except (c.PlanningRefusal,RuntimeError) as error:
                 planning_errors.append(dict(arm=candidate_arm,fallback=True,error=str(error)))
+    if (plan is None and not p.get('geometry_module') and not p.get('object_relative_grasp_se3')
+            and not p.get('source_contact_grasp') and p.get('grasp_auto')):
+        # A profile tuned on one start pins one grasp. When the observed pose
+        # makes it unreachable, widen to the other public candidates (every
+        # bead; the same jaw axis flipped and the perpendicular axis), all
+        # under the same clearance, IK and joint-reserve screens.
+        headings=[]
+        for h in p.get('grasp_headings',[90.]):
+            for extra in (0.,180.,90.,-90.):
+                value=float((h+extra)%360.)
+                if value not in headings:headings.append(value)
+        wide={**p,'grasp_headings':headings};wide.pop('grasp_indices',None)
+        for candidate_arm in arm_candidates:
+            try:
+                plan=c.plan(ctx,state['piece'],wide,candidate_arm,observation=observed,planning_scene=scene);arm=candidate_arm;preferred_refusal=planning_errors;break
+            except (c.PlanningRefusal,RuntimeError) as error:
+                planning_errors.append(dict(arm=candidate_arm,widened=True,error=str(error)))
+        if plan is not None:
+            p={**p,'grasp_headings':[float(plan['heading'])],'grasp_indices':[int(plan['index'])]};state['parameters']=p
     if plan is None: raise c.PlanningRefusal('No feasible arm/grasp candidate: '+str(planning_errors))
     state['arm']=arm
     if 'source_open_width_m'in plan:
