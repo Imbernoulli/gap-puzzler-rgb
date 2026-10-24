@@ -238,37 +238,43 @@ def outcome_cell(row):
             f'<small>{esc(node + ": " if node else "")}{esc(row.get("refusal") or "")}</small></td>')
 
 
+def runs_cell(rows):
+    """k/n complete, plus where the other runs stopped."""
+    if not rows:
+        return '<td class="muted">not run</td>'
+    done = [r for r in rows if r['done']]
+    complete = [r for r in done if r['graph_success'] and r['rss_success']]
+    stops = {}
+    for r in done:
+        if r in complete:
+            continue
+        where = (r.get('stopped_piece') or 'end').capitalize()
+        node = (r.get('stopped_node') or '').replace('_', ' ')
+        if r['rss_success'] and not r['graph_success']:
+            where, node = 'all seated', 'last node refused'
+        key = f'{where} · {node}' if node else where
+        stops[key] = stops.get(key, 0) + 1
+    running = len(rows) - len(done)
+    detail = '; '.join(f'{k} ×{v}' if v > 1 else k for k, v in sorted(stops.items(), key=lambda kv: -kv[1]))
+    if running:
+        detail += f'{"; " if detail else ""}{running} still running'
+    pill = 'pass' if complete else 'fail'
+    best = max((r['placed'] for r in done), default=0)
+    head = (f'<span class="pill {pill}">{len(complete)}/{len(done)}</span> complete' if complete
+            else f'<span class="pill fail">0/{len(done)}</span> complete · best {best}/12')
+    return f'<td>{head}<small>{esc(detail)}</small></td>'
+
+
 def repeats_html(before, after):
-    """One row summarising every nominal repeat: completed / where the rest stopped."""
-    def cell(rows):
-        if not rows:
-            return '<td class="muted">not run</td>'
-        done = [r for r in rows if r['done']]
-        complete = [r for r in done if r['graph_success'] and r['rss_success']]
-        stops = {}
-        for r in done:
-            if r in complete:
-                continue
-            where = (r.get('stopped_piece') or 'end').capitalize()
-            node = (r.get('stopped_node') or '').replace('_', ' ')
-            if r['rss_success'] and not r['graph_success']:
-                where, node = 'end', 'last node refused'
-            stops[f'{where} · {node}'] = stops.get(f'{where} · {node}', 0) + 1
-        running = len(rows) - len(done)
-        detail = '; '.join(f'{k} ×{v}' for k, v in sorted(stops.items(), key=lambda kv: -kv[1]))
-        if running:
-            detail += f'{"; " if detail else ""}{running} still running'
-        pill = 'pass' if complete else 'fail'
-        return (f'<td><span class="pill {pill}">{len(complete)}/{len(done)}</span> complete'
-                f'<small>{esc(detail)}</small></td>')
+    """One row summarising every nominal repeat."""
     return (f'<tr><th scope="row">Layout C, repeats</th><td class="mono small">as designed</td>'
-            f'{cell(before)}{cell(after)}</tr>')
+            f'{runs_cell(before)}{runs_cell(after)}</tr>')
 
 
 def variants_html(variants, repeats=''):
-    head = '<thead><tr><th scope="col">Scene</th><th scope="col">What changed</th><th scope="col">v13 policy</th><th scope="col">This policy</th></tr></thead>'
+    head = '<thead><tr><th scope="col">Scene</th><th scope="col">What changed</th><th scope="col">v13 policy (one run)</th><th scope="col">This work (all runs)</th></tr></thead>'
     body = repeats + ''.join(f'<tr><th scope="row">{esc(v["label"])}</th><td class="mono small">{esc(v["change"])}</td>'
-                   f'{outcome_cell(v["before"])}{outcome_cell(v["after"])}</tr>' for v in variants)
+                   f'{outcome_cell(v["before"])}{runs_cell(v["after"])}</tr>' for v in variants)
     return head + '<tbody>' + body + '</tbody>'
 
 
@@ -365,12 +371,14 @@ def main():
                 f'preload="metadata" aria-label="{esc(args.grid_caption)}"></video><figcaption>{esc(args.grid_caption)}</figcaption></figure>')
 
     before = {r['variant']: r for r in map(variant_row, args.before)}
-    after = {r['variant']: r for r in map(variant_row, args.after)}
+    after = {}
+    for row in map(variant_row, args.after):
+        after.setdefault(row['variant'], []).append(row)
     names = [n for n in ('nominal', 'board_a', 'board_b', 'jitter_a', 'jitter_b', 'friction_050', 'friction_080',
                          'combined', 'shuffled') if n in before or n in after]
-    variants = [dict(variant=n, label=variant_label((before.get(n) or after.get(n))),
-                     change=describe((before.get(n) or after.get(n))['scene'] or {}),
-                     before=before.get(n), after=after.get(n)) for n in names]
+    variants = [dict(variant=n, label=variant_label(before.get(n) or after[n][0]),
+                     change=describe((before.get(n) or after[n][0])['scene'] or {}),
+                     before=before.get(n), after=after.get(n, [])) for n in names]
     data['variants'] = variants
     (SITE / 'data/page.json').write_text(json.dumps(data, indent=1) + '\n')
     witness = json.loads((SRC / 'data/v13_completion_witness.json').read_text())

@@ -1793,25 +1793,58 @@
     "stopped_node": "cyan_approach",
     "refusal": "Screened common-position regrasp proposals exhausted; donor remains closed"
    },
-   "after": {
-    "variant": "board_a",
-    "label": "Case +6 mm x, \u22126 mm y, +2.9\u00b0 yaw",
-    "scene": {
-     "board_dx": 0.006,
-     "board_dy": -0.006,
-     "board_yaw": 0.05
+   "after": [
+    {
+     "variant": "board_a",
+     "label": "Case +6 mm x, \u22126 mm y, +2.9\u00b0 yaw",
+     "scene": {
+      "board_dx": 0.006,
+      "board_dy": -0.006,
+      "board_yaw": 0.05
+     },
+     "seed": 0,
+     "placed": 5,
+     "done": true,
+     "rss_success": false,
+     "graph_success": false,
+     "sim_time_s": 255.5,
+     "audit_max_mm": null,
+     "stopped_piece": "cyan",
+     "stopped_node": "release",
+     "refusal": "Receiver actual opening material sweep refused:"
     },
-    "seed": 0,
-    "placed": 9,
-    "done": true,
-    "rss_success": false,
-    "graph_success": false,
-    "sim_time_s": 430.9,
-    "audit_max_mm": null,
-    "stopped_piece": "navy",
-    "stopped_node": "release",
-    "refusal": "Fresh board contradicts historical occupancy reference"
-   }
+    {
+     "variant": "board_a",
+     "label": "Case +6 mm x, \u22126 mm y, +2.9\u00b0 yaw",
+     "scene": {
+      "board_dx": 0.006,
+      "board_dy": -0.006,
+      "board_yaw": 0.05
+     },
+     "seed": 0,
+     "placed": 9,
+     "done": true,
+     "rss_success": false,
+     "graph_success": false,
+     "sim_time_s": 439.1,
+     "audit_max_mm": null,
+     "stopped_piece": "navy",
+     "stopped_node": "release",
+     "refusal": "Fresh board contradicts historical occupancy reference"
+    },
+    {
+     "variant": "board_a",
+     "label": "Case +6 mm x, \u22126 mm y, +2.9\u00b0 yaw",
+     "scene": {
+      "board_dx": 0.006,
+      "board_dy": -0.006,
+      "board_yaw": 0.05
+     },
+     "seed": 0,
+     "placed": 11,
+     "done": false
+    }
+   ]
   },
   {
    "variant": "board_b",
@@ -1836,25 +1869,65 @@
     "stopped_node": "cyan_receiver_transport",
     "refusal": "Actual bounded receiver views did not renew required environment RGB; donor remains withdrawn, do not home on old occupancy"
    },
-   "after": {
-    "variant": "board_b",
-    "label": "Case \u22126 mm x, +6 mm y, \u22122.9\u00b0 yaw",
-    "scene": {
-     "board_dx": -0.006,
-     "board_dy": 0.006,
-     "board_yaw": -0.05
+   "after": [
+    {
+     "variant": "board_b",
+     "label": "Case \u22126 mm x, +6 mm y, \u22122.9\u00b0 yaw",
+     "scene": {
+      "board_dx": -0.006,
+      "board_dy": 0.006,
+      "board_yaw": -0.05
+     },
+     "seed": 0,
+     "placed": 8,
+     "done": true,
+     "rss_success": false,
+     "graph_success": false,
+     "sim_time_s": 411.5,
+     "audit_max_mm": null,
+     "stopped_piece": "maroon",
+     "stopped_node": null,
+     "refusal": "independent physical checkpoint failed after release"
     },
-    "seed": 0,
-    "placed": 8,
-    "done": true,
-    "rss_success": false,
-    "graph_success": false,
-    "sim_time_s": 395.6,
-    "audit_max_mm": null,
-    "stopped_piece": "maroon",
-    "stopped_node": null,
-    "refusal": "independent physical checkpoint failed after release"
-   }
+    {
+     "variant": "board_b",
+     "label": "Case \u22126 mm x, +6 mm y, \u22122.9\u00b0 yaw",
+     "scene": {
+      "board_dx": -0.006,
+      "board_dy": 0.006,
+      "board_yaw": -0.05
+     },
+     "seed": 0,
+     "placed": 12,
+     "done": true,
+     "rss_success": true,
+     "graph_success": true,
+     "sim_time_s": 667.4,
+     "audit_max_mm": 2.64,
+     "stopped_piece": null,
+     "stopped_node": null,
+     "refusal": null
+    },
+    {
+     "variant": "board_b",
+     "label": "Case \u22126 mm x, +6 mm y, \u22122.9\u00b0 yaw",
+     "scene": {
+      "board_dx": -0.006,
+      "board_dy": 0.006,
+      "board_yaw": -0.05
+     },
+     "seed": 0,
+     "placed": 8,
+     "done": true,
+     "rss_success": false,
+     "graph_success": false,
+     "sim_time_s": 409.1,
+     "audit_max_mm": null,
+     "stopped_piece": "maroon",
+     "stopped_node": null,
+     "refusal": "independent physical checkpoint failed after release"
+    }
+   ]
   },
   {
    "variant": "jitter_a",
@@ -1878,24 +1951,37 @@
     "stopped_node": "release",
     "refusal": "Current accepted RGB contradicts the bounded held estimate"
    },
-   "after": {
-    "variant": "jitter_a",
-    "label": "Loose pieces \u00b15 mm, \u00b14\u00b0 (seed 4)",
-    "scene": {
-     "piece_jitter": 0.005,
-     "piece_yaw": 0.07
+   "after": [
+    {
+     "variant": "jitter_a",
+     "label": "Loose pieces \u00b15 mm, \u00b14\u00b0 (seed 4)",
+     "scene": {
+      "piece_jitter": 0.005,
+      "piece_yaw": 0.07
+     },
+     "seed": 4,
+     "placed": 5,
+     "done": true,
+     "rss_success": false,
+     "graph_success": false,
+     "sim_time_s": 268.1,
+     "audit_max_mm": null,
+     "stopped_piece": "cyan",
+     "stopped_node": "release",
+     "refusal": "Receiver actual opening material sweep refused:"
     },
-    "seed": 4,
-    "placed": 11,
-    "done": true,
-    "rss_success": false,
-    "graph_success": false,
-    "sim_time_s": 490.2,
-    "audit_max_mm": null,
-    "stopped_piece": "red",
-    "stopped_node": "red_handoff_prepare",
-    "refusal": "Receiver opening public geometry refused"
-   }
+    {
+     "variant": "jitter_a",
+     "label": "Loose pieces \u00b15 mm, \u00b14\u00b0 (seed 4)",
+     "scene": {
+      "piece_jitter": 0.005,
+      "piece_yaw": 0.07
+     },
+     "seed": 4,
+     "placed": 11,
+     "done": false
+    }
+   ]
   },
   {
    "variant": "jitter_b",
@@ -1919,24 +2005,55 @@
     "stopped_node": "release",
     "refusal": "Current accepted RGB contradicts the bounded held estimate"
    },
-   "after": {
-    "variant": "jitter_b",
-    "label": "Loose pieces \u00b15 mm, \u00b14\u00b0 (seed 104)",
-    "scene": {
-     "piece_jitter": 0.005,
-     "piece_yaw": 0.07
+   "after": [
+    {
+     "variant": "jitter_b",
+     "label": "Loose pieces \u00b15 mm, \u00b14\u00b0 (seed 104)",
+     "scene": {
+      "piece_jitter": 0.005,
+      "piece_yaw": 0.07
+     },
+     "seed": 104,
+     "placed": 5,
+     "done": true,
+     "rss_success": false,
+     "graph_success": false,
+     "sim_time_s": 160.0,
+     "audit_max_mm": null,
+     "stopped_piece": "cyan",
+     "stopped_node": "grasp",
+     "refusal": "Fresh board and remaining source RGB missing: ['mint']"
     },
-    "seed": 104,
-    "placed": 5,
-    "done": true,
-    "rss_success": false,
-    "graph_success": false,
-    "sim_time_s": 156.8,
-    "audit_max_mm": null,
-    "stopped_piece": "cyan",
-    "stopped_node": "grasp",
-    "refusal": "Fresh board and remaining source RGB missing: ['mint']"
-   }
+    {
+     "variant": "jitter_b",
+     "label": "Loose pieces \u00b15 mm, \u00b14\u00b0 (seed 104)",
+     "scene": {
+      "piece_jitter": 0.005,
+      "piece_yaw": 0.07
+     },
+     "seed": 104,
+     "placed": 5,
+     "done": true,
+     "rss_success": false,
+     "graph_success": false,
+     "sim_time_s": 168.1,
+     "audit_max_mm": null,
+     "stopped_piece": "cyan",
+     "stopped_node": "grasp",
+     "refusal": "Fresh board and remaining source RGB missing: ['mint']"
+    },
+    {
+     "variant": "jitter_b",
+     "label": "Loose pieces \u00b15 mm, \u00b14\u00b0 (seed 104)",
+     "scene": {
+      "piece_jitter": 0.005,
+      "piece_yaw": 0.07
+     },
+     "seed": 104,
+     "placed": 4,
+     "done": false
+    }
+   ]
   },
   {
    "variant": "friction_050",
@@ -1959,23 +2076,52 @@
     "stopped_node": "cyan_receiver_transport",
     "refusal": "Actual receiver attachment has no original-margin 3\u201310mm release"
    },
-   "after": {
-    "variant": "friction_050",
-    "label": "Friction \u03bc = 0.50",
-    "scene": {
-     "friction": 0.5
+   "after": [
+    {
+     "variant": "friction_050",
+     "label": "Friction \u03bc = 0.50",
+     "scene": {
+      "friction": 0.5
+     },
+     "seed": 0,
+     "placed": 12,
+     "done": true,
+     "rss_success": true,
+     "graph_success": true,
+     "sim_time_s": 658.2,
+     "audit_max_mm": 2.59,
+     "stopped_piece": null,
+     "stopped_node": null,
+     "refusal": null
     },
-    "seed": 0,
-    "placed": 5,
-    "done": true,
-    "rss_success": false,
-    "graph_success": false,
-    "sim_time_s": 215.9,
-    "audit_max_mm": null,
-    "stopped_piece": "cyan",
-    "stopped_node": "cyan_receiver_transport",
-    "refusal": "Actual receiver attachment has no original-margin 3\u201310mm release"
-   }
+    {
+     "variant": "friction_050",
+     "label": "Friction \u03bc = 0.50",
+     "scene": {
+      "friction": 0.5
+     },
+     "seed": 0,
+     "placed": 12,
+     "done": true,
+     "rss_success": true,
+     "graph_success": true,
+     "sim_time_s": 691.4,
+     "audit_max_mm": 2.53,
+     "stopped_piece": null,
+     "stopped_node": null,
+     "refusal": null
+    },
+    {
+     "variant": "friction_050",
+     "label": "Friction \u03bc = 0.50",
+     "scene": {
+      "friction": 0.5
+     },
+     "seed": 0,
+     "placed": 7,
+     "done": false
+    }
+   ]
   },
   {
    "variant": "friction_080",
@@ -1998,23 +2144,35 @@
     "stopped_node": "red_goal_verify",
     "refusal": "Final visual UNKNOWN requires the canonical explicitly enabled terminal execution scope"
    },
-   "after": {
-    "variant": "friction_080",
-    "label": "Friction \u03bc = 0.80",
-    "scene": {
-     "friction": 0.8
+   "after": [
+    {
+     "variant": "friction_080",
+     "label": "Friction \u03bc = 0.80",
+     "scene": {
+      "friction": 0.8
+     },
+     "seed": 0,
+     "placed": 6,
+     "done": true,
+     "rss_success": false,
+     "graph_success": false,
+     "sim_time_s": 287.9,
+     "audit_max_mm": null,
+     "stopped_piece": "mint",
+     "stopped_node": "release",
+     "refusal": "Fresh board contradicts historical occupancy reference"
     },
-    "seed": 0,
-    "placed": 12,
-    "done": true,
-    "rss_success": true,
-    "graph_success": false,
-    "sim_time_s": 676.7,
-    "audit_max_mm": 2.56,
-    "stopped_piece": null,
-    "stopped_node": "finish",
-    "refusal": "Current RGB invalidated this placement"
-   }
+    {
+     "variant": "friction_080",
+     "label": "Friction \u03bc = 0.80",
+     "scene": {
+      "friction": 0.8
+     },
+     "seed": 0,
+     "placed": 7,
+     "done": false
+    }
+   ]
   },
   {
    "variant": "combined",
@@ -2042,28 +2200,45 @@
     "stopped_node": "release",
     "refusal": "Current accepted RGB contradicts the bounded held estimate"
    },
-   "after": {
-    "variant": "combined",
-    "label": "Case, pieces and friction together (seed 201)",
-    "scene": {
-     "board_dx": -0.004,
-     "board_dy": -0.004,
-     "board_yaw": 0.03,
-     "piece_jitter": 0.003,
-     "piece_yaw": 0.035,
-     "friction": 0.6
+   "after": [
+    {
+     "variant": "combined",
+     "label": "Case, pieces and friction together (seed 201)",
+     "scene": {
+      "board_dx": -0.004,
+      "board_dy": -0.004,
+      "board_yaw": 0.03,
+      "piece_jitter": 0.003,
+      "piece_yaw": 0.035,
+      "friction": 0.6
+     },
+     "seed": 201,
+     "placed": 5,
+     "done": true,
+     "rss_success": false,
+     "graph_success": false,
+     "sim_time_s": 253.9,
+     "audit_max_mm": null,
+     "stopped_piece": "cyan",
+     "stopped_node": "release",
+     "refusal": "Receiver actual opening material sweep refused:"
     },
-    "seed": 201,
-    "placed": 11,
-    "done": true,
-    "rss_success": false,
-    "graph_success": false,
-    "sim_time_s": 587.8,
-    "audit_max_mm": null,
-    "stopped_piece": "red",
-    "stopped_node": "red_return_prepare",
-    "refusal": "Handoff native reserved path refused"
-   }
+    {
+     "variant": "combined",
+     "label": "Case, pieces and friction together (seed 201)",
+     "scene": {
+      "board_dx": -0.004,
+      "board_dy": -0.004,
+      "board_yaw": 0.03,
+      "piece_jitter": 0.003,
+      "piece_yaw": 0.035,
+      "friction": 0.6
+     },
+     "seed": 201,
+     "placed": 7,
+     "done": false
+    }
+   ]
   },
   {
    "variant": "shuffled",
@@ -2086,7 +2261,7 @@
     "stopped_node": "perceive_plan",
     "refusal": "Fresh RGB pose support is missing for ['azure']"
    },
-   "after": null
+   "after": []
   }
  ]
 }

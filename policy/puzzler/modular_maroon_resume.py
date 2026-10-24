@@ -48,6 +48,49 @@ def _rgb_ray_cad_support(observed,piece='maroon'):
  row=observed.get('detections',{}).get(piece,{})
  return dict(piece=piece,visible=row.get('visible'),views=row.get('views',[]),center_support=row.get('center_support',[]),median_ray_fit_residual_m=row.get('median_residual_m'),rms_ray_fit_residual_m=row.get('rms_residual_m'),independent_rgb_support=row.get('independent_rgb_support',{}),timestamp=observed.get('timestamp'),frame_sha256=observed.get('frame_sha256'),robot_geometry_provenance=observed.get('robot_geometry_provenance'),evidence_source='calibrated RGB camera-plane/ray fit against public CAD; no depth, GT or evaluator state')
 
+def _held_gap(pos,R,relp,relR,scene,piece='maroon'):
+ """Held-body public sphere cover (TCP pose + RGB/FK grasp) vs every other occupancy cover."""
+ local,sizes=conditional_scene.local_sphere_cover(piece);points=local@(R@relR).T+(np.asarray(pos,float)+R@relp)
+ centers,radii=conditional_scene.spheres(scene,exclude=(piece,))
+ if not len(centers):return dict(clearance_m=float('inf'))
+ gaps=np.linalg.norm(points[:,None]-centers[None],axis=2)-sizes[:,None]-radii[None];i,j=np.unravel_index(int(np.argmin(gaps)),gaps.shape)
+ return dict(clearance_m=float(gaps[i,j]),held_point=points[i].tolist(),obstacle_center=centers[j].tolist())
+
+def _column_approach(ctx,target,R,q,extraZ,pr,scene,board,query,relp,relR,tolerance=.005):
+ """Bring the held piece over its release column before the vertical descent.
+
+ The closed-jaw descent guard screens the hand only. Started from a laterally
+ offset pose (the side board-inspection pose), its straight line to the
+ release pose is slanted and carries the held body sideways across seated
+ neighbours. When the TCP is more than `tolerance` off the column, travel at
+ no less than the learned transport clearance to the point above the target,
+ with hand CAD, held-body CAD and native IK screened, so the unchanged descent
+ that follows is vertical. A TCP already on the column is left untouched.
+ """
+ actual=ctx.tool('robot.read_proprioception');pos=np.array(actual['tcp'][:3]);lateral=float(np.linalg.norm((target-pos)[:2]))
+ record=dict(start=deepcopy(actual),lateral_offset_m=lateral,tolerance_m=tolerance,moved=False,legs=[],height_screens=[])
+ if lateral<=tolerance:return record
+ floor=float(target[2]-extraZ+pr['transport'])
+ for height in dict.fromkeys([max(float(pos[2]),floor),floor]):
+  column=np.r_[target[:2],height];ik=ctx.tool('puzzle.plan_pose',position=column.tolist(),rotation=q,arm_id=1)
+  green=ik['position_error_m']<=.001 and ik['rotation_error_rad']<=.03 and ik['joint_limit_margin_rad']>=.035
+  record['height_screens'].append(dict(column=column.tolist(),native_IK=ik,green=bool(green)))
+  if green:break
+ else:raise StageRefusal('No native-IK column above the MAROON release target: '+json.dumps(_plain(record['height_screens'])))
+ waypoints=([np.r_[pos[:2],height]]if height-pos[2]>.0025 else[])+[column]
+ for goal in waypoints:
+  for _ in range(40):
+   actual=ctx.tool('robot.read_proprioception');pos=np.array(actual['tcp'][:3]);error=goal-pos
+   if np.linalg.norm(error)<.0025:break
+   nxt=pos+error*min(1.,.025/max(np.linalg.norm(error),1e-9));aR=Rotation.from_quat(actual['tcp'][3:]).as_matrix();points=np.linspace(pos,nxt,26)
+   hand=[_gap(z,rot,actual['width_m'],scene,board,query)for z in points for rot in(aR,R)];held=[_held_gap(z,rot,relp,relR,scene)for z in points for rot in(aR,R)]
+   if min(x['clearance_m']for x in hand)<.0005:raise StageRefusal('Column approach hand sample lost separation '+json.dumps(_plain(min(hand,key=lambda x:x['clearance_m']))))
+   if min(x['clearance_m']for x in held)<.0005:raise StageRefusal('Column approach held-body sample lost separation '+json.dumps(_plain(min(held,key=lambda x:x['clearance_m']))))
+   c.move(ctx,nxt,q,1,cartesian=True,accuracy=.0025);record['legs'].append(dict(actual_before=actual,target=nxt.tolist(),minimum_hand_gap_m=min(x['clearance_m']for x in hand),minimum_held_gap_m=min(x['clearance_m']for x in held)))
+  else:raise StageRefusal('Column approach feedback did not converge')
+ record['moved']=True;record['end']=ctx.tool('robot.read_proprioception')
+ return record
+
 def resume_release(ctx,state:StageState)->StageResult:
  p=state['parameters'];pr=profile();source=state['held_belief_source'];belief=ctx.tool('puzzle.propagate_pyramid_held_belief',source=source,arm_id=1)
  priors=deepcopy(state['latest_rgb']['poses']);priors['maroon']=belief['predicted_body_pose']
@@ -93,6 +136,8 @@ def resume_release(ctx,state:StageState)->StageResult:
  # release. Choose the lowest certified closed-jaw approach while retaining
  # all CAD, IK, retreat and 0.5 mm guards.
  target,R,q,desired,extraZ,selected_alias=min(chosen_candidates,key=lambda row:row[4]);mark=ctx.tool('robot.execution_journal_cursor');descent=[]
+ # Descend only along the release column (see _column_approach).
+ column_approach=_column_approach(ctx,target,R,q,extraZ,pr,scene,board,query,relp,relR)
  # Keep the actual closed jaw during descent. Every step starts from a newly
  # sampled actual FK/jaw; the endpoint is a geometric boundary, not a claim
  # that the nominal goal+3 command was reached.
@@ -106,7 +151,8 @@ def resume_release(ctx,state:StageState)->StageResult:
   if contact_spec:
    if any(x.get('clearance_m',-1.)<.0005 for x in segment[:-12]) or any(not x.get('passed') for x in segment[-12:]):raise StageRefusal('Actual closed-jaw contact descent guard refused '+json.dumps(_plain(segment[-1])))
   elif min(x['clearance_m']for x in segment)<.0005:raise StageRefusal('Actual closed-jaw descent sample lost separation '+json.dumps(_plain(min(segment,key=lambda x:x['clearance_m']))))
-  c.move(ctx,nxt,q,1,cartesian=True,accuracy=.0025);descent.append(dict(actual_before=actual,target=nxt.tolist(),minimum_gap_m=min(x['clearance_m']for x in segment)))
+  held=min((_held_gap(z,R,relp,relR,scene)for z in points),key=lambda x:x['clearance_m'])
+  c.move(ctx,nxt,q,1,cartesian=True,accuracy=.0025);descent.append(dict(actual_before=actual,target=nxt.tolist(),minimum_gap_m=min(x['clearance_m']for x in segment),held_body_gap_diagnostic=held))
  else:raise StageRefusal('Closed-jaw descent feedback did not converge')
  actual=ctx.tool('robot.read_proprioception');origin=np.array(actual['tcp'][:3]);release_start=deepcopy(actual);steps=[];contact_rgb_pair=[];contact_settle=[]
  if contact_spec:
@@ -160,7 +206,7 @@ def resume_release(ctx,state:StageState)->StageResult:
  # Both hands leave only after the actual measured opening/withdrawal complete.
  ctx.tool('robot.set_grip',arm_id=1,width_m=.055,ramp_steps=18,settle_steps=15);ctx.tool('robot.go_home',arm_id=1)
  cp,cq=c.hand(ctx,0);ctx.tool('robot.set_grip',arm_id=0,width_m=.055,ramp_steps=18,settle_steps=15);c.move(ctx,cp+[0,0,.06],cq,0,cartesian=True);ctx.tool('robot.go_home',arm_id=0);_pause(ctx,100)
- final=c.state(ctx,{'maroon':[*list(board[:3]+rb@center),*Rotation.from_matrix(rb@goal).as_quat().tolist()]});record=dict(mark=mark,actualheld_source=source,target_screens=screens,selected_goal_alias=selected_alias,release_support_contact=contact_spec,contact_rgb_pair=[_observation(x) for x in contact_rgb_pair],contact_rgb_ray_cad_support=[_rgb_ray_cad_support(x) for x in contact_rgb_pair],contact_settle=contact_settle,extraZ_over_learned_preopen_m=extraZ,tracking_clearance_reserve_m=.0025,nominal_requested_drop_m=.003,learned_board_preopen_z_m=float(bias[2]),geometric_release_body_z_over_goal_m=float(bias[2]+extraZ),release_start=release_start,descent=descent,feedback_steps=steps,scope='Geometrically separated progressive commands from actual RGB/FK/jaw. Goal+3 remained desired; actual release higher and finalplacement is UNKNOWN without external score.')
+ final=c.state(ctx,{'maroon':[*list(board[:3]+rb@center),*Rotation.from_matrix(rb@goal).as_quat().tolist()]});record=dict(mark=mark,actualheld_source=source,target_screens=screens,selected_goal_alias=selected_alias,release_support_contact=contact_spec,contact_rgb_pair=[_observation(x) for x in contact_rgb_pair],contact_rgb_ray_cad_support=[_rgb_ray_cad_support(x) for x in contact_rgb_pair],contact_settle=contact_settle,column_approach=column_approach,extraZ_over_learned_preopen_m=extraZ,tracking_clearance_reserve_m=.0025,nominal_requested_drop_m=.003,learned_board_preopen_z_m=float(bias[2]),geometric_release_body_z_over_goal_m=float(bias[2]+extraZ),release_start=release_start,descent=descent,feedback_steps=steps,scope='Geometrically separated progressive commands from actual RGB/FK/jaw. Goal+3 remained desired; actual release higher and finalplacement is UNKNOWN without external score.')
  return _output('executed',{**state,'release_execution':record,'execution_mark':mark},final,'release_execution',target_3d_status='UNKNOWN',visual_release_receipt=False,actual_release_body_z_over_goal_m=float(bias[2]+extraZ))
 
 def checkpoint(kind,world,outputs):
