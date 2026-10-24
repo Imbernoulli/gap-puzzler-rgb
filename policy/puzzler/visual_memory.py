@@ -182,6 +182,16 @@ def invalidate_disturbance(memory, pieces, reason):
     return out
 
 
+BOARD_CONFLICT = 'current RGB board contradicts the release reference'
+PIECE_CONFLICT = 'current RGB contradicts the accepted placement'
+
+
+def _recover(track, timestamp, hashes, status):
+    track.setdefault('recovered_invalidations', []).append(dict(
+        reason=track['invalidation_reason'], recovered_at=float(timestamp), frame_sha256=dict(hashes)))
+    track.update(status=status, invalidation_reason='')
+
+
 def observe(memory, observed, parameters) -> VisualMemory:
     """Update receipt status without changing the current observation."""
     out = deepcopy(memory)
@@ -196,21 +206,42 @@ def observe(memory, observed, parameters) -> VisualMemory:
     poses = observed.get('poses', {})
     for piece, track in out['placements'].items():
         receipt = track['receipt']
-        if track['status'] == 'unknown_or_conflicted':
+        # An RGB contradiction is evidence at one sensor time, not a final
+        # verdict: a single occluded board fit can be off by >1.5 mm while the
+        # physical case has not moved. Such a flag is re-examined against
+        # every later frame with the original thresholds. Explicit disturbance
+        # invalidations stay permanent.
+        flagged = track['status'] == 'unknown_or_conflicted'
+        if flagged and track['invalidation_reason'] not in (BOARD_CONFLICT, PIECE_CONFLICT):
             continue
-        if 'board' in poses and shape_displacement('board', receipt['after']['poses']['board'], poses['board']) >= .0015:
-            track.update(status='unknown_or_conflicted', invalidation_reason='current RGB board contradicts the release reference')
+        board_shift = (shape_displacement('board', receipt['after']['poses']['board'], poses['board'])
+                       if 'board' in poses else None)
+        if board_shift is not None and board_shift >= .0015:
+            if not flagged:
+                track.update(status='unknown_or_conflicted', invalidation_reason=BOARD_CONFLICT)
+            if track['status'] == 'unknown_or_conflicted':
+                track['conflict_evidence'] = dict(timestamp=float(timestamp), board_displacement_m=board_shift,
+                    goal_error_m=track.get('conflict_evidence', {}).get('goal_error_m'))
             continue
         if piece not in poses:
-            track['status'] = 'remembered_static_conditional'
+            # A hidden piece can clear a board flag once the board agrees
+            # again, but only a new measurement clears its own contradiction.
+            if not flagged:
+                track['status'] = 'remembered_static_conditional'
+            elif track['invalidation_reason'] == BOARD_CONFLICT and 'board' in poses:
+                _recover(track, timestamp, hashes, 'remembered_static_conditional')
             continue
         pose = _pose(poses[piece]).tolist()
         moved = shape_displacement(piece, receipt['after']['poses'][piece], pose)
         outside = 'board' in poses and goal_error(piece, observed, parameters) >= .003
         track.update(last_measured_pose=pose, last_measured_timestamp=float(timestamp), last_frame_sha256=dict(hashes))
         if moved >= .003 or outside:
-            track.update(status='unknown_or_conflicted', invalidation_reason='current RGB contradicts the accepted placement')
-        else:
+            track.update(status='unknown_or_conflicted', invalidation_reason=PIECE_CONFLICT,
+                         conflict_evidence=dict(timestamp=float(timestamp), board_displacement_m=board_shift,
+                             moved_m=moved, goal_error_m=goal_error(piece, observed, parameters) if 'board' in poses else None))
+        elif not flagged:
             track['status'] = 'measured_now'
+        elif 'board' in poses:
+            _recover(track, timestamp, hashes, 'measured_now')
     out.update(last_timestamp=float(timestamp), last_frame_sha256=dict(hashes))
     return _plain(out)

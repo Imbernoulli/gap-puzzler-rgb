@@ -28,6 +28,46 @@ def require_receipt(state, expected_piece):
     return checked
 
 
+TERMINAL_CONTEST_MARGIN_M = .004  # the belief ledger's goal envelope (modular_controller.save_observation)
+
+
+def require_terminal_receipt(state, name):
+    """Earned receipt for the final ledger, allowing a bounded later contest.
+
+    Under the finished pyramid, lower pieces are partly hidden and their late
+    RGB fits (and the case fit) drift by a few millimetres. A receipt that was
+    authentic at release stays usable when later RGB contests it by less than
+    the 4 mm goal envelope that execution-only pieces already use. The contest
+    is recorded, and the independent physical finish check decides the goal.
+    """
+    try:
+        require_receipt({**state, 'piece': name}, name)
+        return dict(piece=name, status='receipt_verified')
+    except StageRefusal:
+        track = state.get('memory', {}).get('placements', {}).get(name, {})
+        if (track.get('status') != 'unknown_or_conflicted'
+                or track.get('invalidation_reason') not in (visual_memory.BOARD_CONFLICT, visual_memory.PIECE_CONFLICT)):
+            raise
+    token = state.get('execution_tokens', {}).get(name, {})
+    receipt = token.get('new_visual_release_receipt')
+    if not isinstance(receipt, dict) or receipt.get('piece') != name or track.get('receipt') != receipt:
+        raise StageRefusal('Contested receipt is not the committed release receipt: ' + name)
+    if visual_memory.release_receipt(name, receipt['before'], receipt['after'],
+                                     receipt['released_tcp_position'], state['parameters']) != receipt:
+        raise StageRefusal('Contested receipt fails recomputation: ' + name)
+    if name not in state.get('executed_placements', []):
+        raise StageRefusal('Contested receipt was not committed to the earned ledger: ' + name)
+    if state.get('belief_ledger', {}).get(name, {}).get('status') == 'current_rgb_conflict_goal_envelope_invalidated':
+        raise StageRefusal('Current RGB places this piece outside the goal envelope: ' + name)
+    evidence = track.get('conflict_evidence') or {}
+    sizes = [evidence.get(key) for key in ('board_displacement_m', 'goal_error_m')]
+    if not evidence or any(size is not None and size >= TERMINAL_CONTEST_MARGIN_M for size in sizes):
+        raise StageRefusal('Later RGB contests this receipt beyond the goal envelope: ' + name)
+    return dict(piece=name, status='receipt_contested_within_goal_envelope',
+                invalidation_reason=track['invalidation_reason'], conflict_evidence=evidence,
+                margin_m=TERMINAL_CONTEST_MARGIN_M)
+
+
 def _completion_scope(state):
     from . import model
     order = state['parameters']['assembly_order']
@@ -127,7 +167,7 @@ def terminal_visual_unknown_allowed(state):
     try:
         for name in order[:-1]:
             if name in state.get('executed_placements', []):
-                require_receipt({**state, 'piece': name}, name)
+                require_terminal_receipt(state, name)
             else:
                 require_execution_hypothesis(state, name)
     except (StageRefusal, visual_memory.MemoryRefusal, KeyError):
@@ -174,12 +214,15 @@ def require_final_ledger(state):
     earned = state.get('executed_placements', [])
     if execution_coverage(state) != required or len(earned) != len(set(earned)):
         raise StageRefusal('Final execution coverage is incomplete or visual ledger duplicates a piece')
+    receipts = {}
     for name in required:
         if name in earned:
-            require_receipt({**state, 'piece': name}, name)
+            receipts[name] = require_terminal_receipt(state, name)
         else:
             require_execution_hypothesis(state, name)
     return dict(receipt_names=sorted(earned), execution_only_names=sorted(required - set(earned)),
+                contested_receipts={name: row for name, row in receipts.items()
+                                    if row['status'] != 'receipt_verified'},
                 initialized_prefix=list(given), full_assembly_eligible=not given,
                 terminal_visual_status=terminal_visual_status(state)['status'] if terminal_unknown else 'receipt_verified',
                 terminal_execution_token_present=bool(state.get('execution_tokens', {}).get('red')),
@@ -284,5 +327,6 @@ def finish_assembly(ctx, state: ModularState) -> ModularResult:
         timestamp=observed['timestamp'], frame_sha256=observed['frame_sha256'],
         actual_tail_interval_s=last_epoch['timestamp'] - first_epoch['timestamp'],
         earned_pieces=final_ledger['receipt_names'], terminal_visual_status=final_ledger['terminal_visual_status'],
+        contested_receipts=final_ledger['contested_receipts'],
         red_visual_receipt_earned=final_ledger['red_visual_receipt_earned'],
         independent_all12_physical_verification_required=True))
