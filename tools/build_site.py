@@ -339,6 +339,8 @@ def main():
     parser.add_argument('--video-stride', type=int, default=3)
     parser.add_argument('--grid', help='grid video (tools/make_grid.py) for the generalization section')
     parser.add_argument('--grid-caption', default='')
+    parser.add_argument('--highlight', help='a complete run on a changed scene, shown as a full video')
+    parser.add_argument('--highlight-video')
     parser.add_argument('--before', nargs='*', default=[])
     parser.add_argument('--after', nargs='*', default=[])
     parser.add_argument('--repeats-before', nargs='*', default=[])
@@ -370,6 +372,19 @@ def main():
         grid = (f'<figure class="grid-video"><video src="media/generalization_grid.mp4" muted loop playsinline controls '
                 f'preload="metadata" aria-label="{esc(args.grid_caption)}"></video><figcaption>{esc(args.grid_caption)}</figcaption></figure>')
 
+    highlight = ''
+    if args.highlight:
+        run = inner(args.highlight)
+        stats = timeline(run)
+        manifest = json.loads((run / 'manifest.json').read_text())
+        shutil.copy2(args.highlight_video, SITE / 'media/highlight_full12.mp4')
+        Image.open(Path(args.highlight_video).with_name(Path(args.highlight_video).stem + '_final.png')).convert('RGB').save(
+            SITE / 'media/highlight_full12_poster.jpg', quality=85)
+        caption = (f"Everything changed at once ({describe(manifest['scene_variant'])}): all 12 pieces, "
+                   f"{stats['checkpoints_passed']}/{stats['checkpoints_total']} checkpoints, worst bead "
+                   f"{stats['audit_max_mm']:.1f} mm, {stats['sim_time_s']:.0f} s simulated.")
+        highlight = (f'<figure class="grid-video"><video src="media/highlight_full12.mp4" poster="media/highlight_full12_poster.jpg" '
+                     f'playsinline controls preload="metadata" aria-label="{esc(caption)}"></video><figcaption>{esc(caption)}</figcaption></figure>')
     before = {r['variant']: r for r in map(variant_row, args.before)}
     after = {}
     for row in map(variant_row, args.after):
@@ -388,7 +403,7 @@ def main():
         SIM_TIME=f"{data['sim_time_s']:.0f}", AUDIT_MAX=f"{data['audit_max_mm']:.1f}" if data['audit_max_mm'] else '—',
         VARIANT_ROWS=variants_html(variants, repeats_html([variant_row(r) for r in args.repeats_before],
                                                           [variant_row(r) for r in args.repeats_after])),
-        GRID=grid, LOOP_SVG=loop_svg(), GEN_NOTE=esc(args.note),
+        GRID=grid, LOOP_SVG=loop_svg(), GEN_NOTE=esc(args.note), HIGHLIGHT=highlight,
         GENERALIZATION_CASES=(SRC / 'generalization_cases.html').read_text() if (SRC / 'generalization_cases.html').exists() else '',
         DRIFT_SVG=drift_svg(SRC / 'data/v13_board_drift.json'),
         WITNESS=f"{witness['complete']['matched']}/{witness['complete']['decisive']} views",

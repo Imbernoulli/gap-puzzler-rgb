@@ -20,7 +20,14 @@ its success exit.
 | receipt recovery (b4cb667) | 2 | 0 | Cyan release; Red refused on a stale Purple flag. |
 | `full12-success-v1` (7af3462) | 3 | 1 | `nominal_fix2c`: audit 2.55 mm, 41.8 s still. |
 | fix3 (578a46f) | 3 | 1 | Two lost Cyan's release (75 mm opening sweep). |
-| fix5 (7014075, HEAD policy) | 4 | 3 | One stopped in Cyan's carry after the hand-to-hand transfer. |
+| fix5 (7014075) | 4 | 3 | One stopped in Cyan's carry after the hand-to-hand transfer. |
+| fix6 (81e08f7, Cyan transfer fixes) | 4 | 3 | One refused Mint's release on a 1.5-2 mm case shift (fixed next). |
+| fix7 (a7491b9, + case-shift fix) | 4 | 4 | |
+
+Perturbed scenes, all fresh full runs from loose pieces (fix5-fix8 code):
+case moved and turned (both directions), friction 0.50, friction 0.80 and all
+perturbations combined have each been completed at least once (7 complete
+runs). The v13 policy completed none of them.
 
 Perturbed scenes and scattered layouts are on the site.
 

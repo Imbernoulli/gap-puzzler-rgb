@@ -1841,8 +1841,15 @@
       "board_yaw": 0.05
      },
      "seed": 0,
-     "placed": 11,
-     "done": false
+     "placed": 12,
+     "done": true,
+     "rss_success": true,
+     "graph_success": true,
+     "sim_time_s": 678.4,
+     "audit_max_mm": 2.54,
+     "stopped_piece": null,
+     "stopped_node": null,
+     "refusal": null
     }
    ]
   },
@@ -1979,7 +1986,14 @@
      },
      "seed": 4,
      "placed": 11,
-     "done": false
+     "done": true,
+     "rss_success": false,
+     "graph_success": false,
+     "sim_time_s": 483.7,
+     "audit_max_mm": null,
+     "stopped_piece": "red",
+     "stopped_node": "red_handoff_prepare",
+     "refusal": "Receiver opening public geometry refused"
     }
    ]
   },
@@ -2050,8 +2064,15 @@
       "piece_yaw": 0.07
      },
      "seed": 104,
-     "placed": 4,
-     "done": false
+     "placed": 5,
+     "done": true,
+     "rss_success": false,
+     "graph_success": false,
+     "sim_time_s": 196.5,
+     "audit_max_mm": null,
+     "stopped_piece": "cyan",
+     "stopped_node": "cyan_receiver_close",
+     "refusal": "Motor did not settle at requested pose: position=0.000848m rotation=0.002309rad drift=0.000000m arm=1 contact=False target=[0.6531657006492486, 0.19436828743034"
     }
    ]
   },
@@ -2118,8 +2139,15 @@
       "friction": 0.5
      },
      "seed": 0,
-     "placed": 7,
-     "done": false
+     "placed": 12,
+     "done": true,
+     "rss_success": true,
+     "graph_success": true,
+     "sim_time_s": 645.9,
+     "audit_max_mm": 2.69,
+     "stopped_piece": null,
+     "stopped_node": null,
+     "refusal": null
     }
    ]
   },
@@ -2169,8 +2197,15 @@
       "friction": 0.8
      },
      "seed": 0,
-     "placed": 7,
-     "done": false
+     "placed": 12,
+     "done": true,
+     "rss_success": true,
+     "graph_success": true,
+     "sim_time_s": 639.6,
+     "audit_max_mm": 2.63,
+     "stopped_piece": null,
+     "stopped_node": null,
+     "refusal": null
     }
    ]
   },
@@ -2235,8 +2270,15 @@
       "friction": 0.6
      },
      "seed": 201,
-     "placed": 7,
-     "done": false
+     "placed": 12,
+     "done": true,
+     "rss_success": true,
+     "graph_success": true,
+     "sim_time_s": 653.7,
+     "audit_max_mm": 2.56,
+     "stopped_piece": null,
+     "stopped_node": null,
+     "refusal": null
     }
    ]
   },
