@@ -23,6 +23,7 @@ NUMERIC = ('board_dx', 'board_dy', 'board_yaw', 'piece_jitter', 'piece_yaw', 'fr
 def variant_from(manifest):
     overrides = dict(manifest['scene_variant'])
     overrides.pop('scatter_seed', None)
+    overrides.pop('scatter_spacing', None)
     unknown = set(overrides) - {*NUMERIC, 'appearance'}
     if unknown:
         raise ValueError('Unsupported scene variant fields: ' + ', '.join(sorted(unknown)))
@@ -31,11 +32,11 @@ def variant_from(manifest):
                         **{key: float(value) for key, value in overrides.items()})
 
 
-def scattered_by_side(original, seed, yaw_range=np.pi / 4):
+def scattered_by_side(original, seed, yaw_range=np.pi / 4, spacing=.030):
     """Re-place every loose piece anywhere on its own arm's side, turned up to ±45°.
 
     Rejection-sampled like task.scattered_staging: beads stay inside the side
-    region and every loose piece starts at least 30 mm from the others.
+    region and every loose piece starts at least `spacing` from the others.
     """
     rng = np.random.default_rng(seed)
     stage = original()
@@ -50,7 +51,7 @@ def scattered_by_side(original, seed, yaw_range=np.pi / 4):
                 if (np.abs(points[:, 1]).max() > .39 or np.abs(points[:, 1]).min() < .19
                         or points[:, 0].min() < -.31 or points[:, 0].max() > .29):
                     continue
-                if occupied and np.linalg.norm(points[:, None] - np.concatenate(occupied)[None, :], axis=2).min() < .030:
+                if occupied and np.linalg.norm(points[:, None] - np.concatenate(occupied)[None, :], axis=2).min() < spacing:
                     continue
                 occupied.append(points)
                 result[name] = (center, yaw, side)
@@ -82,8 +83,9 @@ def jobs(manifest_path):
     variant = variant_from(manifest)
     original_staging = task.staging
     scatter = manifest['scene_variant'].get('scatter_seed')
+    spacing = manifest['scene_variant'].get('scatter_spacing', .030)
     try:
-        task.staging = ((lambda: scattered_by_side(original_staging, scatter)) if scatter is not None
+        task.staging = ((lambda: scattered_by_side(original_staging, scatter, spacing=spacing)) if scatter is not None
                         else (lambda: public_staging_c(original_staging)))
         spec = task.task_spec(variant, manifest['max_steps'], suite=manifest['suite'],
                               terminate_on_success=False, contact_capacity=4096)

@@ -233,9 +233,36 @@ def outcome_cell(row):
             f'<small>{esc(node)}: {esc(row.get("refusal") or "")}</small></td>')
 
 
-def variants_html(variants):
+def repeats_html(before, after):
+    """One row summarising every nominal repeat: completed / where the rest stopped."""
+    def cell(rows):
+        if not rows:
+            return '<td class="muted">not run</td>'
+        done = [r for r in rows if r['done']]
+        complete = [r for r in done if r['graph_success'] and r['rss_success']]
+        stops = {}
+        for r in done:
+            if r in complete:
+                continue
+            where = (r.get('stopped_piece') or 'end').capitalize()
+            node = (r.get('stopped_node') or '').replace('_', ' ')
+            if r['rss_success'] and not r['graph_success']:
+                where, node = 'end', 'last node refused'
+            stops[f'{where} · {node}'] = stops.get(f'{where} · {node}', 0) + 1
+        running = len(rows) - len(done)
+        detail = '; '.join(f'{k} ×{v}' for k, v in sorted(stops.items(), key=lambda kv: -kv[1]))
+        if running:
+            detail += f'{"; " if detail else ""}{running} still running'
+        pill = 'pass' if complete else 'fail'
+        return (f'<td><span class="pill {pill}">{len(complete)}/{len(done)}</span> complete'
+                f'<small>{esc(detail)}</small></td>')
+    return (f'<tr><th scope="row">Layout C, repeats</th><td class="mono small">as designed</td>'
+            f'{cell(before)}{cell(after)}</tr>')
+
+
+def variants_html(variants, repeats=''):
     head = '<thead><tr><th scope="col">Scene</th><th scope="col">What changed</th><th scope="col">v13 policy</th><th scope="col">This policy</th></tr></thead>'
-    body = ''.join(f'<tr><th scope="row">{esc(v["label"])}</th><td class="mono small">{esc(v["change"])}</td>'
+    body = repeats + ''.join(f'<tr><th scope="row">{esc(v["label"])}</th><td class="mono small">{esc(v["change"])}</td>'
                    f'{outcome_cell(v["before"])}{outcome_cell(v["after"])}</tr>' for v in variants)
     return head + '<tbody>' + body + '</tbody>'
 
@@ -303,6 +330,8 @@ def main():
     parser.add_argument('--grid-caption', default='')
     parser.add_argument('--before', nargs='*', default=[])
     parser.add_argument('--after', nargs='*', default=[])
+    parser.add_argument('--repeats-before', nargs='*', default=[])
+    parser.add_argument('--repeats-after', nargs='*', default=[])
     args = parser.parse_args()
     from PIL import Image
 
@@ -343,7 +372,9 @@ def main():
     fill = dict(
         PIECES_PLACED=str(data['pieces_placed']), CHECKPOINTS=f"{data['checkpoints_passed']}/{data['checkpoints_total']}",
         SIM_TIME=f"{data['sim_time_s']:.0f}", AUDIT_MAX=f"{data['audit_max_mm']:.1f}" if data['audit_max_mm'] else '—',
-        VARIANT_ROWS=variants_html(variants), GRID=grid, LOOP_SVG=loop_svg(),
+        VARIANT_ROWS=variants_html(variants, repeats_html([variant_row(r) for r in args.repeats_before],
+                                                          [variant_row(r) for r in args.repeats_after])),
+        GRID=grid, LOOP_SVG=loop_svg(),
         GENERALIZATION_CASES=(SRC / 'generalization_cases.html').read_text() if (SRC / 'generalization_cases.html').exists() else '',
         DRIFT_SVG=drift_svg(SRC / 'data/v13_board_drift.json'),
         WITNESS=f"{witness['complete']['matched']}/{witness['complete']['decisive']} views",

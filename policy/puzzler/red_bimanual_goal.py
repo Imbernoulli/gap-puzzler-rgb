@@ -966,7 +966,9 @@ def verify_release(ctx,state):
         raise StageRefusal('Final Red handoff requires preceding checked physical release execution')
     previous=state['observation'];hint={}
     if 'red' in previous.get('poses',{}):hint['red']=previous['poses']['red']
-    current=c.state(ctx,hint);state=save_observation(state,current)
+    # The terminal look also runs the whole-pyramid completion check, so a
+    # seated piece with a stale contradiction can be confirmed directly.
+    current=ctx.tool('vision.observe',hints={**hint,'__completion_check__':True});state=save_observation(state,current)
     if current['timestamp']<previous['timestamp']:
         raise StageRefusal('Final Red release verification cannot roll back RGB time')
     ctx.tool('robot.wait_steps',steps=6)

@@ -114,10 +114,13 @@ def _plain(value):
 def _observation(observed):
     # Refused-fit diagnostics can contain unbounded optimization residuals.
     # Persist finite accepted poses and their sensor provenance in graph state.
-    return {k: observed[k] for k in
-            ('poses', 'detections', 'timestamp', 'frame_sha256', 'assessment', 'observation_source',
-             'bounded_rgb_source', 'robot_geometry_provenance')
-            if k in observed}
+    packet = {k: observed[k] for k in
+              ('poses', 'detections', 'timestamp', 'frame_sha256', 'assessment', 'observation_source',
+               'bounded_rgb_source', 'robot_geometry_provenance', 'goal_pixel_support')
+              if k in observed}
+    if 'assembly_completion' in observed:
+        packet['assembly_completion'] = {k: v for k, v in observed['assembly_completion'].items() if k != 'views'}
+    return packet
 
 
 def _result(route, state, observed, **evidence) -> StageResult:

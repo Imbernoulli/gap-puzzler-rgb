@@ -31,6 +31,16 @@ def require_receipt(state, expected_piece):
 TERMINAL_CONTEST_MARGIN_M = .004  # the belief ledger's goal envelope (modular_controller.save_observation)
 
 
+def _confirmed_by_current_pixels(state, name):
+    """Completion-check counts for `name` in the latest observation, if they confirm it."""
+    from .assembly_completion import MIN_SHARE
+    row = state.get('observation', {}).get('assembly_completion', {}).get('per_piece', {}).get(name)
+    if not row:
+        return None
+    decisive = row['match'] + row['mismatch']
+    return row if row['match'] >= 1 and row['match'] >= MIN_SHARE * decisive else None
+
+
 def require_terminal_receipt(state, name):
     """Earned receipt for the final ledger, allowing a bounded later contest.
 
@@ -43,7 +53,13 @@ def require_terminal_receipt(state, name):
     try:
         require_receipt({**state, 'piece': name}, name)
         return dict(piece=name, status='receipt_verified')
-    except StageRefusal:
+    except StageRefusal as refusal:
+        confirmed = _confirmed_by_current_pixels(state, name)
+        if confirmed is not None and name in state.get('executed_placements', []):
+            # A later direct look at the goal sites outranks an earlier noisy
+            # contradiction: the current frame shows this piece where it belongs.
+            return dict(piece=name, status='receipt_confirmed_by_current_goal_pixels',
+                        earlier_refusal=str(refusal), current_goal_pixels=confirmed)
         track = state.get('memory', {}).get('placements', {}).get(name, {})
         if (track.get('status') != 'unknown_or_conflicted'
                 or track.get('invalidation_reason') not in (visual_memory.BOARD_CONFLICT, visual_memory.PIECE_CONFLICT)):

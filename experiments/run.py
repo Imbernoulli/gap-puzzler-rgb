@@ -44,6 +44,9 @@ VARIANTS = {
 # Loose pieces re-placed anywhere on their own arm's side and turned up to ±45°.
 VARIANTS.update({f'scatter_{k}': dict(seed=0, scene_variant=dict(scatter_seed=k), label=f'Scattered layout {k}')
                  for k in range(1, 13)})
+# The same, with 45 mm between loose pieces so a jaw fits between neighbours.
+VARIANTS.update({f'roomy_{k}': dict(seed=0, scene_variant=dict(scatter_seed=k, scatter_spacing=.045),
+                                    label=f'Scattered layout {k}, 45 mm apart') for k in range(1, 13)})
 
 
 def workspace(name):
