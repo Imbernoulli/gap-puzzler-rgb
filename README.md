@@ -26,11 +26,12 @@ its success exit.
 | fix8 (a1f87e0, + symmetric-alias fix) | 2 | 2 | |
 | fix9 (5522892, + Maroon approach) | 4 | 3 | One stopped in Cyan's carry after the hand-to-hand transfer. |
 | fix10 (3a06689, + Red transfer stations) | 3 | 3 | |
+| fix11 (13c9010, + stricter completion witness) | 3 | 3 | |
 
-Perturbed scenes, all fresh full runs from loose pieces: fix10 (3a06689)
-completed all six it ran (case moved and turned both ways, both jittered
-layouts, friction 0.80, all perturbations combined), 6/6. Earlier code also
-completed friction 0.50 four times. The v13 policy completed none of them.
+Perturbed scenes, all fresh full runs from loose pieces: the current policy,
+fix11 (13c9010), completed all seven (case moved and turned both ways, both
+jittered layouts, friction 0.50, friction 0.80, all perturbations combined),
+7/7; fix10 completed 6/6. The v13 policy completed none of them.
 
 Perturbed scenes and scattered layouts are on the site.
 

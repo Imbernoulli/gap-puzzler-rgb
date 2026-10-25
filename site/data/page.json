@@ -1822,6 +1822,25 @@
       "board_yaw": 0.05
      },
      "seed": 0,
+     "placed": 12,
+     "done": true,
+     "rss_success": true,
+     "graph_success": true,
+     "sim_time_s": 645.7,
+     "audit_max_mm": 2.5,
+     "stopped_piece": null,
+     "stopped_node": null,
+     "refusal": null
+    },
+    {
+     "variant": "board_a",
+     "label": "Case +6 mm x, \u22126 mm y, +2.9\u00b0 yaw",
+     "scene": {
+      "board_dx": 0.006,
+      "board_dy": -0.006,
+      "board_yaw": 0.05
+     },
+     "seed": 0,
      "placed": 5,
      "done": true,
      "rss_success": false,
@@ -1904,8 +1923,8 @@
      "done": true,
      "rss_success": true,
      "graph_success": true,
-     "sim_time_s": 649.2,
-     "audit_max_mm": 2.67,
+     "sim_time_s": 645.7,
+     "audit_max_mm": 2.5,
      "stopped_piece": null,
      "stopped_node": null,
      "refusal": null
@@ -1951,6 +1970,25 @@
      "graph_success": true,
      "sim_time_s": 646.8,
      "audit_max_mm": 2.57,
+     "stopped_piece": null,
+     "stopped_node": null,
+     "refusal": null
+    },
+    {
+     "variant": "board_b",
+     "label": "Case \u22126 mm x, +6 mm y, \u22122.9\u00b0 yaw",
+     "scene": {
+      "board_dx": -0.006,
+      "board_dy": 0.006,
+      "board_yaw": -0.05
+     },
+     "seed": 0,
+     "placed": 12,
+     "done": true,
+     "rss_success": true,
+     "graph_success": true,
+     "sim_time_s": 661.1,
+     "audit_max_mm": 2.69,
      "stopped_piece": null,
      "stopped_node": null,
      "refusal": null
@@ -2046,8 +2084,8 @@
      "done": true,
      "rss_success": true,
      "graph_success": true,
-     "sim_time_s": 646.8,
-     "audit_max_mm": 2.57,
+     "sim_time_s": 661.1,
+     "audit_max_mm": 2.69,
      "stopped_piece": null,
      "stopped_node": null,
      "refusal": null
@@ -2091,6 +2129,24 @@
      "graph_success": true,
      "sim_time_s": 636.6,
      "audit_max_mm": 2.64,
+     "stopped_piece": null,
+     "stopped_node": null,
+     "refusal": null
+    },
+    {
+     "variant": "jitter_a",
+     "label": "Loose pieces \u00b15 mm, \u00b14\u00b0 (seed 4)",
+     "scene": {
+      "piece_jitter": 0.005,
+      "piece_yaw": 0.07
+     },
+     "seed": 4,
+     "placed": 12,
+     "done": true,
+     "rss_success": true,
+     "graph_success": true,
+     "sim_time_s": 642.5,
+     "audit_max_mm": 2.59,
      "stopped_piece": null,
      "stopped_node": null,
      "refusal": null
@@ -2181,8 +2237,8 @@
      "done": true,
      "rss_success": true,
      "graph_success": true,
-     "sim_time_s": 636.6,
-     "audit_max_mm": 2.64,
+     "sim_time_s": 642.5,
+     "audit_max_mm": 2.59,
      "stopped_piece": null,
      "stopped_node": null,
      "refusal": null
@@ -2226,6 +2282,24 @@
      "graph_success": true,
      "sim_time_s": 663.3,
      "audit_max_mm": 2.65,
+     "stopped_piece": null,
+     "stopped_node": null,
+     "refusal": null
+    },
+    {
+     "variant": "jitter_b",
+     "label": "Loose pieces \u00b15 mm, \u00b14\u00b0 (seed 104)",
+     "scene": {
+      "piece_jitter": 0.005,
+      "piece_yaw": 0.07
+     },
+     "seed": 104,
+     "placed": 12,
+     "done": true,
+     "rss_success": true,
+     "graph_success": true,
+     "sim_time_s": 657.3,
+     "audit_max_mm": 2.48,
      "stopped_piece": null,
      "stopped_node": null,
      "refusal": null
@@ -2316,8 +2390,8 @@
      "done": true,
      "rss_success": true,
      "graph_success": true,
-     "sim_time_s": 663.3,
-     "audit_max_mm": 2.65,
+     "sim_time_s": 657.3,
+     "audit_max_mm": 2.48,
      "stopped_piece": null,
      "stopped_node": null,
      "refusal": null
@@ -2346,6 +2420,23 @@
     "refusal": "Actual receiver attachment has no original-margin 3\u201310mm release"
    },
    "after": [
+    {
+     "variant": "friction_050",
+     "label": "Friction \u03bc = 0.50",
+     "scene": {
+      "friction": 0.5
+     },
+     "seed": 0,
+     "placed": 12,
+     "done": true,
+     "rss_success": true,
+     "graph_success": true,
+     "sim_time_s": 632.1,
+     "audit_max_mm": 2.55,
+     "stopped_piece": null,
+     "stopped_node": null,
+     "refusal": null
+    },
     {
      "variant": "friction_050",
      "label": "Friction \u03bc = 0.50",
@@ -2415,7 +2506,25 @@
      "refusal": null
     }
    ],
-   "latest": []
+   "latest": [
+    {
+     "variant": "friction_050",
+     "label": "Friction \u03bc = 0.50",
+     "scene": {
+      "friction": 0.5
+     },
+     "seed": 0,
+     "placed": 12,
+     "done": true,
+     "rss_success": true,
+     "graph_success": true,
+     "sim_time_s": 632.1,
+     "audit_max_mm": 2.55,
+     "stopped_piece": null,
+     "stopped_node": null,
+     "refusal": null
+    }
+   ]
   },
   {
    "variant": "friction_080",
@@ -2452,6 +2561,23 @@
      "graph_success": true,
      "sim_time_s": 669.3,
      "audit_max_mm": 2.56,
+     "stopped_piece": null,
+     "stopped_node": null,
+     "refusal": null
+    },
+    {
+     "variant": "friction_080",
+     "label": "Friction \u03bc = 0.80",
+     "scene": {
+      "friction": 0.8
+     },
+     "seed": 0,
+     "placed": 12,
+     "done": true,
+     "rss_success": true,
+     "graph_success": true,
+     "sim_time_s": 632.1,
+     "audit_max_mm": 2.61,
      "stopped_piece": null,
      "stopped_node": null,
      "refusal": null
@@ -2520,8 +2646,8 @@
      "done": true,
      "rss_success": true,
      "graph_success": true,
-     "sim_time_s": 669.3,
-     "audit_max_mm": 2.56,
+     "sim_time_s": 632.1,
+     "audit_max_mm": 2.61,
      "stopped_piece": null,
      "stopped_node": null,
      "refusal": null
@@ -2573,6 +2699,28 @@
      "graph_success": true,
      "sim_time_s": 694.7,
      "audit_max_mm": 2.5,
+     "stopped_piece": null,
+     "stopped_node": null,
+     "refusal": null
+    },
+    {
+     "variant": "combined",
+     "label": "Case, pieces and friction together (seed 201)",
+     "scene": {
+      "board_dx": -0.004,
+      "board_dy": -0.004,
+      "board_yaw": 0.03,
+      "piece_jitter": 0.003,
+      "piece_yaw": 0.035,
+      "friction": 0.6
+     },
+     "seed": 201,
+     "placed": 12,
+     "done": true,
+     "rss_success": true,
+     "graph_success": true,
+     "sim_time_s": 641.0,
+     "audit_max_mm": 2.61,
      "stopped_piece": null,
      "stopped_node": null,
      "refusal": null
@@ -2683,8 +2831,8 @@
      "done": true,
      "rss_success": true,
      "graph_success": true,
-     "sim_time_s": 694.7,
-     "audit_max_mm": 2.5,
+     "sim_time_s": 641.0,
+     "audit_max_mm": 2.61,
      "stopped_piece": null,
      "stopped_node": null,
      "refusal": null
