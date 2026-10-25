@@ -16,17 +16,18 @@
   <header class="top wrap">
     <a class="mark" href="#top">Puzzler<span aria-hidden="true">·</span>GaP</a>
     <nav aria-label="Sections">
-      <a href="#generalize">Generalization</a>
       <a href="#rss">Real to sim</a>
       <a href="#gap">Graph as policy</a>
+      <a href="#standing">Dexterity</a>
       <a href="#refine">Self-refinement</a>
+      <a href="#generalize">Generalization</a>
     </nav>
   </header>
 
   <main id="top">
     <section class="hero wrap">
       <div>
-        <h1>Twelve loose pieces, two robot arms, one pyramid.</h1>
+        <h1>Two robot arms build a 12-piece, five-layer 3D puzzle pyramid to within 4 mm, seeing only through cameras and passing pieces from hand to hand.</h1>
       </div>
       <p class="hero-note">First built with four custom cameras around the table, then with the official YAM station cameras: one overhead and one on each wrist.</p>
     </section>
@@ -37,11 +38,6 @@
         <button type="button" role="tab" data-rig-tab="custom" aria-selected="false">Custom rig · 4 cameras</button>
       </div>
     </div>
-
-    <section class="block wrap demo" id="generalize" aria-labelledby="gen-title">
-      <h2 id="gen-title"><span class="kicker">Generalization</span>Different starts, same graph, every run to the finished pyramid</h2>
-      {{GRIDS}}
-    </section>
 
     <section class="block wrap" id="rss" aria-labelledby="rss-title">
       <h2 id="rss-title"><span class="kicker">RoboSimStudio</span>Real to sim</h2>
@@ -60,7 +56,6 @@
             <figcaption>The source video, from 3:33.</figcaption>
           </figure>
           <dl class="facts">
-            {{CAMERA_FACTS}}
             <div><dt>Physics</dt><dd>MuJoCo-Warp on GPU</dd></div>
             <div><dt>Robot</dt><dd>Two YAM 6-DoF arms, parallel jaws</dd></div>
             <div><dt>Parts</dt><dd>12 rigid pieces made of 55 beads, 25 mm each</dd></div>
@@ -76,8 +71,24 @@
       {{PLAYERS}}
       <p class="legend mono small"><span><i class="k-done"></i>done, checked</span><span><i class="k-now"></i>running</span><span><i class="k-abort"></i>on error → stop</span><span>↻ looks again</span><span>Click a step or a piece to jump.</span></p>
 
-      <h3 class="sub">{{P:cyan}} and {{P:red}} can only be placed by passing them between hands</h3>
+    </section>
+
+    <section class="block wrap" id="standing" aria-labelledby="standing-title">
+      <h2 id="standing-title"><span class="kicker">Dexterity</span>Four pieces end up standing on edge</h2>
       {{HANDS}}
+      <p class="legend mono small"><span>white rings: the piece's beads</span><span>dial: the piece's own plane, needle along it, blue pin along its normal</span><span>yellow: the path so far</span></p>
+      <div class="grip">
+        <svg class="grip-svg" viewBox="0 0 300 120" role="img" aria-label="Jaw pads pinching a bead at its equator hold it; pads above the equator let it turn">
+          <g transform="translate(70,62)"><circle r="30" class="bead"/><rect x="-44" y="-9" width="12" height="18" rx="2" class="pad"/><rect x="32" y="-9" width="12" height="18" rx="2" class="pad"/><line x1="-36" y1="0" x2="36" y2="0" class="eq"/><text y="52" text-anchor="middle" class="ok">✓ at the equator: holds</text></g>
+          <g transform="translate(225,62)"><circle r="30" class="bead"/><rect x="-36" y="-26" width="12" height="18" rx="2" class="pad"/><rect x="24" y="-26" width="12" height="18" rx="2" class="pad"/><line x1="-36" y1="0" x2="36" y2="0" class="eq"/><path d="M 34 14 a 14 14 0 0 1 -10 14" class="turn"/><text y="52" text-anchor="middle" class="no">✕ above it: slowly turns</text></g>
+        </svg>
+        <ul class="grip-notes">
+          <li><b>Pinch one bead</b>, pads level with its middle: 6 mm above the centre by default. Piece 11 held 10 mm up turned in the jaws; at 7 mm its carry error fell from 5–7 mm to 3.3–3.5 mm.</li>
+          <li><b>Pick a bead near the middle</b> of the piece: a short lever keeps it from turning.</li>
+          <li><b>Open as the camera needs:</b> 55 mm by default, 75 mm for piece 6 so a finger does not hide it, and in two quick steps for piece 8 so neither pad flicks it.</li>
+          <li><b>If the planned grip is out of reach</b>, every bead and jaw direction is screened under the same checks.</li>
+        </ul>
+      </div>
     </section>
 
     <section class="block wrap" id="refine" aria-labelledby="refine-title">
@@ -122,6 +133,10 @@
       </div>
     </section>
 
+    <section class="block wrap demo" id="generalize" aria-labelledby="gen-title">
+      <h2 id="gen-title"><span class="kicker">Generalization</span>Different starts, same graph</h2>
+      {{GRIDS}}
+    </section>
   </main>
 
   <footer class="wrap foot">

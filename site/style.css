@@ -229,7 +229,7 @@ body[data-rig="official"] [data-rig="custom"], body[data-rig="custom"] [data-rig
 .player { align-items: stretch; }
 
 /* No rule between the tabs and the first section. */
-#generalize { border-top: 0; padding-top: 18px; }
+#rss { border-top: 0; padding-top: 18px; }
 /* Before/after images stay a readable size instead of filling the row. */
 .strip figure:not(.wide) { flex: 0 1 400px; }
 
@@ -246,3 +246,22 @@ body[data-rig="official"] [data-rig="custom"], body[data-rig="custom"] [data-rig
 .yt iframe { width: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: 8px; background: var(--sim); }
 .yt figcaption { font-size: 12.5px; color: var(--muted); }
 .strip figcaption { line-height: 1.7; }
+
+.hero h1 { max-width: 34ch; font-size: clamp(24px, 2.7vw, 34px); }
+.demo .grid-video figcaption { font-size: 12.5px; color: var(--muted); }
+
+/* Standing pieces: 2x2 trail videos, then the grip notes. */
+.standing { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.standing figure { margin: 0; display: grid; gap: 6px; }
+.standing video { width: 100%; aspect-ratio: 16 / 9; border-radius: 8px; background: var(--sim); }
+.standing figcaption { font-size: 13px; }
+.grip { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 20px; align-items: center; margin-top: 8px; border-top: 1px solid var(--line); padding-top: 14px; }
+.grip-svg { width: 100%; height: auto; }
+.grip-svg .bead { fill: #f05aa0; stroke: #7a2350; stroke-width: 1.5; }
+.grip-svg .pad { fill: #4a525c; }
+.grip-svg .eq { stroke: #fff; stroke-dasharray: 3 3; stroke-width: 1; }
+.grip-svg .turn { fill: none; stroke: var(--fail); stroke-width: 2.5; }
+.grip-svg text { font: 600 11px var(--body); }
+.grip-svg .ok { fill: var(--pass); } .grip-svg .no { fill: var(--fail); }
+.grip-notes { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 13.5px; }
+@media (max-width: 760px) { .standing, .grip { grid-template-columns: minmax(0, 1fr); } }

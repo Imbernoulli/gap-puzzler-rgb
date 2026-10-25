@@ -378,12 +378,11 @@ RIG_TEXT = {
     'official': dict(cameras='Official YAM station: one gantry D405 overhead, one D405 on each wrist',
                      source='https://github.com/i2rt-robotics/i2rt/blob/120c3c81400171174604e503943f8d1ebc891058/'
                             'i2rt/robot_models/station/yam_station_linear_4310_d405/README.md',
-                     rig='Where the cameras are: one fixed overhead camera and one on each wrist, here at 677 s '
-                         'while both wrists look at the case.',
+                     rig='Shown at 677 s, while both wrists look at the case.',
                      views='The gantry camera at t = 0, and all three cameras during piece 12\'s hand-to-hand transfer; '
                            'a free hand moves its camera to look.'),
     'custom': dict(cameras='Four fixed RGB cameras of our own placement: top, front, rear, side',
-                   rig='Where the cameras are: four fixed cameras around the table, top, front, rear and side.',
+                   rig='Shown at the start of the run.',
                    views='All the policy sees at t = 0: four fixed cameras.'),
 }
 
@@ -400,14 +399,19 @@ def player_html(rig):
             f'<p class="node-detail" data-k="detail"></p></aside></div>')
 
 
+STANDING = (('cyan', 'Passed from one hand to the other, then stood on edge.'),
+            ('red', 'The top piece: passed across and back, then stood on edge.'),
+            ('maroon', 'Tilted up in one hand and stood on edge.'),
+            ('pink', 'Tilted up in one hand and stood on edge.'))
+
+
 def hands_html(rig):
-    return (f'<div class="hands" data-rig="{rig}">'
-            f'<figure><video src="media/{rig}/cyan_transfer.mp4" {AUTOPLAY} aria-label="Piece 6 passed from one gripper to the other"></video>'
-            f'<figcaption><b>{piece_ref("cyan")}</b> Held in one hand, it always sat off-centre: it landed 16–44 mm off or slid out. '
-            'The other hand takes it over, regrasps it centred, and places it.</figcaption></figure>'
-            f'<figure><video src="media/{rig}/red_transfer.mp4" {AUTOPLAY} aria-label="Piece 12 passed between the grippers twice"></video>'
-            f'<figcaption><b>{piece_ref("red")}</b> The top piece. From where it starts, neither arm can reach the top holding it. '
-            'It is passed across and back, twice, to get a grip that reaches.</figcaption></figure></div>')
+    """The four pieces that end up standing: recorded path and orientation dial for each."""
+    figs = ''.join(f'<figure><video src="media/{rig}/stand_{piece}.mp4" {AUTOPLAY} '
+                   f'aria-label="{esc(piece_ref(piece).split("</svg>")[-1].replace("</span>", ""))}: path and orientation"></video>'
+                   f'<figcaption><b>{piece_ref(piece)}</b> {esc(text)}</figcaption></figure>' for piece, text in STANDING)
+    return f'<div class="standing" data-rig="{rig}">{figs}</div>'
+
 
 
 def main():
@@ -436,8 +440,8 @@ def main():
         data['video'] = dict(steps_per_second=30 * args.video_stride * FRAME_STEPS)
         main_clip = 'gap_full12_plain' if (media / 'gap_full12_plain.mp4').exists() else 'gap_full12'
         shutil.copy2(media / f'{main_clip}.mp4', out / 'gap_full12.mp4')
-        for clip in ('cyan_transfer.mp4', 'red_transfer.mp4'):
-            shutil.copy2(media / clip, out / clip)
+        for piece, _ in STANDING:
+            shutil.copy2(ROOT / 'runs/media/trail' / f'{name}_{piece}.mp4', out / f'stand_{piece}.mp4')
         Image.open(media / f'{main_clip}_final.png').convert('RGB').save(out / 'gap_full12_poster.jpg', quality=85)
         if name == 'custom':
             camera_grid(run, out / 'policy_views.jpg')
@@ -448,14 +452,14 @@ def main():
         left = Image.open(SRC / 'media' / f'rig_{name}.jpg').size
         right = Image.open((out / 'policy_views.jpg') if name == 'custom' else (SRC / 'media/policy_views_official.jpg')).size
         cols = f'grid-template-columns: {left[0] / left[1]:.3f}fr {right[0] / right[1]:.3f}fr'
-        views.append(f'<div class="rig-row" data-rig="{name}" style="{cols}">'
-                     f'<figure><img src="media/rig_{name}.jpg" loading="lazy" alt="{esc(text["rig"])}">'
-                     f'<figcaption>{esc(text["rig"])}</figcaption></figure>'
-                     f'<figure class="views"><img src="{image}" loading="lazy" alt="{esc(text["views"])}">'
-                     f'<figcaption>{esc(text["views"])}</figcaption></figure></div>')
         source = (f' (<a href="{text["source"]}">I2RT YAM station model ↗</a>; wrist mounts as in the '
                   f'RoboSimStudio YAM arm)') if text.get('source') else ''
-        facts.append(f'<div data-rig="{name}"><dt>Cameras</dt><dd>{esc(text["cameras"])}{source}</dd></div>')
+        rig_caption = f'{esc(text["cameras"])}{source}. {esc(text["rig"])}'
+        views.append(f'<div class="rig-row" data-rig="{name}" style="{cols}">'
+                     f'<figure><img src="media/rig_{name}.jpg" loading="lazy" alt="{esc(text["rig"])}">'
+                     f'<figcaption>{rig_caption}</figcaption></figure>'
+                     f'<figure class="views"><img src="{image}" loading="lazy" alt="{esc(text["views"])}">'
+                     f'<figcaption>{esc(text["views"])}</figcaption></figure></div>')
         players.append(player_html(name))
         hands.append(hands_html(name))
         rigs[name] = data
@@ -465,12 +469,10 @@ def main():
         target = SITE / 'media' / name / 'grid.mp4'
         shutil.copy2(video, target)
         grids.append(f'<div data-rig="{name}"><figure class="grid-video"><video src="media/{name}/grid.mp4" {AUTOPLAY} '
-                     f'aria-label="{esc(caption)}"></video><figcaption>{esc(caption)}</figcaption></figure>'
-                     f'<p class="note">Each run starts from loose pieces and ends with the finished pyramid. The policy is never told what '
-                     f'changed; it re-measures every pose from the cameras. {esc(notes.get(name, ""))}</p></div>')
+                     f'aria-label="{esc(caption)}"></video><figcaption>{esc(caption)}</figcaption></figure></div>')
     page_data = dict(rigs=rigs)
     (SITE / 'data/page.json').write_text(json.dumps(page_data, indent=1) + '\n')
-    fill = dict(VIEWS=''.join(views), CAMERA_FACTS=''.join(facts), PLAYERS=''.join(players), HANDS=''.join(hands),
+    fill = dict(VIEWS=''.join(views), PLAYERS=''.join(players), HANDS=''.join(hands),
                 GRIDS=''.join(grids), DATA=json.dumps(page_data).replace('</', '<\\/'))
     page = (SRC / 'index.html').read_text()
     page = re.sub(r'\{\{P:([a-z]+)\}\}', lambda m: piece_ref(m.group(1)), page)
