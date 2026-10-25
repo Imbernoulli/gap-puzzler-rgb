@@ -255,7 +255,7 @@ body[data-rig="official"] [data-rig="custom"], body[data-rig="custom"] [data-rig
 .standing figure { margin: 0; display: grid; gap: 6px; }
 .standing video { width: 100%; aspect-ratio: 16 / 9; border-radius: 8px; background: var(--sim); }
 .standing figcaption { font-size: 13px; }
-.grip { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 20px; align-items: center; margin-top: 8px; border-top: 1px solid var(--line); padding-top: 14px; }
+.grip { display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); gap: 20px; align-items: center; margin-top: 8px; border-top: 1px solid var(--line); padding-top: 14px; }
 .grip-svg { width: 100%; height: auto; }
 .grip-svg .bead { fill: #f05aa0; stroke: #7a2350; stroke-width: 1.5; }
 .grip-svg .pad { fill: #4a525c; }
@@ -265,3 +265,4 @@ body[data-rig="official"] [data-rig="custom"], body[data-rig="custom"] [data-rig
 .grip-svg .ok { fill: var(--pass); } .grip-svg .no { fill: var(--fail); }
 .grip-notes { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 13.5px; }
 @media (max-width: 760px) { .standing, .grip { grid-template-columns: minmax(0, 1fr); } }
+.grip-fig { margin: 0; display: grid; gap: 6px; } .grip-fig img { width: 100%; height: auto; border-radius: 8px; } .grip-fig figcaption { font-size: 12.5px; color: var(--muted); }

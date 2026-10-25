@@ -33,11 +33,37 @@ def project(points, inv):
     return np.c_[W / 2 + fpx * p[:, 0] / p[:, 2], H / 2 + fpx * p[:, 1] / p[:, 2]]
 
 
-def dial(center, rot, radius=.040):
-    t = np.linspace(0, 2 * np.pi, 49)
-    x, y, z = rot[:, 0], rot[:, 1], rot[:, 2]
-    ring = center + radius * (np.cos(t)[:, None] * x + np.sin(t)[:, None] * y)
-    return ring, center + radius * x, center + .8 * radius * z
+def arrow(d, a, b, color, width):
+    """A 2D arrow from a to b with a filled head."""
+    a, b = np.asarray(a, float), np.asarray(b, float)
+    v = b - a; n = np.linalg.norm(v)
+    if n < 1:
+        return
+    u = v / n; head = min(14 + width, .45 * n)
+    base = b - u * head; side = np.array([-u[1], u[0]]) * head * .45
+    d.line([tuple(a), tuple(base)], fill=color, width=width)
+    d.polygon([tuple(b), tuple(base + side), tuple(base - side)], fill=color)
+
+
+def triad(d, center, rot, inv, length, width, alpha):
+    c = project(center, inv)[0]
+    for k, col in enumerate(((235, 60, 50), (60, 190, 80), (60, 120, 240))):
+        arrow(d, c, project(center + length * rot[:, k], inv)[0], col + (alpha,), width)
+
+
+def piece_copy(d, pts, inv, color, alpha, outline):
+    """Draw the piece's beads at their projected size, necks between neighbours."""
+    cam = (inv[:3, :3] @ pts.T + inv[:3, 3:4]).T
+    uv = project(pts, inv)
+    fpx = .5 * H / np.tan(np.radians(FOV) / 2)
+    r = fpx * .0125 / cam[:, 2]
+    for i in range(len(pts)):
+        for j in range(i + 1, len(pts)):
+            if abs(np.linalg.norm(pts[i] - pts[j]) - .025) < .004:
+                d.line([tuple(uv[i]), tuple(uv[j])], fill=color + (alpha,), width=max(2, int(.7 * min(r[i], r[j]))))
+    for k in np.argsort(-cam[:, 2]):
+        x, y, rr = uv[k][0], uv[k][1], r[k]
+        d.ellipse((x - rr, y - rr, x + rr, y + rr), fill=color + (alpha,), outline=outline, width=2)
 
 
 def main():
@@ -45,6 +71,7 @@ def main():
     import robosimstudio as rss
     from PIL import Image, ImageDraw, ImageFont
     from puzzler.task import scene, Variant, beads
+    from puzzler.model import COLORS
     ap = argparse.ArgumentParser()
     ap.add_argument('episode'); ap.add_argument('out'); ap.add_argument('piece')
     ap.add_argument('start', type=int); ap.add_argument('end', type=int); ap.add_argument('camera')
@@ -64,7 +91,7 @@ def main():
         look = (lo + hi) / 2
         extent = max(float(np.linalg.norm(hi - lo)), .18)
         view = np.array([.78, -.42, .62]); view /= np.linalg.norm(view)
-        eye = look + view * (.62 * extent / np.tan(np.radians(FOV) / 2) + .12)
+        eye = look + view * (.47 * extent / np.tan(np.radians(FOV) / 2) + .12)
         v = [*eye, *look]
     else:
         v = [float(x) for x in args.camera.split(',')]
@@ -76,6 +103,7 @@ def main():
     small = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 20)
     hz = result['control_hz']
     path_uv, ghosts = [], []
+    color = tuple(int(255 * c) for c in COLORS[args.piece])
     with iio.get_writer(args.out, fps=30, codec='libx264', quality=8, output_params=['-pix_fmt', 'yuv420p']) as writer:
         for i, f in enumerate(picked):
             sim.state.body_q.assign(np.asarray(f['body_q'], np.float32))
@@ -86,29 +114,26 @@ def main():
             pose, rot = poses[i], rots[i].as_matrix()
             center = beads(pose, args.piece).mean(axis=0)
             path_uv.append(tuple(project(center, inv)[0]))
-            # leave a faded dial only after a real turn or move, so a resting piece does not pile them up
-            if not ghosts or np.degrees(Rotation.from_matrix(ghosts[-1][1].T @ rot).magnitude()) > 8 \
-                    or np.linalg.norm(center - ghosts[-1][0]) > .015:
-                ghosts.append((center, rot))
+            # leave a faded copy only after a real turn or move, so a resting piece does not pile them up
+            if not ghosts or np.degrees(Rotation.from_matrix(ghosts[-1][1].T @ rot).magnitude()) > 20 \
+                    or np.linalg.norm(center - ghosts[-1][0]) > .040:
+                ghosts.append((center, rot, beads(pose, args.piece)))
             # path: older parts fainter
             for j in range(1, len(path_uv)):
-                a = int(70 + 185 * j / len(path_uv))
-                d.line([path_uv[j - 1], path_uv[j]], fill=(255, 196, 0, a), width=5)
-            # faded dials left behind
-            for k, (c, r) in enumerate(ghosts[:-1]):
-                a = int(40 + 110 * (k + 1) / max(1, len(ghosts)))
-                ring, needle, pin = dial(c, r)
-                d.line([tuple(p) for p in project(ring, inv)], fill=(255, 255, 255, a), width=2)
-                d.line([tuple(project(c, inv)[0]), tuple(project(needle, inv)[0])], fill=(255, 196, 0, a), width=3)
-            # current dial, bold
-            ring, needle, pin = dial(center, rot)
-            cu = tuple(project(center, inv)[0])
-            d.line([tuple(p) for p in project(ring, inv)], fill=(255, 255, 255, 255), width=4)
-            d.line([cu, tuple(project(needle, inv)[0])], fill=(255, 196, 0, 255), width=5)
-            d.line([cu, tuple(project(pin, inv)[0])], fill=(80, 200, 255, 255), width=5)
-            # ring every bead of the piece
-            for b in project(beads(pose, args.piece), inv):
-                d.ellipse((b[0] - 15, b[1] - 15, b[0] + 15, b[1] + 15), outline=(255, 255, 255, 230), width=3)
+                a = int(60 + 150 * j / len(path_uv))
+                d.line([path_uv[j - 1], path_uv[j]], fill=(255, 210, 60, a), width=3)
+            # onion skin: earlier poses of the piece, each with its triad
+            n = max(1, len(ghosts) - 1)
+            for k, (c, r, pts) in enumerate(ghosts[:-1]):
+                a = int(55 + 110 * (k + 1) / n)
+                piece_copy(d, pts, inv, color, a, (255, 255, 255, int(a * .9)))
+                triad(d, c, r, inv, .045, 3, min(255, a + 60))
+            # current pose: outline its beads and draw a larger triad
+            pts = beads(pose, args.piece)
+            cam_pts = project(pts, inv)
+            for b_ in cam_pts:
+                d.ellipse((b_[0] - 4, b_[1] - 4, b_[0] + 4, b_[1] + 4), fill=(255, 255, 255, 230))
+            triad(d, center, rot, inv, .075, 6, 255)
             text = f'turned {turned[i]:.0f}° so far'
             d.rounded_rectangle((18, 18, 34 + d.textlength(text, font=bold), 58), 8, fill=(21, 23, 26, 210))
             d.text((26, 22), text, fill=(255, 255, 255, 255), font=bold)

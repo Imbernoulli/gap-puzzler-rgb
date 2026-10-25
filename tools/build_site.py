@@ -441,7 +441,7 @@ def main():
         main_clip = 'gap_full12_plain' if (media / 'gap_full12_plain.mp4').exists() else 'gap_full12'
         shutil.copy2(media / f'{main_clip}.mp4', out / 'gap_full12.mp4')
         for piece, _ in STANDING:
-            shutil.copy2(ROOT / 'runs/media/trail' / f'{name}_{piece}.mp4', out / f'stand_{piece}.mp4')
+            shutil.copy2(ROOT / 'runs/media/trail2' / f'{name}_{piece}.mp4', out / f'stand_{piece}.mp4')
         Image.open(media / f'{main_clip}_final.png').convert('RGB').save(out / 'gap_full12_poster.jpg', quality=85)
         if name == 'custom':
             camera_grid(run, out / 'policy_views.jpg')
