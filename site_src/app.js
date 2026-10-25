@@ -62,8 +62,8 @@ function initPlayer(root, run) {
   // subgraphs fold into two columns so the panel stays about as tall as the video.
   function drawGraph(piece) {
     const n = piece.nodes.length, cols = n > 6 ? 2 : 1, rows = Math.ceil(n / cols);
-    const W = 300, boxH = 24, gap = 18, boxW = cols === 2 ? 130 : 200, xs = cols === 2 ? [18, 166] : [50];
-    const H = 6 + rows * (boxH + gap) - gap + 6;
+    const W = cols === 2 ? 324 : 300, boxH = 24, gap = 18, boxW = cols === 2 ? 126 : 190, xs = cols === 2 ? [16, 168] : [44];
+    const H = 6 + rows * (boxH + gap) - gap + 30;
     const at = i => ({x: xs[Math.floor(i / rows)], y: 6 + (i % rows) * (boxH + gap)});
     const arrow = `arrow-${root.dataset.rig}`;
     svg.replaceChildren();
@@ -74,8 +74,16 @@ function initPlayer(root, run) {
     marker.append(el('path', {d: 'M0,0 L8,4 L0,8 z', class: 'arrowhead'}));
     defs.append(marker);
     svg.append(defs);
+    xs.slice(0, cols).forEach((cx, c) => {
+      const first = c * rows, last = Math.min(n, (c + 1) * rows) - 1;
+      if (first > last) return;
+      const rail = cx + boxW + 10;
+      svg.append(el('line', {x1: rail, y1: at(first).y + boxH / 2, x2: rail, y2: at(last).y + boxH / 2 + 12, class: 'abort-rail'}));
+      svg.append(el('text', {x: rail, y: at(last).y + boxH / 2 + 24, class: 'abort-label', 'text-anchor': 'middle'}, 'stop'));
+    });
     piece.nodes.forEach((node, i) => {
       const {x, y} = at(i);
+      svg.append(el('line', {x1: x + boxW, y1: y + boxH / 2, x2: x + boxW + 10, y2: y + boxH / 2, class: 'abort-edge'}));
       if (i + 1 < n) {
         const next = at(i + 1), exits = node.exits, k = exits.length;
         if (next.x === x) {
@@ -93,7 +101,6 @@ function initPlayer(root, run) {
       }
       const group = el('g', {class: 'node', tabindex: 0, role: 'button', 'aria-label': `${node.label}: jump to this step`});
       group.append(el('rect', {x, y, width: boxW, height: boxH, rx: 5}));
-      group.append(el('rect', {x: x + boxW - 4, y: y + 5, width: 2, height: boxH - 10, class: 'abort-notch'}));
       group.append(el('text', {x: x + 8, y: y + boxH / 2 + 4, class: 'node-label'}, node.label));
       if (node.relook) group.append(el('text', {x: x - 14, y: y + boxH / 2 + 5, class: 'relook'}, '↻'));
       if (cols === 1) group.append(el('text', {x: x + boxW - 10, y: y + boxH / 2 + 4, class: 'node-time', 'text-anchor': 'end'},

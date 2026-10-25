@@ -115,18 +115,17 @@ def main():
             center = beads(pose, args.piece).mean(axis=0)
             path_uv.append(tuple(project(center, inv)[0]))
             # leave a faded copy only after a real turn or move, so a resting piece does not pile them up
-            if not ghosts or np.degrees(Rotation.from_matrix(ghosts[-1][1].T @ rot).magnitude()) > 20 \
-                    or np.linalg.norm(center - ghosts[-1][0]) > .040:
+            if not ghosts or np.degrees(Rotation.from_matrix(ghosts[-1][1].T @ rot).magnitude()) > 15 \
+                    or np.linalg.norm(center - ghosts[-1][0]) > .030:
                 ghosts.append((center, rot, beads(pose, args.piece)))
             # path: older parts fainter
             for j in range(1, len(path_uv)):
                 a = int(60 + 150 * j / len(path_uv))
                 d.line([path_uv[j - 1], path_uv[j]], fill=(255, 210, 60, a), width=3)
-            # onion skin: earlier poses of the piece, each with its triad
+            # earlier poses: the piece's triad left behind at each one
             n = max(1, len(ghosts) - 1)
             for k, (c, r, pts) in enumerate(ghosts[:-1]):
                 a = int(55 + 110 * (k + 1) / n)
-                piece_copy(d, pts, inv, color, a, (255, 255, 255, int(a * .9)))
                 triad(d, c, r, inv, .045, 3, min(255, a + 60))
             # current pose: outline its beads and draw a larger triad
             pts = beads(pose, args.piece)
