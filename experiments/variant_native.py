@@ -91,7 +91,12 @@ def jobs(manifest_path):
                               terminate_on_success=False, contact_capacity=4096)
     finally:
         task.staging = original_staging
-    kwargs = dict(graph=manifest['graph'], output_dir=manifest['episode'], variant=asdict(variant),
+    # Scene-only appearance (shuffled/random/monochrome materials) is withheld
+    # from the policy, which measures piece colours from RGB itself.
+    policy_variant = asdict(variant)
+    if policy_variant['appearance'] != 'original':
+        policy_variant['appearance'] = 'withheld'
+    kwargs = dict(graph=manifest['graph'], output_dir=manifest['episode'], variant=policy_variant,
                   max_steps=manifest['max_steps'], observation='rgb-shape',
                   independent_verifier_path=str(ROOT / 'verification/bimanual_independent.py'))
     return [JobSpec(name='pyramid_unified', task=spec.full_name,

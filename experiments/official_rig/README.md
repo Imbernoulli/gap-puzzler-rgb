@@ -23,8 +23,11 @@ Main changes:
 
 No checkpoint, gate or threshold is relaxed.
 
+Apply it with `patch`, not `git apply`: the workspace sits inside this repository, so
+`git apply` would resolve paths against the repository root and apply nothing.
+
 ```bash
 python3 experiments/run.py prepare off_run --variant board_a
-(cd runs/off_run/workspace && git apply -p2 ../../../experiments/official_rig/policy.diff)
+(cd runs/off_run/workspace && patch -p2 < ../../../experiments/official_rig/policy.diff)
 python3 experiments/run.py launch off_run --gpu 0 --cpu 0
 ```

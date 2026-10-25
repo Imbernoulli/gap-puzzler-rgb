@@ -13,20 +13,9 @@ index fd38370..e6a7f90 100644
        ],
        "grasp_indices": [
 diff --git a/a/graphs/pyramid_original_order_layout_c_v10/workflow.json b/b/graphs/pyramid_original_order_layout_c_v10/workflow.json
-index 8bd1c41..b4e1c6d 100644
+index 8bd1c41..0e22ba4 100644
 --- a/a/graphs/pyramid_original_order_layout_c_v10/workflow.json
 +++ b/b/graphs/pyramid_original_order_layout_c_v10/workflow.json
-@@ -6,8 +6,8 @@
-     "required_checkpoint_mode": "raise",
-     "schema_module_path": "scripts/schema.py",
-     "skill_registry_paths": [
--      "/srv/home/bohanlyu/gap-puzzler-web/runs/pyramid_full12_bimanual_layout_c_v13/workspace/registry_modular",
--      "/srv/home/bohanlyu/gap-puzzler-web/runs/pyramid_full12_bimanual_layout_c_v13/workspace/third_party/open-robot-skills"
-+      "/srv/home/bohanlyu/gap-puzzler-rgb/runs/officialcam29d_nominal/workspace/registry_modular",
-+      "/srv/home/bohanlyu/gap-puzzler-rgb/runs/officialcam29d_nominal/workspace/third_party/open-robot-skills"
-     ],
-     "observation_mode": "on_demand",
-     "ordered_stages": [
 @@ -1280,6 +1280,9 @@
                    0
                  ],

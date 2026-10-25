@@ -40,6 +40,8 @@ VARIANTS = {
                      piece_jitter=.003, piece_yaw=.035, friction=.60),
                      label='Case, pieces and friction together (seed 201)'),
     'shuffled': dict(seed=0, scene_variant=dict(appearance='shuffled'), label='Piece colors shuffled'),
+    'random_palette': dict(seed=0, scene_variant=dict(appearance='random'), label='Random piece colors (seed 0)'),
+    'monochrome': dict(seed=0, scene_variant=dict(appearance='monochrome'), label='All pieces one grey'),
 }
 # Demo starts: every loose piece moved up to ±10 mm and turned up to ±10°, and the case
 # moved up to ±5 mm and turned up to ±2.5°, drawn from the seed.
