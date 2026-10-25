@@ -8,9 +8,7 @@ the official YAM station rig: a gantry D405 and two wrist D405s), the robot's
 joint encoders and the parts' CAD.
 
 Site: <https://bohanlyu.com/gap-puzzler-rgb/>. Tabs switch between the official
-three-camera rig (default) and our custom four-camera rig. We got the task working
-with four fixed cameras first; the official rig, whose wrist cameras move with the
-arms, took much longer.
+three-camera rig (default) and our custom four-camera rig, which was built first.
 
 ## Results
 
