@@ -13,6 +13,7 @@ import argparse
 import json
 import re
 import shutil
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -138,6 +139,9 @@ def timeline(run):
             pieces.append(dict(name=piece, color='#%02x%02x%02x' % tuple(int(255 * c) for c in color), nodes=[]))
         pieces[-1]['nodes'].append(node)
     for piece in pieces:
+        if piece['name'] in model.CELLS:
+            piece['number'] = order.index(piece['name']) + 1
+            piece['cells'] = shape_cells(piece['name'])
         piece['start'] = piece['nodes'][0]['start']
         piece['end'] = max((n['end'] for n in piece['nodes'] if n['end'] is not None), default=None)
         piece['placed'] = all(n['passed'] for n in piece['nodes'])
@@ -339,9 +343,39 @@ def loop_svg():
     return ''.join(parts)
 
 
+sys.path.insert(0, str(ROOT / 'policy'))
+from puzzler import model  # noqa: E402  (public piece CAD: bead cells of the flat layout)
+
+ORDER = ('azure', 'orange', 'yellow', 'teal', 'purple', 'cyan', 'mint', 'lime', 'maroon', 'navy', 'pink', 'red')
+
+
+def shape_cells(name):
+    """Bead cells of a piece, shifted to start at (0, 0)."""
+    cells = model.CELLS[name]
+    r0, c0 = min(r for r, _ in cells), min(c for _, c in cells)
+    return [[r - r0, c - c0] for r, c in cells]
+
+
+def shape_svg(name, cls='shape'):
+    """A piece drawn by its shape: beads on the CAD grid with necks between neighbours."""
+    cells, pitch, rad = shape_cells(name), 10, 4.4
+    rows, cols = max(r for r, _ in cells) + 1, max(c for _, c in cells) + 1
+    pos = [(6 + c * pitch, 6 + r * pitch) for r, c in cells]
+    necks = ''.join(f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}"/>' for i, (x1, y1) in enumerate(pos)
+                    for (x2, y2) in pos[i + 1:] if abs(x1 - x2) + abs(y1 - y2) == pitch)
+    beads = ''.join(f'<circle cx="{x}" cy="{y}" r="{rad}"/>' for x, y in pos)
+    w, h = 12 + (cols - 1) * pitch, 12 + (rows - 1) * pitch
+    return (f'<svg class="{cls}" viewBox="0 0 {w} {h}" width="{w * 1.6:.0f}" height="{h * 1.6:.0f}" aria-hidden="true">'
+            f'<g class="neck">{necks}</g><g class="bead">{beads}</g></svg>')
+
+
+def piece_ref(name):
+    return f'<span class="pref">{shape_svg(name)}piece {ORDER.index(name) + 1}</span>'
+
+
 RIG_TEXT = {
     'official': dict(cameras='Official YAM station: one gantry D405 overhead, one D405 on each wrist',
-                     views='The gantry camera at t = 0, and all three cameras during Red\'s hand-to-hand transfer; '
+                     views='The gantry camera at t = 0, and all three cameras during piece 12\'s hand-to-hand transfer; '
                            'a free hand moves its camera to look.'),
     'custom': dict(cameras='Four fixed RGB cameras of our own placement: top, front, rear, side',
                    views='All the policy sees at t = 0: four fixed cameras.'),
@@ -362,11 +396,11 @@ def player_html(rig):
 
 def hands_html(rig):
     return (f'<div class="hands" data-rig="{rig}">'
-            f'<figure><video src="media/{rig}/cyan_transfer.mp4" {AUTOPLAY} aria-label="Cyan passed from one gripper to the other"></video>'
-            '<figcaption><b>Cyan</b> One-hand attempts held it off-centre: it landed 16–44 mm off, or crept to the fingertips and slipped. '
+            f'<figure><video src="media/{rig}/cyan_transfer.mp4" {AUTOPLAY} aria-label="Piece 6 passed from one gripper to the other"></video>'
+            f'<figcaption><b>{piece_ref("cyan")}</b> One-hand attempts held it off-centre: it landed 16–44 mm off, or crept to the fingertips and slipped. '
             'The second hand regrasps it centred.</figcaption></figure>'
-            f'<figure><video src="media/{rig}/red_transfer.mp4" {AUTOPLAY} aria-label="Red passed between the grippers twice"></video>'
-            '<figcaption><b>Red</b> From where Red starts, no one-arm path reaches the top without running a joint to its limit. '
+            f'<figure><video src="media/{rig}/red_transfer.mp4" {AUTOPLAY} aria-label="Piece 12 passed between the grippers twice"></video>'
+            f'<figcaption><b>{piece_ref("red")}</b> From where it starts, no one-arm path reaches the top without running a joint to its limit. '
             'Two transfers give a grasp the arm can bring in.</figcaption></figure></div>')
 
 
@@ -394,9 +428,11 @@ def main():
             for node in piece['nodes']:
                 node['relook'] = node['kind'] in RELOOK
         data['video'] = dict(steps_per_second=30 * args.video_stride * FRAME_STEPS)
-        for clip in ('gap_full12.mp4', 'cyan_transfer.mp4', 'red_transfer.mp4'):
+        main_clip = 'gap_full12_plain' if (media / 'gap_full12_plain.mp4').exists() else 'gap_full12'
+        shutil.copy2(media / f'{main_clip}.mp4', out / 'gap_full12.mp4')
+        for clip in ('cyan_transfer.mp4', 'red_transfer.mp4'):
             shutil.copy2(media / clip, out / clip)
-        Image.open(media / 'gap_full12_final.png').convert('RGB').save(out / 'gap_full12_poster.jpg', quality=85)
+        Image.open(media / f'{main_clip}_final.png').convert('RGB').save(out / 'gap_full12_poster.jpg', quality=85)
         if name == 'custom':
             camera_grid(run, out / 'policy_views.jpg')
             image = f'media/{name}/policy_views.jpg" width="1280" height="1024'
@@ -423,6 +459,7 @@ def main():
     fill = dict(VIEWS=''.join(views), CAMERA_FACTS=''.join(facts), PLAYERS=''.join(players), HANDS=''.join(hands),
                 GRIDS=''.join(grids), DATA=json.dumps(page_data).replace('</', '<\\/'))
     page = (SRC / 'index.html').read_text()
+    page = re.sub(r'\{\{P:([a-z]+)\}\}', lambda m: piece_ref(m.group(1)), page)
     for key, value in fill.items():
         page = page.replace('{{' + key + '}}', value)
     missing = re.findall(r'\{\{[A-Z_]+\}\}', page)

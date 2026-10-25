@@ -13,6 +13,23 @@ if (compare) {
   set();
 }
 
+// A piece drawn by its shape: beads on the public CAD grid, necks between neighbours.
+function shapeSvg(cells, scale = 1.6) {
+  const pitch = 10, rad = 4.4;
+  const rows = Math.max(...cells.map(c => c[0])) + 1, cols = Math.max(...cells.map(c => c[1])) + 1;
+  const w = 12 + (cols - 1) * pitch, h = 12 + (rows - 1) * pitch;
+  const svg = el('svg', {class: 'shape', viewBox: `0 0 ${w} ${h}`, width: w * scale, height: h * scale, 'aria-hidden': 'true'});
+  const pos = cells.map(([r, c]) => [6 + c * pitch, 6 + r * pitch]);
+  const necks = el('g', {class: 'neck'}), beads = el('g', {class: 'bead'});
+  pos.forEach(([x1, y1], i) => pos.slice(i + 1).forEach(([x2, y2]) => {
+    if (Math.abs(x1 - x2) + Math.abs(y1 - y2) === pitch) necks.append(el('line', {x1, y1, x2, y2}));
+  }));
+  pos.forEach(([cx, cy]) => beads.append(el('circle', {cx, cy, r: rad})));
+  svg.append(necks, beads);
+  return svg;
+}
+const pieceName = piece => (piece.name === 'finish' ? 'Finish' : `Piece ${piece.number}`);
+
 function el(name, attrs = {}, text) {
   const node = document.createElementNS(NS, name);
   for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, value);
@@ -31,9 +48,9 @@ function initPlayer(root, run) {
   pieces.forEach((piece, index) => {
     const button = document.createElement('button');
     button.type = 'button';
-    button.style.setProperty('--c', piece.color);
-    button.style.setProperty('--w', Math.max(1, (piece.end ?? piece.start) - piece.start));
-    button.title = piece.name === 'finish' ? 'Finish' : `${cap(piece.name)} · piece ${index + 1}`;
+    if (piece.cells) button.append(shapeSvg(piece.cells, 1));
+    button.append(Object.assign(document.createElement('span'), {textContent: piece.name === 'finish' ? '✓' : piece.number}));
+    button.title = pieceName(piece);
     button.setAttribute('aria-label', `Jump to ${button.title}`);
     button.addEventListener('click', () => seek(piece.start));
     q('track').append(button);
@@ -90,10 +107,9 @@ function initPlayer(root, run) {
   function showPiece(piece) {
     if (shown === piece) return;
     shown = piece;
-    const index = pieces.indexOf(piece);
-    q('swatch').style.setProperty('--c', piece.color);
-    q('piece').textContent = piece.name === 'finish' ? 'Finish' : cap(piece.name);
-    q('index').textContent = piece.name === 'finish' ? 'after piece 12' : `piece ${index + 1}/12 · ${piece.nodes.length} steps`;
+    q('swatch').replaceChildren(...(piece.cells ? [shapeSvg(piece.cells, 2)] : []));
+    q('piece').textContent = pieceName(piece);
+    q('index').textContent = piece.name === 'finish' ? 'after piece 12' : `${piece.nodes.length} steps`;
     drawGraph(piece);
   }
 

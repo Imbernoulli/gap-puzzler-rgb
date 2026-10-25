@@ -66,9 +66,9 @@
     <section class="block wrap" id="gap" aria-labelledby="gap-title">
       <h2 id="gap-title"><span class="kicker">Graph-as-Policy</span>Watch the graph execute</h2>
       {{PLAYERS}}
-      <p class="legend mono small"><span><i class="k-done"></i>done, checked</span><span><i class="k-now"></i>running</span><span><i class="k-abort"></i>on error → stop</span><span>↻ looks again</span><span>Click a step or a colour bar to jump.</span></p>
+      <p class="legend mono small"><span><i class="k-done"></i>done, checked</span><span><i class="k-now"></i>running</span><span><i class="k-abort"></i>on error → stop</span><span>↻ looks again</span><span>Click a step or a piece to jump.</span></p>
 
-      <h3 class="sub">Why Cyan and Red change hands</h3>
+      <h3 class="sub">Why {{P:cyan}} and {{P:red}} change hands</h3>
       {{HANDS}}
     </section>
 
@@ -76,60 +76,60 @@
       <h2 id="refine-title"><span class="kicker">Self-refinement</span>Problems a trial exposed, and the fix</h2>
       <div class="rounds">
         <article>
-          <h3>Lime release · don't let the gripper flick the piece <span class="rig-chip">3 cameras</span></h3>
+          <h3>{{P:lime}} release · don't let the gripper flick it <span class="rig-chip">3 cameras</span></h3>
           <div class="strip">
             <figure class="bars" aria-label="Sideways speed of Lime as it falls">
               <div><span>slow</span><i style="--v:1"></i><em>110 mm/s</em></div>
               <div><span>fast</span><i style="--v:.03"></i><em>3 mm/s</em></div>
-              <figcaption><b class="bad">Before</b> The jaw opened over 1 s; one pad let go late and flicked Lime sideways</figcaption>
+              <figcaption><b class="bad">Before</b> The jaw opened over 1 s; one pad let go late and flicked it sideways</figcaption>
             </figure>
             <figure class="bars" aria-label="How far Lime lands from its spot">
               <div><span>before</span><i style="--v:1"></i><em>5.0 mm</em></div>
               <div><span>after</span><i style="--v:.2"></i><em>1.0 mm</em></div>
-              <figcaption><b class="fix">Fix</b> Open in two steps so both pads leave together · <b class="good">After</b> Lime drops straight and seats</figcaption>
+              <figcaption><b class="fix">Fix</b> Open in two steps so both pads leave together · <b class="good">After</b> it drops straight and seats</figcaption>
             </figure>
           </div>
         </article>
         <article>
-          <h3>Red over the case · a hidden piece is not a moved piece <span class="rig-chip">3 cameras</span></h3>
+          <h3>{{P:red}} held over the case · hidden is not moved <span class="rig-chip">3 cameras</span></h3>
           <div class="strip">
-            <figure><img src="media/refine_cyan_hidden.jpg" width="520" height="360" loading="lazy" alt="Right wrist camera: the held Red piece hangs over the pyramid and covers Cyan's spots"><figcaption><b class="bad">Before</b> Red, held above the case, covers Cyan's spots; red pixels counted against Cyan and the run stopped</figcaption></figure>
+            <figure><img src="media/refine_cyan_hidden.jpg" width="520" height="360" loading="lazy" alt="Right wrist camera: the held piece 12 hangs over the pyramid and covers piece 6's spots"><figcaption><b class="bad">Before</b> the held piece 12 covers piece 6's spots; its pixels counted against piece 6 and the run stopped</figcaption></figure>
             <figure class="bars" aria-label="Cyan's spots in this frame: matching versus against">
               <div><span>old rule</span><i style="--v:.5"></i><em>2 vs 2</em></div>
               <div><span>new rule</span><i style="--v:1"></i><em>3 vs 0</em></div>
-              <figcaption><b class="fix">Fix</b> Skip spots hidden by a held piece or the arm · <b class="good">After</b> Cyan kept; the first full build on the official cameras</figcaption>
+              <figcaption><b class="fix">Fix</b> Skip spots hidden by a held piece or the arm · <b class="good">After</b> piece 6 kept; the first full build on the official cameras</figcaption>
             </figure>
           </div>
         </article>
         <article>
-          <h3>Cyan release · the camera must see the piece land <span class="rig-chip">4 cameras</span></h3>
+          <h3>{{P:cyan}} release · the camera must see it land <span class="rig-chip">4 cameras</span></h3>
           <div class="strip">
-            <figure><img src="media/refine_cyan_55.jpg" width="450" height="420" loading="lazy" alt="Top camera after release at a 55 mm opening; a finger covers Cyan's middle bead"><figcaption><b class="bad">Before</b> Opening 55 mm: a finger hides the bead, the policy cannot confirm and stops</figcaption></figure>
+            <figure><img src="media/refine_cyan_55.jpg" width="450" height="420" loading="lazy" alt="Top camera after release at a 55 mm opening; a finger covers piece 6's middle bead"><figcaption><b class="bad">Before</b> Opening 55 mm: a finger hides the bead, the policy cannot confirm and stops</figcaption></figure>
             <figure class="bars" aria-label="Clear sight lines to the bead by jaw opening">
               <div><span>65 mm</span><i style="--v:.846"></i><em>11/13</em></div>
               <div><span>75 mm</span><i style="--v:1"></i><em>13/13</em></div>
               <div><span>80 mm</span><i style="--v:1"></i><em>13/13</em></div>
               <figcaption><b class="fix">Fix</b> Trace camera rays past the fingers; open to 75 mm</figcaption>
             </figure>
-            <figure><img src="media/refine_cyan_75.jpg" width="450" height="420" loading="lazy" alt="Top camera after release at a 75 mm opening; Cyan is visible"><figcaption><b class="good">After</b> Seen, placed 0.8 mm from its spot</figcaption></figure>
+            <figure><img src="media/refine_cyan_75.jpg" width="450" height="420" loading="lazy" alt="Top camera after release at a 75 mm opening; piece 6 is visible"><figcaption><b class="good">After</b> Seen, placed 0.8 mm from its spot</figcaption></figure>
           </div>
         </article>
         <article>
           <h3>Finish · the policy confirms the pyramid itself <span class="rig-chip">4 cameras</span></h3>
           <div class="strip">
-            <figure class="wide"><img src="media/refine_completion_witness.jpg" width="1530" height="300" loading="lazy" alt="Final camera frames with each expected bead site marked: with Red still held, its sites fail; with the pyramid complete, every site matches"><figcaption><b class="bad">Before</b> All 12 seated but the policy could not tell, so it refused · <b class="fix">Fix</b> Check that every visible bead spot shows its colour · <b class="good">After</b> Red missing: no; complete: yes</figcaption></figure>
+            <figure class="wide"><img src="media/refine_completion_witness.jpg" width="1530" height="300" loading="lazy" alt="Final camera frames with each expected bead site marked: with piece 12 still held, its sites fail; with the pyramid complete, every site matches"><figcaption><b class="bad">Before</b> All 12 seated but the policy could not tell, so it refused · <b class="fix">Fix</b> Check that every visible bead spot shows its colour · <b class="good">After</b> piece 12 missing: no; complete: yes</figcaption></figure>
           </div>
         </article>
         <article>
-          <h3>Cyan transfer · keep Lime in view <span class="rig-chip">4 cameras</span></h3>
+          <h3>{{P:cyan}} transfer · keep {{P:lime}} in view <span class="rig-chip">4 cameras</span></h3>
           <div class="strip">
-            <figure class="wide lime"><img src="media/refine_lime_layout.jpg" width="938" height="376" loading="lazy" alt="Top camera during Cyan's transfer: in the first layout the arms hide Lime; with Lime 70 mm further out it stays visible"><figcaption><b class="bad">Before</b> The arms hide Lime, the carry waits · <b class="good">After</b> Lime starts 70 mm further out and stays in view</figcaption></figure>
+            <figure class="wide lime"><img src="media/refine_lime_layout.jpg" width="938" height="376" loading="lazy" alt="Top camera during piece 6's transfer: in the first layout the arms hide piece 8; started 70 mm further out it stays visible"><figcaption><b class="bad">Before</b> The arms hide piece 8, the carry waits · <b class="good">After</b> it starts 70 mm further out and stays in view</figcaption></figure>
           </div>
         </article>
         <article>
-          <h3>Seated Purple · a wrong-turn fit is not evidence <span class="rig-chip">4 cameras</span></h3>
+          <h3>Seated {{P:purple}} · a wrong-turn fit is not evidence <span class="rig-chip">4 cameras</span></h3>
           <div class="strip">
-            <figure class="wide lime"><img src="media/refine_fit_alias.jpg" width="770" height="300" loading="lazy" alt="Front and side camera at 424 s: red rings mark a 'Purple' fit that lands on Maroon and Cyan beads; green rings mark Purple's goal sites, which still show purple"><figcaption><b class="bad">Before</b> Two beads visible, the fit turns the rest onto Maroon (red rings) · <b class="good">After</b> Purple's own spots still show purple (green), so it stays placed</figcaption></figure>
+            <figure class="wide lime"><img src="media/refine_fit_alias.jpg" width="770" height="300" loading="lazy" alt="Front and side camera at 424 s: red rings mark a fit of piece 5 that lands on the beads of pieces 9 and 6; green rings mark piece 5's goal spots, which still show it"><figcaption><b class="bad">Before</b> Two beads visible, the fit turns the rest onto piece 9 (red rings) · <b class="good">After</b> its own spots still show it (green), so it stays placed</figcaption></figure>
           </div>
         </article>
       </div>
