@@ -80,42 +80,48 @@
     </section>
 
     <section class="block wrap" id="refine" aria-labelledby="refine-title">
-      <h2 id="refine-title"><span class="kicker">Self-refinement</span>Problems a trial exposed, and the fix</h2>
+      <h2 id="refine-title"><span class="kicker">Self-refinement</span>Problems found in testing, and how each was fixed</h2>
       <div class="rounds">
         <article data-rig="official">
-          <h3>Let go of {{P:lime}} cleanly</h3>
+          <h3>Piece 8 was knocked off target as the gripper let go</h3>
           <div class="strip">
-            <figure class="wide"><img src="media/refine_lime_release.jpg" width="1390" height="589" loading="lazy" alt="Close-up of piece 8 at its seat. Before: dashed goal rings with the beads shifted 4.8 mm sideways. After: beads inside the rings, 1.0 mm off"><figcaption><b class="bad">Before</b> The gripper opened slowly; one pad let go late and flicked piece 8 sideways, 4.8 mm off its spots.<br><b class="fix">Fix</b> Open in two quick steps so both pads leave together.<br><b class="good">After</b> It drops straight, 1.0 mm off.</figcaption></figure>
+            <figure class="wide"><img src="media/refine_lime_release.jpg" width="1390" height="589" loading="lazy" alt="Close-up of piece 8 at its seat: before, its beads sit 4.8 mm off the dashed goal circles; after, inside them, 1.0 mm off"><figcaption><b class="bad">Before</b> The gripper opened slowly. One finger let go before the other and pushed the piece sideways, so it landed 4.8 mm off.<br><b class="fix">Fix</b> Open the gripper all at once, so both fingers let go together.<br><b class="good">After</b> The piece drops straight down and lands 1.0 mm off.</figcaption></figure>
           </div>
         </article>
         <article data-rig="official">
-          <h3>Blocked from view is not moved</h3>
+          <h3>The robot thought piece 6 had moved, when it was only covered up</h3>
           <div class="strip">
-            <figure class="wide"><img src="media/refine_hidden_piece.jpg" width="1390" height="709" loading="lazy" alt="Wrist and top camera views with piece 6's goal spots ringed. Before: spots behind the held piece 12 count against piece 6. After: they are skipped, and every visible spot shows piece 6"><figcaption><b class="bad">Before</b> Piece 12, held above the case, covers piece 6's spots; the policy read them as "piece 6 has moved" and stopped.<br><b class="fix">Fix</b> Skip spots hidden by a held piece or the gripper.<br><b class="good">After</b> Every spot it can see shows piece 6; the build finishes.</figcaption></figure>
+            <figure class="wide"><img src="media/refine_hidden_piece.jpg" width="1390" height="709" loading="lazy" alt="Wrist and overhead camera views with piece 6's spots circled: before, spots covered by the held piece 12 count against piece 6; after, they are ignored"><figcaption><b class="bad">Before</b> While one arm held piece 12 above the pyramid, piece 12 covered piece 6 in the camera view. The robot saw red where piece 6 should be, decided piece 6 had moved, and stopped.<br><b class="fix">Fix</b> Ignore any spot that a held piece or the gripper is covering.<br><b class="good">After</b> Every spot it can still see shows piece 6, so the build carries on and finishes.</figcaption></figure>
+          </div>
+        </article>
+        <article data-rig="official">
+          <h3>The robot checks the finished pyramid by itself</h3>
+          <div class="strip">
+            <figure class="wide"><img src="media/refine_official_finish.jpg" width="1520" height="400" loading="lazy" alt="The overhead camera and each wrist camera looking at the finished pyramid, with every spot that should show a bead circled in green"><figcaption><b class="bad">Before</b> The overhead camera cannot see the lower pieces. On its own it would also say "done" with piece 8 or piece 10 missing.<br><b class="fix">Fix</b> Each free arm moves its wrist camera to look at what the overhead camera cannot see, and every spot that should show a bead is checked.<br><b class="good">After</b> All 61 spots show the right piece (green), so the robot reports done.</figcaption></figure>
           </div>
         </article>
         <article data-rig="custom">
-          <h3>Open wider so the camera sees {{P:cyan}} land</h3>
+          <h3>The camera could not see piece 6 land</h3>
           <div class="strip">
-            <figure class="wide"><img src="media/refine_cyan_opening.jpg" width="1390" height="644" loading="lazy" alt="Top camera after release. Before, 55 mm opening: a finger covers piece 6's middle bead. After, 75 mm opening: the bead is seen"><figcaption><b class="bad">Before</b> At a 55 mm opening a finger hides piece 6, so the camera cannot confirm it landed.<br><b class="fix">Fix</b> Open to 75 mm, found by tracing camera rays past the finger.<br><b class="good">After</b> Seen, 0.8 mm from its spots.</figcaption></figure>
+            <figure class="wide"><img src="media/refine_cyan_opening.jpg" width="1390" height="644" loading="lazy" alt="Overhead camera after letting go: at a 55 mm opening a finger covers piece 6; at 75 mm the piece is visible"><figcaption><b class="bad">Before</b> With the gripper opened 55 mm, a finger still covered piece 6, so the camera could not confirm it was in place.<br><b class="fix">Fix</b> Open wider, to 75 mm, picked by checking which openings leave the piece in the camera's view.<br><b class="good">After</b> The camera sees the piece, 0.8 mm from its spot.</figcaption></figure>
           </div>
         </article>
         <article data-rig="custom">
-          <h3>The robot confirms the pyramid is done by itself</h3>
+          <h3>The robot checks the finished pyramid by itself</h3>
           <div class="strip">
-            <figure class="wide"><img src="media/refine_completion_witness.jpg" width="1530" height="300" loading="lazy" alt="Final camera frames with each expected bead site marked: with piece 12 still held, its sites fail; with the pyramid complete, every site matches"><figcaption><b class="bad">Before</b> All 12 pieces were in place, but the policy could not tell, so it would not finish.<br><b class="fix">Fix</b> Look at every spot that should hold a bead and check the right piece is there (green yes, red no).<br><b class="good">After</b> With piece 12 missing it says no; with the pyramid done it says yes.</figcaption></figure>
+            <figure class="wide"><img src="media/refine_completion_witness.jpg" width="1530" height="300" loading="lazy" alt="Final camera views with each spot that should show a bead circled: with piece 12 still held its spots fail; with the pyramid complete every spot matches"><figcaption><b class="bad">Before</b> All 12 pieces were in place, but the robot could not tell, so it would not finish.<br><b class="fix">Fix</b> Check every spot that should show a bead (green: the right piece is there, red: it is not).<br><b class="good">After</b> With piece 12 missing it says no; with the pyramid done it says yes.</figcaption></figure>
           </div>
         </article>
         <article data-rig="custom">
-          <h3>Keep {{P:lime}} in view while {{P:cyan}} changes hands</h3>
+          <h3>The arms blocked the camera's view of piece 8</h3>
           <div class="strip">
-            <figure class="wide lime"><img src="media/refine_lime_layout.jpg" width="938" height="376" loading="lazy" alt="Top camera during piece 6's transfer: in the first layout the arms hide piece 8; started 70 mm further out it stays visible"><figcaption><b class="bad">Before</b> While piece 6 changes hands, the arms block the camera's view of piece 8, and the robot has to wait.<br><b class="good">After</b> Piece 8 starts 70 mm further out and stays in view.</figcaption></figure>
+            <figure class="wide"><img src="media/refine_lime_layout.jpg" width="938" height="376" loading="lazy" alt="Overhead camera while piece 6 changes hands: in the first layout the arms cover piece 8; started 70 mm further out it stays visible"><figcaption><b class="bad">Before</b> While piece 6 changed hands, the arms covered piece 8 in the camera view, and the robot had to wait.<br><b class="good">After</b> Piece 8 now starts 70 mm further out, where the camera can still see it.</figcaption></figure>
           </div>
         </article>
         <article data-rig="custom">
-          <h3>A bad guess about {{P:purple}} must not undo it</h3>
+          <h3>A wrong guess about piece 5 almost undid it</h3>
           <div class="strip">
-            <figure class="wide lime"><img src="media/refine_fit_alias.jpg" width="770" height="300" loading="lazy" alt="Front and side camera at 424 s: red rings mark a fit of piece 5 that lands on the beads of pieces 9 and 6; green rings mark piece 5's goal spots, which still show it"><figcaption><b class="bad">Before</b> Only two beads of piece 5 are visible, and the policy guessed it had turned (red rings, which actually land on piece 9).<br><b class="good">After</b> It checks piece 5's own spots, still filled by piece 5 (green), so it stays placed.</figcaption></figure>
+            <figure class="wide"><img src="media/refine_fit_alias.jpg" width="770" height="300" loading="lazy" alt="Front and side cameras: red circles mark where the wrong guess of piece 5 would put it, on top of piece 9; green circles mark piece 5's own spots, which still show piece 5"><figcaption><b class="bad">Before</b> Only two beads of piece 5 were visible, and the robot guessed it had turned (red circles, which actually land on piece 9).<br><b class="good">After</b> It checks the spots where piece 5 should be; they still show piece 5 (green), so it stays placed.</figcaption></figure>
           </div>
         </article>
       </div>
