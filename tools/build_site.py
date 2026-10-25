@@ -397,11 +397,11 @@ def player_html(rig):
 def hands_html(rig):
     return (f'<div class="hands" data-rig="{rig}">'
             f'<figure><video src="media/{rig}/cyan_transfer.mp4" {AUTOPLAY} aria-label="Piece 6 passed from one gripper to the other"></video>'
-            f'<figcaption><b>{piece_ref("cyan")}</b> One-hand attempts held it off-centre: it landed 16–44 mm off, or crept to the fingertips and slipped. '
-            'The second hand regrasps it centred.</figcaption></figure>'
+            f'<figcaption><b>{piece_ref("cyan")}</b> Held in one hand, it always sat off-centre: it landed 16–44 mm off or slid out. '
+            'The other hand takes it over, regrasps it centred, and places it.</figcaption></figure>'
             f'<figure><video src="media/{rig}/red_transfer.mp4" {AUTOPLAY} aria-label="Piece 12 passed between the grippers twice"></video>'
-            f'<figcaption><b>{piece_ref("red")}</b> From where it starts, no one-arm path reaches the top without running a joint to its limit. '
-            'Two transfers give a grasp the arm can bring in.</figcaption></figure></div>')
+            f'<figcaption><b>{piece_ref("red")}</b> The top piece. From where it starts, neither arm can reach the top holding it. '
+            'It is passed across and back, twice, to get a grip that reaches.</figcaption></figure></div>')
 
 
 def main():

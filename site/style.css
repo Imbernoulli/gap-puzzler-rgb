@@ -230,3 +230,5 @@ body[data-rig="official"] [data-rig="custom"], body[data-rig="custom"] [data-rig
 
 /* No rule between the tabs and the first section. */
 #rss { border-top: 0; padding-top: 18px; }
+/* Before/after images stay a readable size instead of filling the row. */
+.strip figure:not(.wide) { flex: 0 1 400px; }
