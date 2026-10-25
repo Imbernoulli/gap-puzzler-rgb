@@ -39,8 +39,8 @@ jittered layouts, friction 0.50, friction 0.80, all perturbations combined),
 12 fresh runs from loose pieces have completed 12/12 with every checkpoint, the RSS goal
 and the GaP success exit (audits 2.6-3.0 mm), over six scenes: nominal (5), all
 perturbations combined (2), friction 0.80 (2), case moved and turned, loose pieces
-jittered, and friction 0.50 (1 each). The latest combined patch is
-`runs/OFFICIAL_CAMERAS.diff`; its round 29d completed 4 of 6 runs.
+jittered, and friction 0.50 (1 each). `experiments/official_rig/policy.diff` is the code of
+round 29d, which completed 4 of 6 runs.
 
 Perturbed scenes and scattered layouts are on the site.
 

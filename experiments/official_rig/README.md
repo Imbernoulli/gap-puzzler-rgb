@@ -3,8 +3,9 @@
 `policy.diff` turns `policy/` (commit 13c9010) into the policy that sees only the
 official I2RT YAM station cameras: the gantry D405 (eye 0.0865, 0, 1.726, looking at
 0.6497, 0, 0.75, 58° fov) and the two wrist D405s on `link_6`. It is the exact code of
-the first complete official-rig run, `casefit_board_a2` (case moved +6/-6 mm, turned
-2.9°): 12/12 pieces, 84/84 checkpoints, RSS and GaP success, independent audit 2.61 mm.
+round 29d (`officialcam29d_*`), which completed 4 of 6 fresh runs: nominal ×2 and all
+perturbations combined ×2, each 12/12 with 84/84 checkpoints, RSS and GaP success and
+an independent audit of 2.62-2.89 mm.
 
 Main changes:
 

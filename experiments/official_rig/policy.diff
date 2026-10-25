@@ -1,5 +1,19 @@
+diff --git a/a/graphs/pyramid_original_order_layout_c_v10/params.json b/b/graphs/pyramid_original_order_layout_c_v10/params.json
+index fd38370..e6a7f90 100644
+--- a/a/graphs/pyramid_original_order_layout_c_v10/params.json
++++ b/b/graphs/pyramid_original_order_layout_c_v10/params.json
+@@ -1115,6 +1115,9 @@
+         0
+       ],
+       "grasp_heights": [
++        0.007,
++        0.008,
++        0.009,
+         0.01
+       ],
+       "grasp_indices": [
 diff --git a/a/graphs/pyramid_original_order_layout_c_v10/workflow.json b/b/graphs/pyramid_original_order_layout_c_v10/workflow.json
-index 8bd1c41..5d75204 100644
+index 8bd1c41..b4e1c6d 100644
 --- a/a/graphs/pyramid_original_order_layout_c_v10/workflow.json
 +++ b/b/graphs/pyramid_original_order_layout_c_v10/workflow.json
 @@ -6,8 +6,8 @@
@@ -8,16 +22,34 @@ index 8bd1c41..5d75204 100644
      "skill_registry_paths": [
 -      "/srv/home/bohanlyu/gap-puzzler-web/runs/pyramid_full12_bimanual_layout_c_v13/workspace/registry_modular",
 -      "/srv/home/bohanlyu/gap-puzzler-web/runs/pyramid_full12_bimanual_layout_c_v13/workspace/third_party/open-robot-skills"
-+      "/srv/home/bohanlyu/gap-puzzler-rgb/runs/casefit_board_a2/workspace/registry_modular",
-+      "/srv/home/bohanlyu/gap-puzzler-rgb/runs/casefit_board_a2/workspace/third_party/open-robot-skills"
++      "/srv/home/bohanlyu/gap-puzzler-rgb/runs/officialcam29d_nominal/workspace/registry_modular",
++      "/srv/home/bohanlyu/gap-puzzler-rgb/runs/officialcam29d_nominal/workspace/third_party/open-robot-skills"
      ],
      "observation_mode": "on_demand",
      "ordered_stages": [
+@@ -1280,6 +1280,9 @@
+                   0
+                 ],
+                 "grasp_heights": [
++                  0.007,
++                  0.008,
++                  0.009,
+                   0.01
+                 ],
+                 "grasp_indices": [
 diff --git a/a/profiles/pyramid.json b/b/profiles/pyramid.json
-index 290d7aa..e0c953a 100644
+index 290d7aa..bc5f4fb 100644
 --- a/a/profiles/pyramid.json
 +++ b/b/profiles/pyramid.json
-@@ -1052,6 +1052,7 @@
+@@ -762,6 +762,7 @@
+       "max_reobserve_attempts": 2
+     },
+     "lime": {
++      "release_open_ramp_steps": 2,
+       "anchor": false,
+       "close_width": 0.0,
+       "finish_wait": 25,
+@@ -1052,6 +1053,7 @@
      },
      "pink": {
        "anchor": false,
@@ -25,11 +57,21 @@ index 290d7aa..e0c953a 100644
        "close_width": 0.0,
        "finish_wait": 25,
        "full_task": true,
+@@ -1060,6 +1062,9 @@
+         0
+       ],
+       "grasp_heights": [
++        0.007,
++        0.008,
++        0.009,
+         0.01
+       ],
+       "grasp_indices": [
 diff --git a/a/puzzler/assembly_completion.py b/b/puzzler/assembly_completion.py
-index f23cf19..88e31f2 100644
+index f23cf19..2746a5a 100644
 --- a/a/puzzler/assembly_completion.py
 +++ b/b/puzzler/assembly_completion.py
-@@ -43,9 +43,52 @@ def planned_sites(board_pose, targets):
+@@ -43,25 +43,85 @@ def planned_sites(board_pose, targets):
      return rows
  
  
@@ -64,7 +106,7 @@ index f23cf19..88e31f2 100644
 +
 +
 +def evaluate(images, cameras, board_pose, targets, patch=2, pieces=None, surface=False,
-+             extra_blockers=None, robot_masked=False):
++             extra_blockers=None, robot_masked=False, label_cache=None):
 +    """Per-site label test. ``surface``: a site whose centre is hidden is
 +    tested at its directly visible surface points instead (one outcome per
 +    site and camera, from all their windows together). The official rig's
@@ -84,9 +126,16 @@ index f23cf19..88e31f2 100644
      names_by_site = [n for n, _ in sites]
      per_piece = {name: dict(visible=0, match=0, mismatch=0, unclear=0) for name in targets
                   if pieces is None or name in pieces}
-@@ -54,14 +97,26 @@ def evaluate(images, cameras, board_pose, targets, patch=2, pieces=None):
+     views = []
+     for key, rgb in images.items():
          camera = cameras[key]
-         labels, palette_names = _labels(rgb)
+-        labels, palette_names = _labels(rgb)
++        if label_cache is not None and key in label_cache:
++            labels, palette_names = label_cache[key]
++        else:
++            labels, palette_names = _labels(rgb)
++            if label_cache is not None:
++                label_cache[key] = (labels, palette_names)
          height, width = labels.shape
 +        robot = getattr(camera, 'occluder', None) if robot_masked else None
 +        if robot is not None and np.asarray(robot).shape != labels.shape:
@@ -111,7 +160,7 @@ index f23cf19..88e31f2 100644
              u, v = pixels[i]
              if not (patch <= u < width - patch and patch <= v < height - patch):
                  continue
-@@ -71,8 +126,21 @@ def evaluate(images, cameras, board_pose, targets, patch=2, pieces=None):
+@@ -71,8 +131,21 @@ def evaluate(images, cameras, board_pose, targets, patch=2, pieces=None):
              # front of this centre hides it (1 mm margin: skip, don't guess).
              blocking = (np.arange(len(points)) != i) & (along < distance[i]) & (perpendicular < model.RADIUS + .001)
              if blocking.any():
@@ -135,7 +184,7 @@ index f23cf19..88e31f2 100644
              seen = window[window >= 0]
              per_piece[name]['visible'] += 1
              if len(seen) < window.size // 2:
-@@ -102,13 +170,78 @@ def evaluate(images, cameras, board_pose, targets, patch=2, pieces=None):
+@@ -102,13 +175,78 @@ def evaluate(images, cameras, board_pose, targets, patch=2, pieces=None):
                  source='current RGB, calibrated cameras, RGB case pose, public CAD and pyramid plan')
  
  
@@ -158,7 +207,7 @@ index f23cf19..88e31f2 100644
 +    excluded from its blockers.
      """
 -    rows = evaluate(images, cameras, board_pose, targets, pieces=set(names))['per_piece']
-+    rows = {}
++    rows = {}; label_cache = {}
 +    for name in names:
 +        blockers = []
 +        for other, pose in (current_poses or {}).items():
@@ -173,7 +222,7 @@ index f23cf19..88e31f2 100644
 +                blockers.append(measured)
 +        rows.update(evaluate(images, cameras, board_pose, targets, pieces={name}, surface=True,
 +                             extra_blockers=np.concatenate(blockers) if blockers else None,
-+                             robot_masked=current_poses is not None)['per_piece'])
++                             robot_masked=current_poses is not None, label_cache=label_cache)['per_piece'])
      return {name: dict(row, consistent=bool(row['match'] >= 1 and row['match'] >= MIN_SHARE * (row['match'] + row['mismatch'])))
              for name, row in rows.items()}
 +
@@ -812,8 +861,23 @@ index 77de52b..00e307c 100644
          image = synthetic_view(cameras[key], board, hulls, held)
          fit = _fit_case_view(image, cameras[key], proposal)
          result[key] = dict(visible=bool(fit.get('visible')), reason=fit.get('reason', ''),
+diff --git a/a/puzzler/cyan_bimanual_adapter.py b/b/puzzler/cyan_bimanual_adapter.py
+index 04e5c8a..de3e780 100644
+--- a/a/puzzler/cyan_bimanual_adapter.py
++++ b/b/puzzler/cyan_bimanual_adapter.py
+@@ -66,7 +66,9 @@ def _guard(state, q16_path, moving_arm, belief, *, receiver_contact=False, ancho
+         object_in_tcp_rotation=belief['object_in_tcp_rotation'], target='cyan',
+         finger_target_contract=_contract(state, receiver_contact), board_anchor_exit=anchor_exit)
+     if not checked.get('safe', checked.get('passed', False)):
+-        raise c.PlanningRefusal('Cyan handoff complete public geometry refused: ' + str(checked))
++        raise c.PlanningRefusal('Cyan handoff complete public geometry refused: '
++                                + str({k: checked.get(k) for k in ('failed_sample', 'failed_groups', 'samples_checked', 'input_samples')})
++                                + ' ' + str(checked))
+     return checked
+ 
+ 
 diff --git a/a/puzzler/cyan_bimanual_feedback_adapter.py b/b/puzzler/cyan_bimanual_feedback_adapter.py
-index 0ef763a..95f43ab 100644
+index 0ef763a..89e3e6b 100644
 --- a/a/puzzler/cyan_bimanual_feedback_adapter.py
 +++ b/b/puzzler/cyan_bimanual_feedback_adapter.py
 @@ -35,18 +35,24 @@ def refresh_source_scene(ctx,state,observed,previous):
@@ -845,9 +909,160 @@ index 0ef763a..95f43ab 100644
      desired=np.array([[0.,0.,1.],[-1.,0.,0.],[0.,-1.,0.]])
      rows.sort(key=lambda row:np.linalg.norm(np.asarray(row['hand_in_body_rotation'])-desired)
                +abs(float(row['bead_in_tcp_m'][2])-.014))
-@@ -207,7 +213,9 @@ def approach_receiver(ctx,state):
+@@ -168,6 +174,17 @@ def _execute_joint_pre(ctx,state,position,rotation):
+ _PREGRASP_STANDOFFS_M=(.080,.100,.120)
+ 
+ 
++def _self_collision_only(error):
++    """The receiver's straight joint line crossed only its own non-adjacent links.
++
++    A farther stand-off along the same approach lengthens that same joint
++    line, so it is not screened again (each screen costs control time while
++    the shallow donor holds Cyan). Every other refusal still tries the
++    farther stand-offs.
++    """
++    return "'failed_groups': ['same_arm_nonadjacent']" in str(error)
++
++
+ def _screened_standoff_pregrasp(ctx,state,current,candidate,preview):
+     grasp_p,grasp_q=_world_grasp(np.asarray(current['predicted_body_pose']),candidate)
+     direction=Rotation.from_quat(c.qarr(grasp_q)).as_matrix()[:,2]
+@@ -179,12 +196,114 @@ def _screened_standoff_pregrasp(ctx,state,current,candidate,preview):
+             motion=_execute_joint_pre(ctx,state,position,grasp_q)
+         except (ValueError,c.PlanningRefusal) as error:
+             attempts.append(dict(standoff_m=standoff,refusal=str(error)[:600]))
++            if _self_collision_only(error):break
+             continue
+         motion['pregrasp_standoff_m']=standoff
+         attempts.append(dict(standoff_m=standoff,selected=True))
+         return motion,attempts
+     raise c.PlanningRefusal('Receiver pregrasp refused at every bounded body-relative stand-off: '
+-                            +str([row.get('refusal','')[:160] for row in attempts]))
++                            +str([row.get('refusal','')[:400] for row in attempts]))
++
++
++# Official rig station search. When every declared common position is refused,
++# further public board-relative stations are pre-screened with no motion: the
++# donor release chain (.035 rad reserve plus .005 headroom), the receiver's
++# reserved goal/pregrasp IK, and the receiver's straight joint line to each
++# bounded stand-off through the complete public geometry screen (its own
++# non-adjacent links included) with the donor at its planned station pose and
++# the held Cyan moved with it. The first station passing every screen is moved
++# to, re-measured by RGB and re-screened from actual q16 exactly as a declared
++# station is; at most _MAX_EXTENDED_STATION_MOVES such moves. A declared
++# station's receiver line can cross its own links (jitter_b: every stand-off at
++# y=.20); the extended set therefore leads with stations nearer the receiver.
++_EXTENDED_STATION_OFFSETS_M=((.180,.180,.100),(.200,.180,.100),(.180,.160,.100),(.160,.160,.100),
++                             (.200,.160,.100),(.180,.180,.080))
++_MAX_EXTENDED_STATION_MOVES=3
++# Each geometry screen advances ~3 s of control time on loaded hosts; the held
++# source keeps its 30 s scope, so the search stops once its age passes this.
++_EXTENDED_SEARCH_SOURCE_AGE_S=15.
++
++
++def _station_proposal(board,body,offset):
++    Rb=Rotation.from_quat(np.asarray(board)[3:]).as_matrix()
++    proposal=np.asarray(body,dtype=float).copy()
++    proposal[:3]=np.asarray(board)[:3]+Rb@np.asarray(offset,dtype=float)
++    proposal[2]=max(proposal[2],float(body[2]))
++    return proposal
++
++
++def _station_preflight(ctx,state,belief,board,offset,family):
++    """No motion. Screens one future station for both arms; returns a record."""
++    transfer=state['transfer'];donor=int(transfer['sender']);receiver=int(transfer['receiver'])
++    body=np.asarray(belief['predicted_body_pose'],dtype=float);proposal=_station_proposal(board,body,offset)
++    tcp,donor_q=c.hand(ctx,donor);target=tcp+(proposal[:3]-body[:3])
++    backward=-Rotation.from_quat(c.qarr(donor_q)).as_matrix()[:,2]
++    axial=target+.015*backward;inward=axial+np.array([-.060,0.,.040])
++    row=dict(board_relative_offset_m=[float(v) for v in offset],extended_station=True,motion=False,receiver=[])
++    ahead=ctx.tool('puzzle.plan_pose_sequence',waypoints=[dict(position=np.asarray(point,dtype=float).tolist(),
++        rotation=dict(donor_q)) for point in (target,axial,inward)],arm_id=donor,min_joint_limit_margin_rad=.035)
++    donor_reserve=float(ahead.get('min_joint_limit_margin_rad') or -1.)
++    row['donor_release_lookahead']=dict(feasible=bool(ahead.get('feasible')),min_joint_limit_margin_rad=donor_reserve)
++    if not ahead.get('feasible') or donor_reserve<.040:
++        row['refusal']='Donor release chain lacks the .035 rad joint reserve plus .005 rad headroom';return row
++    donor_plan=_plan(ctx,donor,[(target,donor_q)])
++    future=np.asarray(belief['current_robot_encoder_values'],dtype=float).copy()
++    off=0 if donor==0 else 8;future[off:off+6]=np.asarray(donor_plan['path'][-1],dtype=float)
++    future_belief=dict(belief,predicted_body_pose=proposal.tolist(),current_robot_encoder_values=future.tolist())
++    saved=transfer.get('candidate')
++    try:
++        for family_index,candidate in enumerate(family):
++            try:candidate,preview=_future_receiver(ctx,state,proposal,board,[candidate])
++            except (ValueError,c.PlanningRefusal) as error:
++                row['receiver'].append(dict(bead=int(candidate['bead_index']),refusal=str(error)[-200:]));continue
++            transfer['candidate']=candidate
++            grasp_p,grasp_q=_world_grasp(proposal,candidate)
++            direction=Rotation.from_quat(c.qarr(grasp_q)).as_matrix()[:,2]
++            for standoff in _PREGRASP_STANDOFFS_M:
++                attempt=dict(bead=int(candidate['bead_index']),standoff_m=standoff)
++                plan=ctx.tool('puzzle.plan_joint_path',position=(grasp_p-standoff*direction).tolist(),
++                    rotation=grasp_q,arm_id=receiver,min_joint_limit_margin_rad=.035)
++                if not plan.get('feasible'):
++                    attempt['refusal']='Reserved joint pregrasp IK refused';row['receiver'].append(attempt);continue
++                try:_guard(state,_qpath(plan,future,receiver),receiver,future_belief)
++                except (ValueError,c.PlanningRefusal) as error:
++                    attempt['refusal']=str(error)[:240];row['receiver'].append(attempt)
++                    if _self_collision_only(error):break
++                    continue
++                row.update(passed=True,family_index=family_index,bead_index=int(candidate['bead_index']),standoff_m=standoff,
++                           station_reserve_rad=min(donor_reserve,float(plan['min_joint_limit_margin_rad'])))
++                return row
++    finally:
++        if saved is None:transfer.pop('candidate',None)
++        else:transfer['candidate']=saved
++    row['refusal']='No receiver pregrasp line passes the future-station geometry screen';return row
++
++
++def _next_extended_station(ctx,state,family,tried):
++    """Renew the held source by RGB, then pre-screen untried stations in order."""
++    transfer=state['transfer']
++    belief=_belief(ctx,state)
++    observed=c.state(ctx,{'cyan':belief['predicted_body_pose']})
++    state=save_observation(state,observed);transfer=state['transfer']
++    renewal=dict(timestamp=observed.get('timestamp'),cyan_measured='cyan' in observed.get('poses',{}))
++    if 'cyan' in observed.get('poses',{}):
++        source,admission,belief=refresh_source_scene(ctx,state,observed,belief)
++        transfer['preclose_source']=deepcopy(source);transfer['common_source_admission']=admission
++    rows=transfer.setdefault('extended_station_preflight',[]);transfer.setdefault('extended_source_renewals',[]).append(renewal)
++    board=np.asarray(state['parameters']['historical_complete_rgb']['poses']['board'])
++    for offset in _EXTENDED_STATION_OFFSETS_M:
++        if any(np.allclose(offset,np.asarray(old,dtype=float),atol=1e-9) for old in tried):continue
++        belief=_belief(ctx,state)
++        if float(belief['source_age_s'])>_EXTENDED_SEARCH_SOURCE_AGE_S:
++            rows.append(dict(board_relative_offset_m=[float(v) for v in offset],extended_station=True,motion=False,
++                             refusal='held source age budget for the station search is spent'));break
++        tried.append(list(offset))
++        try:row=_station_preflight(ctx,state,belief,board,offset,family)
++        except (ValueError,c.PlanningRefusal) as error:
++            row=dict(board_relative_offset_m=[float(v) for v in offset],extended_station=True,motion=False,refusal=str(error)[:300])
++        rows.append(row)
++        if row.get('passed'):return state,dict(offset=row['board_relative_offset_m'],extended=True,family_index=row['family_index'])
++    return state,None
+ 
+ 
+ def approach_receiver(ctx,state):
+@@ -205,27 +324,74 @@ def approach_receiver(ctx,state):
+     # Preserve the measured donor orientation. In particular no inspection
+     # pitch/roll is introduced while retaining the original shallow source.
      tcp,donor_q=c.hand(ctx,donor)
-     transfer['execution'].append(_execute(ctx,state,donor,[(tcp+[0.,0.,.010],donor_q)],
+-    transfer['execution'].append(_execute(ctx,state,donor,[(tcp+[0.,0.,.010],donor_q)],
++    # Near the wrist limit a 10 mm fixed-attitude raise alone can spend the
++    # .035 rad reserve (jitter_b: .057 rad at 5 mm, .032 at 10 mm). Plan the
++    # bounded raises before any motion and take the largest that leaves the
++    # .005 rad headroom the station lookahead below needs from the raised pose,
++    # else the largest that keeps the .035 gate itself. The common translation
++    # below is planned and screened from the actual pose.
++    transfer['donor_vertical_raise_refusals']=[];lifts=[]
++    for lift in (.010,.007,.005):
++        try:lifts.append((lift,float(_plan(ctx,donor,[(tcp+[0.,0.,lift],donor_q)])['min_joint_limit_margin_rad'])))
++        except c.PlanningRefusal as error:
++            transfer['donor_vertical_raise_refusals'].append(dict(lift_m=lift,refusal=str(error)))
++        if lifts and lifts[-1][1]>=.040:break
++    lift=next((l for l,m in lifts if m>=.040),lifts[0][0] if lifts else .005)
++    transfer['donor_vertical_raise_reserves']=[dict(lift_m=l,min_joint_limit_margin_rad=m) for l,m in lifts]
++    transfer['execution'].append(_execute(ctx,state,donor,[(tcp+[0.,0.,lift],donor_q)],
          'donor_vertical_raise_fixed_attitude'))
 -    family=_family();chosen=None;accepted=None;selection_belief=None
 +    # The vertical-source close stage centres only receiving grasps whose bead
@@ -856,7 +1071,33 @@ index 0ef763a..95f43ab 100644
      offsets=state['parameters'].get('cyan_handoff_common_board_offsets',
          [[.220,.200,.150],[.200,.200,.150]])
      if not 2<=len(offsets)<=6:
-@@ -226,6 +234,20 @@ def approach_receiver(ctx,state):
+         raise c.PlanningRefusal('A bounded 2..6 public common-position proposal set is required')
+-    for offset in offsets:
++    stations=[dict(offset=list(offset),extended=False) for offset in offsets];index=0
++    tried=[list(offset) for offset in offsets];extended_moves=0
++    while True:
++        if index>=len(stations):
++            # Every station so far was refused: pre-screened station search.
++            if extended_moves>=_MAX_EXTENDED_STATION_MOVES:break
++            state,station=_next_extended_station(ctx,state,family,tried);transfer=state['transfer']
++            if station is None:break
++            stations.append(station);extended_moves+=1
++            continue
++        offset=stations[index]['offset'];extended=stations[index]['extended']
++        # A pre-screened station tries its passing receiver proposal first.
++        first=stations[index].get('family_index');index+=1
++        ordered=family if first is None else [family[first]]+[row for i,row in enumerate(family) if i!=first]
+         belief=_belief(ctx,state)
+         board=np.asarray(state['parameters']['historical_complete_rgb']['poses']['board'])
+         Rb=Rotation.from_quat(board[3:]).as_matrix()
+         body=np.asarray(belief['predicted_body_pose']);proposal=body.copy()
+         proposal[:3]=board[:3]+Rb@np.asarray(offset,dtype=float)
+         proposal[2]=max(proposal[2],body[2])
+-        record=dict(board_relative_offset_m=list(offset),fixed_donor_attitude=True)
++        record=dict(board_relative_offset_m=list(offset),fixed_donor_attitude=True,extended_station=extended)
+         transfer['common_workspace_attempts'].append(record)
+         try:
+             candidate,preview=_future_receiver(ctx,state,proposal,board,family)
              record['receiver_future_ik']=preview
              tcp,_=c.hand(ctx,donor)
              target=tcp+(proposal[:3]-body[:3])
@@ -872,11 +1113,38 @@ index 0ef763a..95f43ab 100644
 +                rotation=dict(donor_q)) for point in (target,axial,inward)],arm_id=donor,min_joint_limit_margin_rad=.035)
 +            record['donor_release_lookahead']=dict(feasible=bool(ahead.get('feasible')),
 +                min_joint_limit_margin_rad=ahead.get('min_joint_limit_margin_rad'))
-+            if not ahead.get('feasible') or float(ahead.get('min_joint_limit_margin_rad',-1.))<.035:
-+                raise c.PlanningRefusal('Donor release chain from this common position lacks the .035 rad joint reserve')
++            # The release replans this chain from the actual post-dualhold q and
++            # meets the lookahead reserve to ~1e-4 rad (board_a: .035023 here,
++            # .034992 at release). Keep .005 rad planning headroom over the .035
++            # gate so a borderline offset yields to the next proposal.
++            if not ahead.get('feasible') or float(ahead.get('min_joint_limit_margin_rad',-1.))<.040:
++                raise c.PlanningRefusal('Donor release chain from this common position lacks the .035 rad joint reserve plus .005 rad headroom')
              # The move below performs a new full current-q path screen before
              # any motor command; the receiver preview is never treated as a
              # measured object source or an executed state.
+@@ -248,7 +414,7 @@ def approach_receiver(ctx,state):
+         transfer['common_source_admission']=admission
+         # Recompute both receiver IK and every geometry sample from the NEW
+         # actual RGB/q16. A future-position preview cannot license this move.
+-        for candidate in family:
++        for candidate in ordered:
+             transfer['candidate']=candidate
+             try:
+                 candidate,preview=_future_receiver(ctx,state,np.asarray(current['predicted_body_pose']),board,[candidate])
+@@ -267,7 +433,12 @@ def approach_receiver(ctx,state):
+                 transfer['candidates'].append(dict(proposal=candidate,refusal=str(error)))
+         if chosen is not None:break
+     if chosen is None:
+-        raise c.PlanningRefusal('Screened common-position regrasp proposals exhausted; donor remains closed')
++        raise c.PlanningRefusal('Screened common-position regrasp proposals exhausted; donor remains closed: '
++            +str([dict(offset=row.get('board_relative_offset_m'),refusal=str(row.get('proposal_refusal',row.get('source_status','')))[:200])
++                  for row in transfer['common_workspace_attempts']]
++                 +[str(row.get('refusal',''))[:400] for row in transfer['candidates']]
++                 +[dict(preflight=row.get('board_relative_offset_m'),passed=bool(row.get('passed')),
++                        refusal=str(row.get('refusal',''))[:120]) for row in transfer.get('extended_station_preflight',[])])[:4000])
+     belief=_belief(ctx,state)
+     grasp_p,grasp_q=_world_grasp(belief['predicted_body_pose'],chosen)
+     direction=Rotation.from_quat(c.qarr(grasp_q)).as_matrix()[:,2]
 diff --git a/a/puzzler/cyan_dated_scene.py b/b/puzzler/cyan_dated_scene.py
 index 3a92845..920c567 100644
 --- a/a/puzzler/cyan_dated_scene.py
@@ -1086,7 +1354,7 @@ index 2050e25..77d635a 100644
   return dict(target='cyan',reference=reference,measurement=g.rgb_record(observed),occupancy=oc,board_for_planning=dict(pose=b.tolist(),uncertainty_m=margin,source='current_RGB' if fresh_board else 'explicit_recent_RGB_persistence')),b,margin
  
 diff --git a/a/puzzler/cyan_receiver_release_feedback_delivery.py b/b/puzzler/cyan_receiver_release_feedback_delivery.py
-index 9110269..a31e9e8 100644
+index 9110269..75d352a 100644
 --- a/a/puzzler/cyan_receiver_release_feedback_delivery.py
 +++ b/b/puzzler/cyan_receiver_release_feedback_delivery.py
 @@ -13,6 +13,7 @@ from scipy.spatial.transform import Rotation
@@ -1136,10 +1404,14 @@ index 9110269..a31e9e8 100644
                  elif name not in prefix:
                      raise c.PlanningRefusal('Used nonprefix occupancy is missing its authentic source')
              if entries!=expected:
-@@ -117,10 +137,57 @@ def _selected_bead(state,belief):
+@@ -117,24 +137,162 @@ def _selected_bead(state,belief):
      return index
  
  
+-def _refresh(ctx,state):
+-    belief=tr._belief(ctx,state)
+-    observed=c.state(ctx,{'cyan':belief['predicted_body_pose']})
+-    admission=check_bounded_release('cyan',belief,observed,state['parameters'])
 +def _free_arm_look(ctx,state,belief,target=None):
 +    """Official rig: aim the free (withdrawn donor) wrist camera at the held Cyan.
 +
@@ -1170,10 +1442,78 @@ index 9110269..a31e9e8 100644
 +    return dict(arm=arm,current=current.tolist(),joints=joints.tolist(),centring_px=chosen[3])
 +
 +
- def _refresh(ctx,state):
-     belief=tr._belief(ctx,state)
-     observed=c.state(ctx,{'cyan':belief['predicted_body_pose']})
--    admission=check_bounded_release('cyan',belief,observed,state['parameters'])
++def _held_observe(ctx,belief):
++    """A packet seeded by the owned held prediction. Shared-bead aliases of the
++    held Cyan may then be resolved from it by VisualObserver._disambiguate_held
++    (exactly one current candidate inside the held envelope max(6 mm, declared
++    bound), every other at least twice that away), as for Red and Pink."""
++    from .free_hand_look import held_state
++    return held_state(ctx,{'cyan':belief['predicted_body_pose']},belief,'cyan')
++
++
++def _aim_belief(ctx,state):
++    """Aim-only held prediction when the owned source is past its age scope:
++    current holder FK x the source's own relative transform (source RGB pose and
++    its synchronous q16 through public FK). Never a measurement."""
++    from .vision_planning import finite_fk
++    p=state['parameters'];arm=int(state['arm']);side='left' if arm==0 else 'right'
++    g=_geometry();ik=g.robot.iks[side]
++    source=p.get('owned_held_belief_source')
++    if source is not None:
++        q=np.asarray(source['robot_encoder_values'],dtype=float);g.fk(q);pp,qq=finite_fk(ik,q)
++        R0=Rotation.from_quat(qq).as_matrix();body=np.asarray(source['pose'],dtype=float)
++        rel_p=R0.T@(body[:3]-np.asarray(pp));rel_R=R0.T@Rotation.from_quat(body[3:]).as_matrix();bound=.006
++    else:
++        record=p['conditional_attachment'];rel_p=np.asarray(record['object_in_tcp_position'],dtype=float)
++        rel_R=np.asarray(record['object_in_tcp_rotation'],dtype=float);bound=float(record.get('uncertainty_m',.008))
++    now=ctx.tool('robot.read_proprioception',arm_id=arm);R=Rotation.from_quat(now['tcp'][3:]).as_matrix()
++    return dict(predicted_body_pose=[*(np.asarray(now['tcp'][:3])+R@rel_p).tolist(),*Rotation.from_matrix(R@rel_R).as_quat().tolist()],
++                object_in_tcp_position=rel_p.tolist(),object_in_tcp_rotation=rel_R.tolist(),
++                current_robot_encoder_values=now['robot_encoder_values'],uncertainty_m=bound)
++
++
++def _held_belief(ctx,state):
++    """tr._belief with a bounded age recovery. When only the 30 s scope of the
++    owned held source refuses it (the sim kept stepping while the policy
++    computed), the held Cyan is measured now: a prediction-seeded packet, then
++    the screened free-wrist look if needed (holder still), at most two
++    attempts. An accepted current fit near the holding hand becomes the owned
++    source and the estimate is propagated again under the same 30 s limit.
++    Returns (state, belief, record or None)."""
++    try:
++        return state,tr._belief(ctx,state),None
++    except ValueError as error:
++        from .source_age_recovery import is_age_scope_refusal
++        if not is_age_scope_refusal(error):raise
++        refusal=error
++    record=dict(kind='cyan_held_source_age_remeasurement',original_refusal=str(refusal),attempts=[])
++    for attempt in range(2):
++        aim=_aim_belief(ctx,state)
++        observed=_held_observe(ctx,aim);look=None
++        if 'cyan' not in observed.get('poses',{}):
++            look=_free_arm_look(ctx,state,aim)
++            if look is not None:
++                observed=_held_observe(ctx,aim)
++                c.feed_joint_plan(ctx,{'current':look['joints'],'joints':look['current']},look['arm'])
++                ctx.tool('robot.wait_steps',steps=20)
++        row=dict(timestamp=observed.get('timestamp'),measured='cyan' in observed.get('poses',{}),free_arm_look=look)
++        record['attempts'].append(row)
++        if 'cyan' not in observed.get('poses',{}):continue
++        tcp,_=c.hand(ctx,int(state['arm']));row['hand_bead_gap_m']=gap=c.part_hand_gap('cyan',observed['poses']['cyan'],tcp)
++        if gap>.045:raise StageRefusal('Current RGB contradicts the retained Cyan grasp (held part away from the hand)')
++        state=save_observation(state,observed)
++        state['parameters']['owned_held_belief_source']=g._source(observed,'cyan')
++        state['parameters'].pop('conditional_attachment_id',None)
++        state['held_status']='CURRENT_RGB_VERIFIED'
++        state.setdefault('receiver_delivery',{}).setdefault('held_age_remeasurements',[]).append(
++            {**record,'source_timestamp':observed['timestamp']})
++        return state,tr._belief(ctx,state),record
++    raise refusal
++
++
++def _refresh(ctx,state,keep_source=False):
++    state,belief,_=_held_belief(ctx,state)
++    observed=_held_observe(ctx,belief)
 +    try:
 +        admission=check_bounded_release('cyan',belief,observed,state['parameters'])
 +    except StageRefusal as error:
@@ -1193,9 +1533,19 @@ index 9110269..a31e9e8 100644
 +        belief=tr._belief(ctx,state)
 +        admission=check_bounded_release('cyan',belief,observed,state['parameters'])
      state=save_observation(state,observed)
-     if 'cyan' in observed.get('poses',{}):
+-    if 'cyan' in observed.get('poses',{}):
++    if 'cyan' in observed.get('poses',{}) and keep_source and state.get('held_status')=='CURRENT_RGB_VERIFIED':
++        # Official rig, after the terminal descent: a gantry + holder-wrist fit
++        # of the low held Cyan carries ~2 deg of turn noise. The owned source
++        # from the hover (free-wrist view) is kept unless this frame
++        # contradicts it beyond the bound (handled above, which re-anchors).
++        belief=tr._belief(ctx,state)
++        if {'board'}.issubset(observed['poses']):
++            state['parameters']['historical_complete_rgb']=g.rgb_record(observed)
++    elif 'cyan' in observed.get('poses',{}):
          state['parameters']['owned_held_belief_source']=g._source(observed,'cyan')
-@@ -129,12 +196,26 @@ def _refresh(ctx,state):
+         state['parameters'].pop('conditional_attachment_id',None)
+         state['held_status']='CURRENT_RGB_VERIFIED'
          belief=tr._belief(ctx,state)
          # Refresh a complete real packet only; never paste an occluded target
          # prediction or a public goal into an RGB record to renew scene age.
@@ -1224,7 +1574,7 @@ index 9110269..a31e9e8 100644
      state['planning_scene']=scene
      if hasattr(ctx,'bind_delivery_scene'):ctx.bind_delivery_scene(state,scene)
      state.setdefault('receiver_delivery',{})['selected_receiver_bead']=_selected_bead(state,belief)
-@@ -224,7 +305,7 @@ def _home_donor_while_held(ctx,state,scene,belief):
+@@ -224,7 +382,7 @@ def _home_donor_while_held(ctx,state,scene,belief):
  # the view the arms do not occlude, and acceptance needs a second view.
  _VIEW_GRID_M=(-.05,0.,.05)
  _VIEW_LIFT_M=(0.,.05)
@@ -1233,7 +1583,7 @@ index 9110269..a31e9e8 100644
  
  
  def _board_current(scene):
-@@ -378,6 +459,16 @@ def _execute_transport(ctx,state):
+@@ -378,15 +536,39 @@ def _execute_transport(ctx,state):
      first=move_held(ctx,state,target['hover'],target['rotation'],scene,width,belief=belief,
                      joint=True,path_fraction=.5,allow_actual_intermediate=True)
      state,middle,scene,belief,middle_source=_refresh(ctx,state)
@@ -1250,6 +1600,88 @@ index 9110269..a31e9e8 100644
      if first.get('actual_intermediate_feedback') and 'cyan' not in middle.get('poses',{}):
          raise c.PlanningRefusal('Recovered actual intermediate requires fresh actual Cyan RGB before replanning the final goal')
      target=_hover(state,scene,belief,relative)
+     width=float(belief['current_robot_encoder_values'][off+6]-belief['current_robot_encoder_values'][off+7])
+     second=move_held(ctx,state,target['hover'],target['rotation'],scene,width,belief=belief,joint=True)
+-    feedback=[];corrections=[]
++    feedback=[];corrections=[];hover_looks=[]
+     for attempt in range(3):
+         ctx.tool('robot.wait_steps',steps=6)
+         state,observed,scene,belief,entry=_refresh(ctx,state)
++        if attempt==0:
++            # Official rig: a part that turned in the receiving jaws is found
++            # only by measuring it. At the hover, an unmeasured Cyan gets one
++            # screened free-hand wrist look (re-anchoring on contradiction)
++            # before the unchanged bounded hover corrections below.
++            from .free_hand_look import look_then_refresh
++            def _restore(token):
++                c.feed_joint_plan(ctx,{'current':token['joints'],'joints':token['current']},token['arm'])
++                ctx.tool('robot.wait_steps',steps=20)
++            state,refreshed=look_then_refresh(ctx,state,observed,name='cyan',
++                refresh=lambda st:_refresh(ctx,st),look=lambda st:_free_arm_look(ctx,st,tr._belief(ctx,st)),
++                restore=_restore,record=hover_looks,always=True)
++            if refreshed is not None:
++                state,observed,scene,belief,entry=_refresh(ctx,state)
+         target=_hover(state,scene,belief,relative)
+         feedback.append(dict(source=entry,target=target))
+         if target['authored_bound_estimate_public_hover_error_m']<=.003:break
+@@ -400,7 +582,7 @@ def _execute_transport(ctx,state):
+     carry=dict(contract='receiver_owned_RGB_or_honest_conditional_segmented_carry_v1',
+         receiver_first_actual_view_steps=view_steps,
+         donor_screened_public_home=donor_home,release_selection_view_renewal=release_views,segments=[first,second],sources=[source,source2,middle_source],
+-        endpoint_feedback=feedback,corrections=corrections,held_body_envelope_m=.006)
++        endpoint_feedback=feedback,corrections=corrections,hover_free_hand_looks=hover_looks,held_body_envelope_m=.006)
+     state.update(cyan_selected_goal=target,transport_record=carry)
+     return result('carried',state,observed,'transport',transport_record=carry)
+ 
+@@ -613,6 +795,19 @@ def _segment_conditional_release(ctx,state):
+     # screened terminal descent remains the original vertical approach.
+     state,preopen,scene,belief,release_views=_renew_board_by_views(ctx,state,preopen,scene,belief,
+         grid=(0.,),lifts=(.05,.10))
++    if not state.get('receiver_delivery',{}).get('free_arm_release_look'):
++        # Official rig: measure the held Cyan at the hover, before the terminal
++        # descent, with the free arm's wrist camera. A turn of the part in the
++        # receiving jaws found only at the low pre-open pose leaves a lateral
++        # correction inside the socket posts, which the guard rightly refuses.
++        look=_free_arm_look(ctx,state,belief)
++        if look is not None:
++            state.setdefault('receiver_delivery',{})['free_arm_release_look']=look
++            state,preopen,scene,belief,admission=_refresh(ctx,state)
++            c.feed_joint_plan(ctx,{'current':look['joints'],'joints':look['current']},look['arm'])
++            ctx.tool('robot.wait_steps',steps=20)
++            state,belief,_=_held_belief(ctx,state)
++            look['cyan_measured']='cyan' in preopen.get('poses',{})
+     target=_select_target(ctx,state,scene,belief,lock_relative=True)
+     min_height,robust_height=_robust_release_height(ctx,state,scene,belief,target)
+     if min_height>float(target['height']):
+@@ -621,7 +816,7 @@ def _segment_conditional_release(ctx,state):
+     width=float(belief['current_robot_encoder_values'][off+6]-belief['current_robot_encoder_values'][off+7])
+     descent=move_held(ctx,state,target['release_tcp'],target['rotation'],scene,width,belief=belief,terminal=True)
+     ctx.tool('robot.wait_steps',steps=30)
+-    state,preopen,scene,belief,preopen_source=_refresh(ctx,state)
++    state,preopen,scene,belief,preopen_source=_refresh(ctx,state,keep_source=True)
+     corrections=[]
+     for attempt in range(3):
+         target=_select_target(ctx,state,scene,belief,lock_relative=True,min_height=min_height)
+@@ -633,7 +828,7 @@ def _segment_conditional_release(ctx,state):
+             raise c.PlanningRefusal('Receiver actual preopen alignment exceeds bounded correction contract')
+         width=float(belief['current_robot_encoder_values'][off+6]-belief['current_robot_encoder_values'][off+7])
+         corrections.append(move_held(ctx,state,target['release_tcp'],target['rotation'],scene,width,belief=belief,terminal=True))
+-        state,preopen,scene,belief,preopen_source=_refresh(ctx,state)
++        state,preopen,scene,belief,preopen_source=_refresh(ctx,state,keep_source=True)
+     # Recheck the complete actual loaded-to-open sweep in both robot arms.
+     # Search bounded opening widths, then the next original release heights,
+     # with the same material sweep and board margin; never weaken a gate.
+@@ -657,7 +852,9 @@ def _segment_conditional_release(ctx,state):
+     scene=state['planning_scene']
+     q16=after_open['robot_geometry_provenance']['robot_encoder_values']
+     retreat=_material_empty(ctx,state,scene,arm,actual+[0.,0.,.055],actual_q,body,q16,released_body_envelope_m=released_bound)
+-    current=c.state(ctx)
++    # Same released-Cyan observer as after_open: an ambiguous shared-bead CAD
++    # alias stays UNKNOWN instead of being tested as evidence against the bound.
++    current=c.state(ctx,{'__observer_mode__':'released_cyan_rgb_cad'})
+     state,scene=_refresh_empty_scene(ctx,state,current)
+     q16=current['robot_geometry_provenance']['robot_encoder_values']
+     if 'cyan' in current.get('poses',{}):
 diff --git a/a/puzzler/cyan_released_rgb_recovery.py b/b/puzzler/cyan_released_rgb_recovery.py
 index 01d9f69..9d5eaf7 100644
 --- a/a/puzzler/cyan_released_rgb_recovery.py
@@ -1344,10 +1776,10 @@ index 33f7582..ec628b1 100644
      old_indices=state['parameters']['source_contact_bead_indices']
 diff --git a/b/puzzler/free_hand_look.py b/b/puzzler/free_hand_look.py
 new file mode 100644
-index 0000000..bb0a0c1
+index 0000000..e1835b5
 --- /dev/null
 +++ b/b/puzzler/free_hand_look.py
-@@ -0,0 +1,217 @@
+@@ -0,0 +1,249 @@
 +"""Active wrist-camera look by the free hand at a part the other hand holds.
 +
 +Official YAM rig: the gantry camera sees a held part partly hidden by the
@@ -1565,8 +1997,40 @@ index 0000000..bb0a0c1
 +        hints['__held_prediction__'] = dict(name=name, pose=list(map(float, hints[name])),
 +                                            envelope_m=float(_held_envelope(belief)))
 +    return c.state(ctx, hints)
++
++
++def look_then_refresh(ctx, state, observed, *, name, refresh, look, restore, record=None, always=False):
++    """Shared look -> re-anchor step for a held part at a hover (Cyan, Pink, ...).
++
++    ``observed`` is the caller's current packet. If it does not accept ``name``,
++    ``look(state)`` moves the free hand's wrist camera (screened by the caller's
++    guard) and returns a token or None; ``refresh(state)`` then takes a new
++    synchronous packet and re-anchors the owned held source when an accepted
++    fit contradicts it (caller's unchanged admission gate); ``restore(token)``
++    returns the free hand along the same screened path. The caller's own
++    bounded correction loop then moves to the public hover target from the
++    re-anchored estimate. No gate or bound is changed here.
++
++    ``always``: look even when ``observed`` accepts ``name``. A held part seen
++    only by the gantry and its holder's wrist fits with several degrees of
++    turn error (6.3 deg measured on Cyan); the free wrist's view is the
++    accurate one (0.5 deg), so hover and pre-descent sites look always.
++
++    Returns (state, refreshed) where ``refreshed`` is the refresh tuple or None.
++    """
++    if name in observed.get('poses', {}) and not always:
++        return state, None
++    token = look(state)
++    if token is None:
++        return state, None
++    refreshed = refresh(state)
++    state = refreshed[0]
++    restore(token)
++    if record is not None:
++        record.append(dict(token, measured=name in refreshed[1].get('poses', {})))
++    return state, refreshed
 diff --git a/a/puzzler/modular_controller.py b/b/puzzler/modular_controller.py
-index 924dbeb..4a37f35 100644
+index 924dbeb..ddb39e6 100644
 --- a/a/puzzler/modular_controller.py
 +++ b/b/puzzler/modular_controller.py
 @@ -80,7 +80,7 @@ def initial_state(name,base,*,memory=None,executed=(),execution_tokens=None,hist
@@ -1643,7 +2107,7 @@ index 924dbeb..4a37f35 100644
 +        # target with those neighbours from its free wrist camera, re-plan
 +        # from that frame, and only then widen the grasp search.
 +        from .survey import unmeasured_neighbours,look_at_neighbours
-+        near=unmeasured_neighbours(state['piece'],observed,scene)
++        near=unmeasured_neighbours(state['piece'],observed,scene,open_width=p.get('source_open_width',p.get('open_width',.055)))
 +        if near:
 +            looked,neighbour_look=look_at_neighbours(ctx,state['piece'],observed,near)
 +            if looked is not None:
@@ -1657,7 +2121,7 @@ index 924dbeb..4a37f35 100644
      if plan is None and p.get('fallback_grasp_parameters'):
          fallback={**p,**p['fallback_grasp_parameters']}
          if 'grasp_indices' not in p['fallback_grasp_parameters']:fallback.pop('grasp_indices',None)
-@@ -208,7 +255,7 @@ def observe_and_plan(ctx,state:ModularState)->ModularResult:
+@@ -208,14 +255,14 @@ def observe_and_plan(ctx,state:ModularState)->ModularResult:
      state['arm']=arm
      if 'source_open_width_m'in plan:
          p={**p,'source_open_width':plan['source_open_width_m'],'open_width':plan['source_open_width_m']};state['parameters']=p
@@ -1666,8 +2130,33 @@ index 924dbeb..4a37f35 100644
      return result('planned',state,observed,'perceive_plan',current_source_pose=observed['poses'][state['piece']],board_belief=scene['board_for_planning'])
  
  
-@@ -234,7 +281,29 @@ def grasp_and_bind(ctx,state:ModularState)->ModularResult:
-         except ValueError as error:attachment_refusal=str(error)
+ def grasp_and_bind(ctx,state:ModularState)->ModularResult:
+     if state['parameters'].get('piece_module'):
+         return load_skill_module(state['parameters']['piece_module']).grasp_and_bind(ctx,state)
+-    name=state['piece'];p=state['parameters'];arm=state['arm'];plan=state['plan'];g=np.asarray(plan['grasp']);q=plan['rotation'];lift=p.get('lift',.085);attachment=None;attachment_refusal=None
++    name=state['piece'];p=state['parameters'];arm=state['arm'];plan=state['plan'];g=np.asarray(plan['grasp']);q=plan['rotation'];lift=p.get('lift',.085);attachment=None;attachment_refusal=None;age_recovery=None
+     if p.get('source_contact_grasp',{}).get('module'):
+         module=load_skill_module(p['source_contact_grasp']['module']);contact=module.execute_contact_source(ctx,state,state['observation'],plan)
+         state={**state,'source_contact_evidence':contact,'memory':contact.get('updated_memory',state['memory']),'belief_ledger':contact.get('updated_belief_ledger',state['belief_ledger'])}
+@@ -227,14 +274,45 @@ def grasp_and_bind(ctx,state:ModularState)->ModularResult:
+         if contact.get('postlift_rgb'):state=save_observation(state,contact['postlift_rgb'])
+         attachment=contact.get('conditional_attachment')
+     else:
++        # Slow hosts: the sim keeps stepping while the policy plans, so the
++        # planned pregrasp source can age past the attachment's 20 s scope
++        # before the close. Re-date it from a fresh packet that reproduces it.
++        from .source_age_recovery import refresh_planned_source,reauthenticate_attachment
++        state,source_refresh=refresh_planned_source(ctx,state,arm);age_recovery=[source_refresh]
+         c.grip(ctx,arm,p.get('source_open_width',.055));c.move(ctx,g+[0,0,p.get('source_hover',.055)],q,arm);c.move(ctx,g,q,arm,cartesian=True,contact='grasp');c.grip(ctx,arm,p.get('close_width',0.))
+         origin=state['observation'];source=dict(piece=name,pose=origin['poses'][name],timestamp=origin['timestamp'],frame_sha256=origin['frame_sha256'],observation_source=origin['observation_source'],role='Actualpregrasp RGB; notapostlift heldmeasurement')
+         assumption={**p.get('conditional_attachment_prior',{}),**p.get('conditional_attachment_assumption',{}),'source_stationary_or_bounded_until_close':True,'bead_displacement_bound_m':p.get('conditional_attachment_bound_m',.008)}
+         try:attachment=ctx.tool('puzzle.capture_conditional_attachment',source_rgb=source,assumption=assumption,arm_id=arm)
+-        except ValueError as error:attachment_refusal=str(error)
++        except ValueError as error:
++            attachment_refusal=str(error)
++            # Only an age-scope refusal is retried, from a fresh closed-jaw packet.
++            state,attachment,reauthentication=reauthenticate_attachment(ctx,state,arm,assumption,error);age_recovery.append(reauthentication)
++            if attachment is not None:attachment_refusal=None
          c.move(ctx,g+[0,0,lift],q,arm)
      prediction=np.asarray(plan['body']).copy();prediction[2]+=lift
 -    observed=c.state(ctx,{name:prediction.tolist()})
@@ -1697,15 +2186,60 @@ index 924dbeb..4a37f35 100644
      inspection_moves=p.get('held_inspection_max_moves',0 if attachment is not None else 1)
      if name not in observed['poses'] and inspection_moves>0:
          try:observed=c.inspect_held(ctx,name,prediction,arm,require_board=False,max_moves=inspection_moves)
-@@ -249,7 +318,7 @@ def grasp_and_bind(ctx,state:ModularState)->ModularResult:
+@@ -249,7 +327,7 @@ def grasp_and_bind(ctx,state:ModularState)->ModularResult:
          p={**p,'conditional_attachment_id':attachment['attachment_id'],'owned_held_belief_source':attachment};rise=None;gap=None;measurement_status='UNKNOWN_conditional_attachment_only'
      else:raise StageRefusal('HeldRGB UNKNOWN and no authenticated conditionalattachment: '+str(attachment_refusal))
      boardrow=prior_for(state,'board',observed['timestamp']);p.update(historical_complete_rgb={k:boardrow[k]for k in ['poses','timestamp','frame_sha256','observation_source']},historical_rgb_records=deepcopy(state['rgb_history']),historical_max_age_s=30.)
 -    return result('verified',{**state,'parameters':p,'prediction':prediction.tolist(),'conditional_attachment':attachment},observed,'grasp',rise_m=rise,hand_bead_gap_m=gap,held_measurement_status=measurement_status,held_belief_source=p['owned_held_belief_source'],scope='Successfulgrasp requires independentactualphysical CP; conditionalattachment neverclaims measuredheld pose')
-+    return result('verified',{**state,'parameters':p,'prediction':prediction.tolist(),'conditional_attachment':attachment},observed,'grasp',rise_m=rise,hand_bead_gap_m=gap,held_measurement_status=measurement_status,held_belief_source=p['owned_held_belief_source'],held_free_arm_look=held_look,free_hand_look=held_look,scope='Successfulgrasp requires independentactualphysical CP; conditionalattachment neverclaims measuredheld pose')
++    return result('verified',{**state,'parameters':p,'prediction':prediction.tolist(),'conditional_attachment':attachment},observed,'grasp',rise_m=rise,hand_bead_gap_m=gap,held_measurement_status=measurement_status,held_belief_source=p['owned_held_belief_source'],held_free_arm_look=held_look,free_hand_look=held_look,source_age_recovery=age_recovery,scope='Successfulgrasp requires independentactualphysical CP; conditionalattachment neverclaims measuredheld pose')
  
  
  def transport(ctx,state:ModularState)->ModularResult:
+@@ -257,7 +335,12 @@ def transport(ctx,state:ModularState)->ModularResult:
+         return load_skill_module(state['parameters']['piece_module']).execute_transport(ctx,state)
+     if state['parameters'].get('transport_module'):
+         return load_skill_module(state['parameters']['transport_module']).execute_transport(ctx,state)
+-    name=state['piece'];p=state['parameters'];arm=state['arm'];belief=(ctx.tool('puzzle.propagate_conditional_attachment',attachment_id=p['conditional_attachment_id'],arm_id=arm)if p.get('conditional_attachment_id')else ctx.tool('puzzle.propagate_pyramid_held_belief',source=p['owned_held_belief_source'],arm_id=arm))
++    from .source_age_recovery import owned_held_belief,refresh_stale_observation
++    # Fresh packet first, then the held estimate: the carry compares their times.
++    state,observation_refresh=refresh_stale_observation(ctx,state,state['parameters'].get('historical_max_age_s',30.))
++    state,belief,held_age_recovery=owned_held_belief(ctx,state,refresh_after_s=2*float(state['parameters'].get('historical_max_age_s',30.))/3)
++    if observation_refresh:held_age_recovery={**(held_age_recovery or {}),'observation_refresh':observation_refresh}
++    name=state['piece'];p=state['parameters'];arm=state['arm']
+     observed=state['observation'];board=board_belief(state,observed);bp=np.asarray(board['pose']);br=Rotation.from_quat(bp[3:]).as_matrix()
+     target=bp[:3]+br@np.asarray(state['plan']['target_center'])
+     from .modular_motion import move_held_screened
+@@ -291,7 +374,7 @@ def transport(ctx,state:ModularState)->ModularResult:
+     actual,actual_q=c.hand(ctx,arm);pe=float(np.linalg.norm(actual-endpoint));re=float((Rotation.from_quat(c.qarr(q)).inv()*Rotation.from_quat(c.qarr(actual_q))).magnitude())
+     if pe>.0025 or re>.04:raise StageRefusal('Actual robot carry endpoint outside bounds')
+     boundary=ctx.tool('robot.execution_journal_cursor')
+-    state={**state,'belief_ledger':carry_scene['belief_ledger'],'transport_record':dict(source=belief,board_belief=board,target_tcp=endpoint.tolist(),target_rotation=q,transport_offset_frame='measured_board_frame',transport_height_m=hover_height,actual_tcp=actual.tolist(),actual_rotation=actual_q,position_error_m=pe,rotation_error_rad=re,execution_boundary=boundary,robot_proprioception_timestamp=boundary.get('timestamp'),rgb_source_timestamp=observed['timestamp'],motion=motion)}
++    state={**state,'belief_ledger':carry_scene['belief_ledger'],'transport_record':dict(source=belief,board_belief=board,target_tcp=endpoint.tolist(),target_rotation=q,transport_offset_frame='measured_board_frame',transport_height_m=hover_height,actual_tcp=actual.tolist(),actual_rotation=actual_q,position_error_m=pe,rotation_error_rad=re,execution_boundary=boundary,robot_proprioception_timestamp=boundary.get('timestamp'),rgb_source_timestamp=observed['timestamp'],motion=motion,held_source_age_recovery=held_age_recovery)}
+     return result('carried',state,observed,'transport',transport_record=state['transport_record'])
+ 
+ 
+@@ -302,7 +385,21 @@ def carry_and_release(ctx,state:ModularState)->ModularResult:
+     # propagation.
+     p={**state['parameters'],'skip_preopen_rgb':False,'allow_conditional_board_persistence':True,'actual_executed_prefix':list(state['executed_placements'])+list(state.get('released_placements',[])),'planning_prefix':[*state.get('initialized_prefix',[]),*state['executed_placements'],*state.get('released_placements',[])],'given_prefix_names':list(state.get('initialized_prefix',[]))}
+     state={**state,'parameters':p}
++    # Slow hosts: an owned held estimate or the historical RGB reference may
++    # have outlived its declared age scope while the policy computed. Refresh
++    # them from current RGB under the same limits before the release skill.
++    # Generic release skills only; the Cyan and Red skills keep their own
++    # dated-reference contracts.
++    held_age_recovery=reference_refresh=None
++    if p.get('release_module') in (None,'puzzler.reloc_modular_release','puzzler.modular_maroon_adapter'):
++        from .source_age_recovery import owned_held_belief,refresh_historical_reference
++        state,_,held_age_recovery=owned_held_belief(ctx,state)
++        if p.get('release_module')!='puzzler.modular_maroon_adapter':
++            state,reference_refresh=refresh_historical_reference(ctx,state)
++        p=state['parameters']
+     out=(load_skill_module(p['release_module']).segment_conditional_release(ctx,state)if p.get('release_module')else segment_conditional_release(ctx,state))
++    if held_age_recovery or reference_refresh:
++        out['evidence']={**out['evidence'],'release_age_recovery':dict(held=held_age_recovery,historical_reference=reference_refresh)}
+     # Update actual dated RGB history from the real releasepair; no source pose fill.
+     state=out['state'];record=state['release_execution'];name=state['piece']
+     for observed in record['release_rgb_pair']:state=save_observation(state,observed)
 diff --git a/a/puzzler/modular_maroon_adapter.py b/b/puzzler/modular_maroon_adapter.py
 index 6c4fd9f..95ab747 100644
 --- a/a/puzzler/modular_maroon_adapter.py
@@ -1808,10 +2342,27 @@ index 0343e1f..5c2be90 100644
          occupancy[item]=dict(source=source,pose_hypotheses=options,inflation_m=inflation)
      return dict(contract='maroon_actualRGB_attributed_geometry_v1',measurement=_observation(seen),occupancy=occupancy,board_for_planning=dict(pose=board.tolist(),uncertainty_m=margin,source='currentRGB'if'board'in raw else'datedRGB_bound4mm')),board
 diff --git a/a/puzzler/modular_release.py b/b/puzzler/modular_release.py
-index 655762b..e98c1ef 100644
+index 655762b..200f708 100644
 --- a/a/puzzler/modular_release.py
 +++ b/b/puzzler/modular_release.py
-@@ -107,8 +107,12 @@ def segment_conditional_release(ctx,state:StageState)->StageResult:
+@@ -56,6 +56,16 @@ def camera_ray_observability_evidence(observed, name):
+ from .release_admission import check_bounded_release, target_wrist_camera_guard
+ 
+ 
++def _public_profile_value(name,key,default=None):
++    """A public per-piece profile value from profiles/pyramid.json. The frozen
++    graph inlines its profiles; a value added to the public profile after the
++    graph was built is read here (as modular_controller._profile_flag)."""
++    try:
++        return json.loads((model.ROOT/'profiles/pyramid.json').read_text())['profiles'].get(name,{}).get(key,default)
++    except (OSError,ValueError,KeyError):
++        return default
++
++
+ def segment_conditional_release(ctx,state:StageState)->StageResult:
+     """One bounded conditional release; source priors never become RGB poses."""
+     name=state['piece'];arm=state['arm'];p=_piece_parameters(state)
+@@ -107,8 +117,12 @@ def segment_conditional_release(ctx,state:StageState)->StageResult:
              poses=[belief['predicted_body_pose']];source='conditional_pregrasp_close_attachment_robot_fk'if p.get('conditional_attachment_id')else'conditional_owned_rgb_robot_fk_held';inflation=float(belief['uncertainty_m'])
          else:
              history=p.get('historical_rgb_records',[prior]);candidate=next((row for row in reversed(history)if item in row.get('poses',{})and 0<=belief['current_timestamp']-row['timestamp']<=p.get('historical_max_age_s',30.)),None)
@@ -1826,7 +2377,22 @@ index 655762b..e98c1ef 100644
          occupancy[item]=dict(source=source,pose_hypotheses=poses,inflation_m=inflation,shape='public CAD sphere cover')
      scene=dict(contract='conditional_recent_rgb_occupancy_v1',target=name,reference=reference,
          measurement=_observation(observed),occupancy=occupancy,measured_names=sorted(raw),
-@@ -175,14 +179,19 @@ def segment_conditional_release(ctx,state:StageState)->StageResult:
+@@ -163,7 +177,13 @@ def segment_conditional_release(ctx,state:StageState)->StageResult:
+         raise PlanningRefusal('Explicit target-to-wrist/camera guard '+target_guard.get('status','UNKNOWN')+': '+str(target_guard))
+     c.move(ctx,requested,qtarget,arm,accuracy=.0025)
+     actual,actual_q=c.hand(ctx,arm)
+-    opening=ctx.tool('robot.set_grip',arm_id=arm,width_m=open_width)
++    # A slow opening ramp lets the jaws pass through a long friction-limited
++    # phase in which the less loaded pad slips first and the other pad kicks
++    # the falling part along the jaw axis. A profile may ask for a short ramp
++    # so both pads leave together (Lime: released ~20 mm above its seat).
++    ramp=p.get('release_open_ramp_steps',_public_profile_value(name,'release_open_ramp_steps'))
++    # The jaws then settle open before the withdrawal starts.
++    opening=ctx.tool('robot.set_grip',arm_id=arm,width_m=open_width,**({} if ramp is None else dict(ramp_steps=int(ramp),settle_steps=12)))
+     c.withdraw(ctx,arm)
+     support_release=None
+     if state.get('support_anchor_evidence'):
+@@ -175,14 +195,19 @@ def segment_conditional_release(ctx,state:StageState)->StageResult:
      support_home=ctx.tool('robot.go_home',arm_id=1-arm)
      _pause(ctx,50)
      hint={name:[*target.tolist(),*Rotation.from_matrix(desired).as_quat().tolist()]}
@@ -1850,7 +2416,7 @@ index 655762b..e98c1ef 100644
          receipt=visual_memory.release_receipt(name,first,second,final_tcp,p)
          memory=visual_memory.observe(memory,second,p)
          memory=visual_memory.mint_placement(memory,receipt,second,p)
-@@ -193,7 +202,7 @@ def segment_conditional_release(ctx,state:StageState)->StageResult:
+@@ -193,7 +218,7 @@ def segment_conditional_release(ctx,state:StageState)->StageResult:
          release_height_m=height,release_bias_includes_height=bias_includes_height,release_bias_board_m=p.get('release_translation_bias_board_m',[0.,0.,0.]),clearance_candidates=clearance,requested_release_tcp=requested.tolist(),requested_rotation=qtarget,
          actual_preopen_tcp=actual.tolist(),actual_preopen_rotation=actual_q,open_width_m=open_width,open_result=opening,home_result=home,support_open_result=support_open,support_home_result=support_home,support_release=support_release,
          rigid_held_belief_after_open='EXPIRED; historical only',target_3d_status='measured_in_new_release_pair'if name in first['poses']and name in second['poses']else'UNKNOWN',placement_receipt_status='verified_3mm_stable_pair'if receipt else'UNVERIFIED',
@@ -1891,23 +2457,53 @@ index 509c51a..de2f1f5 100644
                      board_world=BOARD_BOUND_M, innovation=RGB_BOUND_M+PREFIX_BOUND_M+BOARD_BOUND_M,
                      equivalence=EQUIVALENCE_M)
 diff --git a/a/puzzler/red_bimanual_goal.py b/b/puzzler/red_bimanual_goal.py
-index b840cbb..5c5fca8 100644
+index b840cbb..42d6a3a 100644
 --- a/a/puzzler/red_bimanual_goal.py
 +++ b/b/puzzler/red_bimanual_goal.py
-@@ -234,7 +234,10 @@ def _drive(ctx,state,motion,*,intermediate=False,scene=None,belief=None):
+@@ -231,10 +231,39 @@ def _drive(ctx,state,motion,*,intermediate=False,scene=None,belief=None):
+     return execution
+ 
+ 
++GOAL_LOOK_MIN_SOURCE_AGE_S=5.
++# Per-refresh look policy: (minimum owned-source age before a look, looks).
++# The last carry refresh renews the source right before the release (look
++# whenever this frame lacks Red or the case, one bounded retry). The release
++# refresh looks only when the retained source could not stay inside the
++# unchanged 10 s pre-descent scope anyway: a look costs 6-7 s of native time
++# and over the goal its frame often cannot accept Red.
++GOAL_LOOK_POLICY={'at_public_goal_hover':(0.,2),'before_goal_drop5':(8.,2)}
++
++
++def _goal_look_arm(ctx,state,min_age=GOAL_LOOK_MIN_SOURCE_AGE_S):
++    """The free arm looks only when the owned Red source is no longer recent.
++
++    A look costs about 6-7 s of native time, and over the goal Red's beads can
++    merge with the seated prefix so the look frame may not measure it. While
++    the authenticated source is recent, the retained owned6 control (10 s
++    pre-descent scope, unchanged) is the better use of that time.
++    """
++    try:
++        belief=_belief(ctx,state)
++        age=float(belief.get('source_age_s',float('inf')))
++    except Exception:
++        age=float('inf')
++    return None if age<=min_age else 1-_arm(state)
++
++
  def _refresh(ctx,state,label,*,optimizer_belief=None):
-     attempts=[]
+-    attempts=[]
++    attempts=[];min_age,max_looks=GOAL_LOOK_POLICY.get(label,(GOAL_LOOK_MIN_SOURCE_AGE_S,1))
      for attempt in range(2):
 -        state,belief,record=handoff._fresh_sender(ctx,state,_arm(state),optimizer_belief=optimizer_belief)
 +        # Official rig: the free left wrist camera may look at the held Red
 +        # and the case (screened, then back to where it started).
 +        state,belief,record=handoff._fresh_sender(ctx,state,_arm(state),optimizer_belief=optimizer_belief,
-+            look_arm=1-_arm(state) if attempt==0 else None,look_return=True)
++            look_arm=_goal_look_arm(ctx,state,min_age) if attempt<max_looks else None,look_return=True)
          attempts.append(record)
          if record.get('status')=='actual_RGB_q16_rebound':break
      from .red_computed_carry import _repair_prefix_rgb
 diff --git a/a/puzzler/red_bimanual_handoff.py b/b/puzzler/red_bimanual_handoff.py
-index 9a3f928..307fb50 100644
+index 9a3f928..0f29abf 100644
 --- a/a/puzzler/red_bimanual_handoff.py
 +++ b/b/puzzler/red_bimanual_handoff.py
 @@ -112,7 +112,37 @@ def _belief(ctx, state, arm):
@@ -1980,7 +2576,24 @@ index 9a3f928..307fb50 100644
  
  
  def _retained_receiver_scene_check(ctx,state,receiver):
-@@ -466,6 +504,37 @@ def _search_station(ctx,state,scene,belief,board,body,sender,receiver,source_bea
+@@ -252,11 +290,15 @@ def _screen(ctx, state, scene, belief, held_arm, moving_arm, waypoints, contract
+                 endpoint=waypoints[-1], source_actual=actual,timing=dict(native_plan_wall_s=plan_wall,geometry_wall_s=geometry_wall))
+ 
+ 
++class _ActualQ16Changed(StageRefusal):
++    """The robot moved between path screening and execution; nothing was commanded."""
++
++
+ def _execute(ctx, state, motion, *, retained_arm, stable_actual_handoff=None):
+     moving = motion['arm']; qpath = np.asarray(motion['q16_path']); off = moving*8
+     current = base.proprio(ctx, moving)
+     if np.max(np.abs(np.asarray(current['robot_encoder_values'])-qpath[0])) > .002:
+-        raise StageRefusal('Actual q16 changed since full handoff path screening')
++        raise _ActualQ16Changed('Actual q16 changed since full handoff path screening')
+     start_width = base.proprio(ctx, retained_arm)['width_m']
+     runs = []
+     for begin in range(1, len(qpath), 8):
+@@ -466,6 +508,37 @@ def _search_station(ctx,state,scene,belief,board,body,sender,receiver,source_bea
      raise c.PlanningRefusal('No full-path bimanual candidate '+json.dumps(attempts[-40:],separators=(',',':')))
  
  
@@ -2018,7 +2631,7 @@ index 9a3f928..307fb50 100644
  def scene_for_motion(ctx,state,belief):
      """Reacquire an actual board before planning another motion.
  
-@@ -474,16 +543,19 @@ def scene_for_motion(ctx,state,belief):
+@@ -474,16 +547,19 @@ def scene_for_motion(ctx,state,belief):
      """
      attempts=[]
      try:
@@ -2040,7 +2653,7 @@ index 9a3f928..307fb50 100644
          attempts.append(dict(timestamp=observed['timestamp'],visible_names=sorted(observed.get('poses',{})),
              board_hint_role='Dated authentic optimizer proposal only; no current pose fill'))
          if 'board' in observed.get('poses',{}):
-@@ -526,7 +598,7 @@ def _recenter_preclose(ctx,state,sender,receiver,belief,scene,candidate,contract
+@@ -526,7 +602,7 @@ def _recenter_preclose(ctx,state,sender,receiver,belief,scene,candidate,contract
      observations=4 if final_right else 3
      for attempt in range(observations):
          predicted=_body(base.proprio(ctx,sender),belief)
@@ -2049,7 +2662,7 @@ index 9a3f928..307fb50 100644
          if 'red' not in observed.get('poses',{}):
              if attempt==observations-1:break
              ctx.tool('robot.wait_steps',steps=6);continue
-@@ -668,7 +740,7 @@ def handoff_prepare(ctx, state):
+@@ -668,7 +744,7 @@ def handoff_prepare(ctx, state):
              stable_actual_handoff=dict(scene=scene,belief=belief,held_arm=sender,contract={sender:[source_bead]}))
          sender_executions.append(sender_execution)
          sender_arrival=float(sender_execution['actual_after']['timestamp'])
@@ -2058,7 +2671,81 @@ index 9a3f928..307fb50 100644
          if (sender_execution.get('stable_actual_endpoint') is not None and
                  post_sender_refresh.get('status')!='actual_RGB_q16_rebound'):
              raise StageRefusal('Adapted actual sender endpoint requires fresh real Red RGB/q16 attachment before receiver motion')
-@@ -922,7 +994,7 @@ def _receiver_close_once(ctx,state):
+@@ -688,7 +764,17 @@ def handoff_prepare(ctx, state):
+             board=np.asarray(scene['board_for_planning']['pose'])
+             chosen=_search_station(ctx,state,scene,belief,board,body,sender,receiver,source_bead,attempts,avoid=avoid)
+     if receiver_motion is None:raise c.PlanningRefusal('Bounded station re-plan exhausted '+json.dumps(station_retries))
+-    receiver_execution=_execute(ctx,state,receiver_motion,retained_arm=sender)
++    try:
++        receiver_execution=_execute(ctx,state,receiver_motion,retained_arm=sender)
++    except _ActualQ16Changed as moved:
++        # The loaded sender (or the open receiver) settled while the path was
++        # screened, so no motor command was issued. Re-plan and re-screen the
++        # same approach once from the actual current q16 and held body; every
++        # gate is unchanged.
++        actual=base.proprio(ctx,sender);body=_body(actual,belief)
++        receiver_motion=_screen(ctx,state,scene,belief,sender,receiver,_receiver_waypoints(body,candidate),chosen['contract'])
++        receiver_motion['rescreened_after_actual_q16_change']=str(moved)
++        receiver_execution=_execute(ctx,state,receiver_motion,retained_arm=sender)
+     # Receiver approach can make the target slip/rotate in the sender. A
+     # new actual RGB/q16 body rebinds the sender and recenters the open receiver.
+     state,belief,scene,preclose,preclose_recenter=_recenter_preclose(ctx,state,sender,receiver,
+@@ -831,11 +917,53 @@ def _open_receiver_for_recenter(ctx,state,sender,receiver,belief,scene):
+     return dict(opening=opened,full_material_sweep=guards,sender_opened=False)
+ 
+ 
++CENTRED_CLOSE_TOLERANCE_M=.001
++
++
++def _closed_width_qualification(state,receiver):
++    """A centred pinch of a public bead closes to the expected loaded width.
++
++    Closing on a chord off the bead centre stops narrower, and such a grasp
++    later slides out of the jaws. Proprioception only; compared with the same
++    public expected loaded width the close itself uses.
++    """
++    rec=state['handoff'].get('receiver_close_record',{})
++    expected=float(rec.get('expected_loaded_width_m',.0242));actual=float(rec.get('actual_after',{}).get('width_m',0.))
++    return dict(kind='centred_bead_closed_width',expected_loaded_width_m=expected,actual_closed_width_m=actual,
++        tolerance_m=CENTRED_CLOSE_TOLERANCE_M,passed=bool(actual>=expected-CENTRED_CLOSE_TOLERANCE_M),receiver=receiver)
++
++
++def _receiver_close_centred(ctx,state,sender,receiver):
++    """First-hop close; an off-centre close is reopened and recentred once.
++
++    The sender keeps holding throughout. The reopening sweep, fresh-RGB
++    recentering and the second close use the unchanged screens and gates.
++    """
++    closed=_receiver_close_once(ctx,state)
++    first=_closed_width_qualification(closed['state'],receiver)
++    closed['state']['handoff']['receiver_close_record']['closed_width_qualification']=first
++    if first['passed']:return closed
++    state=closed['state'];h=state['handoff']
++    belief=_belief(ctx,state,sender);state,scene,refresh=scene_for_motion(ctx,state,belief)
++    reopening=_open_receiver_for_recenter(ctx,state,sender,receiver,belief,scene)
++    state['handoff'].pop('receiver_attachment',None);state['handoff']['stage']='prepared'
++    state,belief,scene,preclose,recenter=_recenter_preclose(ctx,state,sender,receiver,belief,scene,
++        h['candidate'],h['contract'],h['sender_arrival_timestamp'])
++    state['handoff'].update(preclose_rgb=preclose,sender_belief=belief)
++    closed=_receiver_close_once(ctx,state)
++    second=_closed_width_qualification(closed['state'],receiver)
++    closed['state']['handoff']['receiver_close_record'].update(closed_width_qualification=second,
++        off_centre_first_close=dict(qualification=first,reopening=reopening,recenter=recenter,scene_refresh=refresh))
++    if not second['passed']:
++        raise StageRefusal('Receiver closed off the bead centre twice while the sender retained Red '+json.dumps(second))
++    return closed
++
++
+ def receiver_close(ctx,state):
+     """Close, qualify the actual finite-face location, and repair in place."""
+     state=deepcopy(state);sender,receiver=_roles(state)
+     final_right=(receiver==1 and state['handoff'].get('hop')==2)
+-    if not final_right:return _receiver_close_once(ctx,state)
++    if not final_right:return _receiver_close_centred(ctx,state,sender,receiver)
+     attempts=[]
+     for attempt in range(3):
+         partial_feedback=None
+@@ -922,7 +1050,7 @@ def _receiver_close_once(ctx,state):
          if not .008<actual['width_m']<.045:
              raise StageRefusal('Receiver actual obstructed jaw is not a retained-grasp candidate')
          belief=_belief(ctx,state,sender)
@@ -2067,7 +2754,7 @@ index 9a3f928..307fb50 100644
          postclose_rebinding=None
          if 'red' in observed.get('poses',{}):
              state,belief,postclose_rebinding=_rebind_sender_observation(ctx,state,observed,sender,belief,
-@@ -955,7 +1027,7 @@ def _receiver_close_once(ctx,state):
+@@ -955,7 +1083,7 @@ def _receiver_close_once(ctx,state):
          # receiver_close before any independent dual-held credit is earned.
          ctx.tool('robot.wait_steps',steps=6)
          belief=_belief(ctx,state,sender)
@@ -2076,7 +2763,7 @@ index 9a3f928..307fb50 100644
          state=save_observation(state,observed)
          if 'red'not in observed.get('poses',{}):
              raise _ReceiverFaceRecenter(state,None,deepcopy(close_feedback))
-@@ -1000,7 +1072,7 @@ def _postopen_receiver_refresh(ctx,state,receiver,belief):
+@@ -1000,7 +1128,7 @@ def _postopen_receiver_refresh(ctx,state,receiver,belief):
      records=[]
      for attempt in range(2):
          predicted=_body(base.proprio(ctx,receiver),belief)
@@ -2085,7 +2772,7 @@ index 9a3f928..307fb50 100644
          row=dict(timestamp=observed['timestamp'],status='RGB_UNKNOWN',current_target_measured=False)
          if 'red' in observed.get('poses',{}):
              state,belief,rebound=_rebind_sender_observation(ctx,state,observed,receiver,belief,
-@@ -1088,7 +1160,7 @@ def sender_release(ctx,state):
+@@ -1088,7 +1216,7 @@ def sender_release(ctx,state):
          # A previous good close and dual-held CP cannot authorize opening
          # after the bead has subsequently moved to the finite pad edge.
          predicted=_body(base.proprio(ctx,receiver),belief)
@@ -2094,7 +2781,7 @@ index 9a3f928..307fb50 100644
          if 'red'not in observed.get('poses',{}):
              raise StageRefusal('Final donor remains held: pre-opening finite-face RGB is UNKNOWN')
          preopen_face=_receiver_face_measurement(observed,receiver,h['candidate'])
-@@ -1123,6 +1195,13 @@ def sender_release(ctx,state):
+@@ -1123,6 +1251,13 @@ def sender_release(ctx,state):
          sender_release_record=dict(width_sweep=guards,opening=opened,postopen_receiver_refresh=refresh,
              actual_preopen_finite_face=preopen_face,preopen_scene_refresh=preopen_scene_refresh,
              withdrawal=withdrawal['execution'],withdrawal_family=withdrawal['family'],refusals=withdrawal['refusals']))
@@ -2108,7 +2795,7 @@ index 9a3f928..307fb50 100644
      return result('transferred',state,state['observation'],'sender_release',handoff=state['handoff'])
  
  
-@@ -1197,7 +1276,7 @@ def receiver_bind(ctx,state):
+@@ -1197,7 +1332,7 @@ def receiver_bind(ctx,state):
          raise StageRefusal('Receiver binding requires actual sender-open typed transfer')
      attempts=[];belief=_belief(ctx,state,receiver)
      for attempt in range(2):
@@ -2117,6 +2804,44 @@ index 9a3f928..307fb50 100644
          row=dict(timestamp=observed['timestamp'],visible_names=sorted(observed.get('poses',{})))
          if 'red' in observed.get('poses',{}):
              source=_source(observed,'Fresh posttransfer actual Red RGB and same-image receiver q16')
+diff --git a/a/puzzler/red_computed_carry.py b/b/puzzler/red_computed_carry.py
+index 356afc7..7547316 100644
+--- a/a/puzzler/red_computed_carry.py
++++ b/b/puzzler/red_computed_carry.py
+@@ -105,9 +105,13 @@ def _repair_prefix_rgb(ctx,state,*,label):
+     from .modular_controller import _current_rgb_fk_gate,board_belief
+     names=set(state.get('initialized_prefix',[]))|set(state.get('executed_placements',[]))|set(state.get('released_placements',[]))
+     original=state['observation'];raw=original.get('poses',{});parameters=state['parameters']
+-    conflicts=[name for name in names if state.get('belief_ledger',{}).get(name,{}).get('status')=='current_rgb_conflict_goal_envelope_invalidated' or ('board'in raw and name in raw and visual_memory.goal_error(name,original,parameters)>=.004)]
++    # A raw prefix fit that disagrees with its goal is a contradiction only if
++    # the goal pose fails to explain the current pixels too: the same alias
++    # rule save_observation applies (goal_pixel_support, occluder-aware).
++    explained=lambda name:bool(original.get('goal_pixel_support',{}).get(name,{}).get('consistent'))
++    conflicts=[name for name in names if state.get('belief_ledger',{}).get(name,{}).get('status')=='current_rgb_conflict_goal_envelope_invalidated' or ('board'in raw and name in raw and not explained(name) and visual_memory.goal_error(name,original,parameters)>=.004)]
+     if not conflicts:return state,None
+-    board=np.asarray(board_belief(state,original)['pose']);br=Rotation.from_quat(board[3:]).as_matrix();public=goals('pyramid',parameters['pyramid_plan']);hints={'__observer_mode__':'plain_rgb_cad'}
++    board=np.asarray(board_belief(state,original)['pose']);br=Rotation.from_quat(board[3:]).as_matrix();public=goals('pyramid',parameters['pyramid_plan']);hints={'__observer_mode__':'plain_rgb_cad','__goal_support__':sorted(conflicts)}
+     # A source-contact scene still needs a real RED/board measurement. This
+     # prior seeds the independent fit only and is never copied into its output.
+     if 'red' in raw:hints['red']=raw['red']
+@@ -119,8 +123,15 @@ def _repair_prefix_rgb(ctx,state,*,label):
+         for name in conflicts:
+             gate=_current_rgb_fk_gate(observed,name)
+             error=visual_memory.goal_error(name,observed,parameters) if gate is not None else None
+-            checks[name]=dict(current_four_view_q16_gate=gate,actual_RGB_goal_error_m=error)
+-        accepted=all(v['current_four_view_q16_gate'] is not None and v['actual_RGB_goal_error_m']<.004 for v in checks.values())
++            # (a) re-fit inside the goal envelope, or (b) the current frame's
++            # occluder-aware goal pixels show the piece at its goal (the alias
++            # rule of save_observation). Only a positive contradiction, or no
++            # current evidence at all, leaves the conflict standing.
++            support=observed.get('goal_pixel_support',{}).get(name)
++            refit=bool(gate is not None and error<.004);pixels=bool(support and support.get('consistent'))
++            checks[name]=dict(current_four_view_q16_gate=gate,actual_RGB_goal_error_m=error,goal_pixel_support=support,
++                accepted_by='refit_within_goal_envelope' if refit else 'occluder_aware_goal_pixels' if pixels else None)
++        accepted=all(v['accepted_by'] is not None for v in checks.values())
+         attempts.append(dict(timestamp=observed.get('timestamp'),frame_sha256=observed.get('frame_sha256'),checks=checks,accepted=accepted))
+         if accepted:return state,dict(contract='RED_prefix_fresh_plain_RGB_reacquisition_v1',label=label,conflicting_names=conflicts,original_raw_observation=original,attempts=attempts,scope='Independent current RGB and q16 resolves alias; original observations retained, no GT or goal-pose fill')
+     # An earned Maroon track may keep a conditional MAP interpretation after
 diff --git a/a/puzzler/red_rgb_recovery.py b/b/puzzler/red_rgb_recovery.py
 index 1764988..9f3adc4 100644
 --- a/a/puzzler/red_rgb_recovery.py
@@ -2211,12 +2936,277 @@ index cfd2606..17bed22 100644
      # Separate rigid parts cannot occupy the same bead volume. Independent
      # contour fits in a packed monochrome scene can otherwise claim a neighbor's
      # image evidence. Refuse both conflicting tracks, without guessing which
+diff --git a/b/puzzler/source_age_recovery.py b/b/puzzler/source_age_recovery.py
+new file mode 100644
+index 0000000..43c6e1e
+--- /dev/null
++++ b/b/puzzler/source_age_recovery.py
+@@ -0,0 +1,259 @@
++"""Bounded recovery when an owned RGB source outlives its declared age scope.
++
++The native simulator keeps stepping while the policy computes. On a slow or
++contended host a planning pass (e.g. a widened grasp search) can therefore age
++an owned source past its declared scope although nothing in the scene changed:
++the pregrasp RGB source of a conditional attachment (<= 20 s at close), the
++attachment itself (<= 30 s after close), a measured held source (<= 30 s) or
++the historical RGB reference of a release (<= ``historical_max_age_s``).
++
++Such a refusal says nothing about the scene; a fresh look does. Every limit and
++gate stays unchanged: a new RGB packet is taken now (with a free-wrist look
++where the view needs one, the holding hand still), it must reproduce the dated
++source or measure the held part, and only then is the same owned-source tool
++called on it. Fresh evidence that fails a gate refuses exactly as before.
++"""
++from copy import deepcopy
++
++import numpy as np
++from scipy.spatial.transform import Rotation
++
++from . import vision_controller as c
++from .vision_stages import StageRefusal
++
++# Refresh a planned pregrasp source older than this before the grasp motion
++# starts; the attachment's own 20 s scope is untouched.
++REFRESH_BEFORE_GRASP_S = 8.
++# A fresh fit must reproduce the dated source the plan was computed from.
++SOURCE_MATCH_M = .002
++# Fresh-look attempts per step.
++MAX_ATTEMPTS = 2
++AGE_SCOPE_TEXTS = ('outside declared scope', 'Conditional attachment expired', 'bounded30s',
++                   'exceeds bounded age scope')
++
++
++def is_age_scope_refusal(error):
++    text = str(error)
++    return any(key in text for key in AGE_SCOPE_TEXTS)
++
++
++def _now(ctx, arm):
++    return float(ctx.tool('robot.read_proprioception', arm_id=arm)['timestamp'])
++
++
++def _displacement(name, a, b):
++    from .visual_memory import shape_displacement
++    return float(shape_displacement(name, a, b))
++
++
++def _fresh_loose(ctx, name, pose, *, look):
++    """A new accepted RGB packet of a loose part, with one free-wrist look if needed."""
++    fresh = c.state(ctx, {name: list(pose)})
++    looks = None
++    if name not in fresh.get('poses', {}) and look:
++        from .survey import look_and_observe
++        fresh = look_and_observe(ctx, [name], hints={name: list(pose)}, max_looks=1, always=False)
++        looks = fresh.get('wrist_looks')
++    return fresh, looks
++
++
++def refresh_planned_source(ctx, state, arm):
++    """Before the grasp motion: replace an aged planned source by a fresh packet
++    that reproduces it (<= SOURCE_MATCH_M). Otherwise keep the dated source
++    unchanged (the original behaviour) and record why."""
++    from .modular_controller import save_observation
++    name = state['piece']; origin = state['observation']
++    age = _now(ctx, arm)-float(origin['timestamp'])
++    record = dict(kind='planned_source_age_refresh', piece=name, dated_source_timestamp=origin['timestamp'],
++                  dated_source_age_s=age, refresh_after_s=REFRESH_BEFORE_GRASP_S, match_limit_m=SOURCE_MATCH_M)
++    if age <= REFRESH_BEFORE_GRASP_S:
++        return state, {**record, 'refreshed': False}
++    pose = origin['poses'][name]
++    for attempt in range(MAX_ATTEMPTS):
++        fresh, looks = _fresh_loose(ctx, name, pose, look=attempt == 0)
++        record.setdefault('attempts', []).append(dict(timestamp=fresh.get('timestamp'), measured=name in fresh.get('poses', {}),
++                                                      wrist_looks=looks))
++        if name not in fresh.get('poses', {}):
++            continue
++        moved = _displacement(name, pose, fresh['poses'][name])
++        record['attempts'][-1]['displacement_from_dated_source_m'] = moved
++        if moved > SOURCE_MATCH_M:
++            # The part is not where the plan saw it: never re-date the plan.
++            return state, {**record, 'refreshed': False, 'refused': 'fresh RGB does not reproduce the dated source'}
++        state = save_observation(state, fresh)
++        return state, {**record, 'refreshed': True, 'fresh_source_timestamp': fresh['timestamp']}
++    return state, {**record, 'refreshed': False, 'refused': 'fresh RGB does not measure the part'}
++
++
++def reauthenticate_attachment(ctx, state, arm, assumption, error):
++    """After the close, before the lift: an attachment refused only for its source
++    age is captured again from a fresh packet of the closed-jaw part (holder
++    still; the free wrist looks if the frame lacks support). The fresh pose
++    must lie within the attachment's own declared displacement bound of the
++    dated source. Returns (state, attachment or None, record)."""
++    from .modular_controller import save_observation
++    from .survey import look_at_held
++    name = state['piece']
++    record = dict(kind='attachment_source_age_reauthentication', piece=name, original_refusal=str(error))
++    if not is_age_scope_refusal(error):
++        return state, None, {**record, 'skipped': 'refusal is not an age scope'}
++    dated = state['observation']['poses'][name]
++    bound = float(assumption.get('bead_displacement_bound_m', .008))
++    for attempt in range(MAX_ATTEMPTS):
++        fresh = c.state(ctx, {name: list(dated)}); look = None
++        if name not in fresh.get('poses', {}):
++            fresh, look = look_at_held(ctx, name, np.asarray(dated, float), arm, reference=fresh)
++        row = dict(timestamp=fresh.get('timestamp'), measured=name in fresh.get('poses', {}), free_wrist_look=look)
++        record.setdefault('attempts', []).append(row)
++        if name not in fresh.get('poses', {}):
++            continue
++        row['displacement_from_dated_source_m'] = moved = _displacement(name, dated, fresh['poses'][name])
++        if moved > bound:
++            return state, None, {**record, 'refused': 'fresh closed-jaw RGB exceeds the declared attachment bound'}
++        state = save_observation(state, fresh)
++        source = dict(piece=name, pose=fresh['poses'][name], timestamp=fresh['timestamp'], frame_sha256=fresh['frame_sha256'],
++                      observation_source=fresh['observation_source'],
++                      role='Actual closed-jaw pre-lift RGB (age-scope reauthentication); not a postlift held measurement')
++        try:
++            attachment = ctx.tool('puzzle.capture_conditional_attachment', source_rgb=source, assumption=assumption, arm_id=arm)
++        except ValueError as second:
++            row['capture_refusal'] = str(second)
++            if not is_age_scope_refusal(second):
++                return state, None, record
++            continue
++        return state, attachment, {**record, 'reauthenticated': True, 'attachment_id': attachment['attachment_id']}
++    return state, None, record
++
++
++def _held_prediction(ctx, state, arm):
++    """Aim point for a free-wrist look at the held part: current FK x the owned
++    relative transform (aim only, never a measurement)."""
++    p = state['parameters']; name = state['piece']
++    tcp = ctx.tool('robot.read_proprioception', arm_id=arm)['tcp']
++    R = Rotation.from_quat(tcp[3:]).as_matrix()
++    attachment = state.get('conditional_attachment') or {}
++    if 'object_in_tcp_position' in attachment:
++        rel_p = np.asarray(attachment['object_in_tcp_position'], float); rel_R = np.asarray(attachment['object_in_tcp_rotation'], float)
++        return np.r_[np.asarray(tcp[:3]) + R@rel_p, Rotation.from_matrix(R@rel_R).as_quat()]
++    source = p.get('owned_held_belief_source') or {}
++    if 'pose' in source:
++        return np.asarray(source['pose'], float)
++    return np.asarray(state.get('prediction') or state['plan']['body'], float)
++
++
++def owned_held_belief(ctx, state, refresh_after_s=None):
++    """Propagate the owned held estimate. When only its age scope refuses it,
++    measure the held part now with the free wrist camera (holder still) and
++    continue from that accepted current RGB/q16 source. With
++    ``refresh_after_s`` (carry start, where the held part is still clear of the
++    case) a valid estimate older than that is renewed the same way, keeping
++    the valid one if the look does not measure the part. Returns (state, belief, record)."""
++    from .modular_controller import save_observation
++    from .survey import look_at_held
++    p = state['parameters']; arm = state['arm']; name = state['piece']
++    try:
++        if p.get('conditional_attachment_id'):
++            belief = ctx.tool('puzzle.propagate_conditional_attachment', attachment_id=p['conditional_attachment_id'], arm_id=arm)
++        else:
++            belief = ctx.tool('puzzle.propagate_pyramid_held_belief', source=p['owned_held_belief_source'], arm_id=arm)
++        if refresh_after_s is None or float(belief.get('source_age_s', 0.)) <= refresh_after_s:
++            return state, belief, None
++        valid = belief
++        record = dict(kind='held_source_age_renewal', piece=name, source_age_s=float(belief['source_age_s']),
++                      renew_after_s=refresh_after_s)
++    except ValueError as error:
++        if not is_age_scope_refusal(error):
++            raise
++        valid = None
++        record = dict(kind='held_source_age_remeasurement', piece=name, original_refusal=str(error))
++    for attempt in range(MAX_ATTEMPTS):
++        prediction = _held_prediction(ctx, state, arm)
++        fresh = c.state(ctx, {name: prediction.tolist()}); look = None
++        if name not in fresh.get('poses', {}):
++            fresh, look = look_at_held(ctx, name, prediction, arm, reference=fresh)
++        row = dict(timestamp=fresh.get('timestamp'), measured=name in fresh.get('poses', {}), free_wrist_look=look)
++        record.setdefault('attempts', []).append(row)
++        if name not in fresh.get('poses', {}):
++            continue
++        tcp, _ = c.hand(ctx, arm)
++        gap = c.part_hand_gap(name, fresh['poses'][name], tcp); row['hand_bead_gap_m'] = gap
++        if gap > .045:
++            raise StageRefusal('Current RGB contradicts the retained grasp (held part away from the hand)')
++        q16 = fresh['robot_geometry_provenance']
++        source = dict(mode='pyramid', piece=name, pose=fresh['poses'][name], timestamp=fresh['timestamp'], frame_sha256=fresh['frame_sha256'],
++                      observation_source=fresh['observation_source'], robot_encoder_values=q16['robot_encoder_values'],
++                      robot_encoder_sha256=q16['robot_encoder_sha256'], source_step=q16['step'],
++                      source_role='Actual accepted current held RGB and synchronous robot q16 (age-scope remeasurement)')
++        p = {**p, 'owned_held_belief_source': source}; p.pop('conditional_attachment_id', None)
++        state = {**save_observation(state, fresh), 'parameters': p}
++        belief = ctx.tool('puzzle.propagate_pyramid_held_belief', source=source, arm_id=arm)
++        return state, belief, {**record, 'remeasured': True, 'source_timestamp': source['timestamp']}
++    if valid is not None:
++        return state, valid, {**record, 'renewed': False}
++    raise StageRefusal('Held estimate outlived its declared age scope and a fresh look did not measure the held part: '
++                       + str(record['original_refusal']))
++
++
++def refresh_historical_reference(ctx, state):
++    """Release planning: when the grasp-time historical RGB reference has used
++    two thirds of its age limit, the newest owned accepted packet that has the
++    case becomes the reference (same limit); the record list is the current
++    RGB history. A fresh host never reaches this."""
++    p = state['parameters']; history = state.get('rgb_history', [])
++    old = p.get('historical_complete_rgb')
++    if old is None:
++        return state, None
++    limit = float(p.get('historical_max_age_s', 15.))
++    if _now(ctx, state['arm'])-float(old.get('timestamp', 0.)) <= 2*limit/3:
++        return state, None
++    newest = next((row for row in reversed(history) if 'board' in row.get('poses', {})), None)
++    if newest is None or float(newest['timestamp']) <= float(old.get('timestamp', -1.)):
++        return state, None
++    p = {**p, 'historical_complete_rgb': {k: deepcopy(newest[k]) for k in ('poses', 'timestamp', 'frame_sha256', 'observation_source') if k in newest},
++         'historical_rgb_records': deepcopy(history)}
++    return {**state, 'parameters': p}, dict(kind='historical_reference_refresh', previous_timestamp=old.get('timestamp'),
++                                            reference_timestamp=newest['timestamp'])
++
++
++def refresh_stale_observation(ctx, state, limit_s=30.):
++    """Carry planning: when the last accepted packet has used two thirds of the
++    carry's board-source limit, take a fresh one (held part seeded by its owned
++    prediction) so the carry is planned from current RGB."""
++    from .modular_controller import save_observation
++    arm = state['arm']; name = state['piece']
++    age = _now(ctx, arm)-float(state['observation']['timestamp'])
++    if age <= 2*limit_s/3:
++        return state, None
++    hints = {name: _held_prediction(ctx, state, arm).tolist()}
++    fresh = c.state(ctx, hints); look = None
++    if 'board' not in fresh.get('poses', {}):
++        fresh, look = _free_wrist_case_look(ctx, state, arm, hints)
++    record = dict(kind='stale_observation_refresh', age_s=age, case_look=look)
++    if 'board' not in fresh.get('poses', {}):
++        return state, {**record, 'adopted': False, 'reason': 'fresh packets lack the case'}
++    return save_observation(state, fresh), {**record, 'adopted': True, 'timestamp': fresh['timestamp']}
++
++
++def _free_wrist_case_look(ctx, state, holder, hints):
++    """The free hand carries its wrist camera to the precomputed survey look of
++    its own side that best centres the case (aimed at the dated RGB case pose;
++    aim only), observes with the gantry and both wrists, and returns home. The
++    holding hand does not move."""
++    from .survey import choose_look, looks
++    free = 1-int(holder); side = 'left' if free == 0 else 'right'
++    board = (state['observation'].get('poses', {}).get('board')
++             or next((row['poses']['board'] for row in reversed(state.get('rgb_history', [])) if 'board' in row.get('poses', {})), None))
++    if board is None:
++        return c.state(ctx, hints), dict(refused='no dated case pose to aim at')
++    chosen = choose_look(board, side=side)
++    if chosen is None:
++        return c.state(ctx, hints), dict(refused='no survey look of the free arm sees the case')
++    _, _, joints, score = chosen
++    packet = ctx.tool('robot.read_proprioception', arm_id=free)
++    current = [float(packet['robot_encoder_values'][i]) for i in looks()[side]['arm_coords']]
++    c.feed_joint_plan(ctx, {'current': current, 'joints': list(joints)}, free)
++    ctx.tool('robot.wait_steps', steps=20)
++    fresh = c.state(ctx, hints)
++    home = ctx.tool('robot.go_home', arm_id=free)
++    return fresh, dict(free_arm=free, look_joints=list(joints), centring_px=score, case_measured='board' in fresh.get('poses', {}),
++                       home_result=home)
 diff --git a/b/puzzler/survey.py b/b/puzzler/survey.py
 new file mode 100644
-index 0000000..0689249
+index 0000000..c1ba6fd
 --- /dev/null
 +++ b/b/puzzler/survey.py
-@@ -0,0 +1,500 @@
+@@ -0,0 +1,542 @@
 +"""Wrist-camera survey poses for the official YAM station rig.
 +
 +At the home posture each wrist D405 looks past its own fingertips toward the far
@@ -2556,21 +3546,57 @@ index 0000000..0689249
 +    return _model.local_beads(name) @ Rotation.from_quat(pose[3:]).as_matrix().T+pose[:3]
 +
 +
-+def unmeasured_neighbours(target, observed, scene):
++def finger_reach_m(open_width, band_m=2*_model.RADIUS):
++    """Largest distance from the TCP approach axis of the public finger
++    colliders (public hand MJCF, gripper_geometry) at a commanded jaw opening,
++    over the colliders' parts within ``band_m`` above the TCP: the part of the
++    open hand that reaches the layer of beads lying beside a grasped bead."""
++    from .gripper_geometry import hand_primitives
++    t = np.linspace(-1., 1., 21)
++    reach = 0.
++    for shape in hand_primitives(float(open_width)):
++        if not any(key in shape.name.split(':')[0] for key in ('_lf_', '_rf_')):
++            continue
++        c, A, size = np.asarray(shape.center, float), np.asarray(shape.rotation, float), np.asarray(shape.size, float)
++        if shape.kind == 'capsule':
++            points = c+t[:, None]*size[1]*A[:, 2]; pad = size[0]
++        elif shape.kind == 'sphere':
++            points = c[None]; pad = size[0]
++        else:
++            grid = np.array([[x, y, z] for x in t[::5] for y in t[::5] for z in t[::5]])
++            points = c+(grid*size) @ A.T; pad = 0.
++        # TCP +z points from the wrist toward the fingertips.
++        points = points[points[:, 2]+pad >= -band_m]
++        if len(points):
++            reach = max(reach, float(np.linalg.norm(points[:, :2], axis=1).max())+float(pad))
++    return reach
++
++
++def unmeasured_neighbours(target, observed, scene, open_width=None):
 +    """Loose pieces next to the target whose planning occupancy is not a current
-+    two-view measurement (an inflated gantry proposal or dated RGB)."""
++    two-view measurement (an inflated gantry proposal or dated RGB), nearest first.
++
++    Near means a neighbour bead centre within NEIGHBOUR_BEAD_GAP_M of a target
++    bead or, with ``open_width``, within reach of the open fingers of a grasp on
++    a target bead: finger reach (public hand CAD) + bead radius + that
++    neighbour's own planning inflation. An inflated hypothesis inside that
++    reach can refuse the tuned grasp a measurement would admit.
++    """
 +    if target not in observed.get('poses', {}):
 +        return []
 +    mine = _bead_points(target, observed['poses'][target])
++    reach = None if open_width is None else finger_reach_m(open_width)
 +    out = []
 +    for name, item in scene.get('occupancy', {}).items():
 +        if name == target or item.get('source') not in UNMEASURED_SOURCES:
 +            continue
 +        gap = min(float(np.linalg.norm(_bead_points(name, h)[:, None]-mine[None], axis=2).min())
 +                  for h in item['pose_hypotheses'])
-+        if gap < NEIGHBOUR_BEAD_GAP_M:
-+            out.append((name, list(item['pose_hypotheses'][0])))
-+    return out
++        limit = NEIGHBOUR_BEAD_GAP_M if reach is None else max(
++            NEIGHBOUR_BEAD_GAP_M, reach+_model.RADIUS+float(item.get('inflation_m', 0.)))
++        if gap < limit:
++            out.append((gap, name, list(item['pose_hypotheses'][0])))
++    return [(name, pose) for _, name, pose in sorted(out, key=lambda row: row[0])]
 +
 +
 +def choose_framing_look(items, exclude=()):
@@ -2602,11 +3628,17 @@ index 0000000..0689249
 +    is returned only if it still measures the target and measures at least one
 +    more neighbour; otherwise the caller keeps its frame."""
 +    from . import vision_controller as c
-+    items = [(target, observed['poses'][target]), *neighbours]
-+    chosen = choose_framing_look(items)
 +    record = dict(piece=target, neighbours=[n for n, _ in neighbours])
-+    if chosen is None:
++    # Frame the target with all its unmeasured neighbours; failing that, with
++    # the nearest ones only (neighbours arrive nearest first).
++    for count in range(len(neighbours), 0, -1):
++        chosen = choose_framing_look([(target, observed['poses'][target]), *neighbours[:count]])
++        if chosen is not None:
++            neighbours = neighbours[:count]
++            break
++    else:
 +        return None, {**record, 'refused': 'no precomputed look frames the target with its neighbours'}
++    record['framed_neighbours'] = [n for n, _ in neighbours]
 +    arm, side, joints, score = chosen
 +    packet = ctx.tool('robot.read_proprioception', arm_id=arm)
 +    current = [float(packet['robot_encoder_values'][i]) for i in looks()[side]['arm_coords']]
@@ -4149,7 +5181,7 @@ index 1528408..1756153 100644
      for height in np.linspace(start,max(start,limit),7):
          position=np.asarray(target_tcp)+[0,0,height]
 diff --git a/a/puzzler/vision_observer.py b/b/puzzler/vision_observer.py
-index 1f67ff3..0454bff 100644
+index 1f67ff3..c5df44f 100644
 --- a/a/puzzler/vision_observer.py
 +++ b/b/puzzler/vision_observer.py
 @@ -8,7 +8,7 @@ from scipy.optimize import linear_sum_assignment
@@ -4296,17 +5328,18 @@ index 1f67ff3..0454bff 100644
      def _disambiguate_withheld(self, result, timestamp, match_m=.002, alias_m=.020, max_age_s=30.):
          """Pick, never invent, a withheld piece's pose from its own current candidates.
  
-@@ -110,7 +210,8 @@ class VisualObserver:
+@@ -110,7 +210,9 @@ class VisualObserver:
          observer_mode=supplied.pop('__observer_mode__',None)
          prefix_tracks=supplied.pop('__conditional_prefix_tracks__',{})
          completion_check=bool(supplied.pop('__completion_check__',False))
 -        seeds = {**self.previous, **supplied}
 +        held_prediction=supplied.pop('__held_prediction__',None)
++        requested_support=[n for n in supplied.pop('__goal_support__',()) or () if n in model.CELLS]
 +        seeds = {**self.proposals, **self.previous, **supplied}
          result = (estimate(images,self.cameras,seeds) if observer_mode in ('plain_rgb_cad','prefix_rgb_cad')
                    else self.estimator(images, self.cameras, seeds))
          if observer_mode == 'released_cyan_rgb_cad':
-@@ -118,15 +219,17 @@ class VisualObserver:
+@@ -118,15 +220,17 @@ class VisualObserver:
              result = recover_released_cyan(result, images, self.cameras, self.targets['cyan'])
              result['observer_mode'] = observer_mode
          if observer_mode in ('plain_rgb_cad','prefix_rgb_cad'):
@@ -4328,7 +5361,7 @@ index 1f67ff3..0454bff 100644
                      and float(detection.get('median_residual_m',float('inf')))<.0018
                      and float(detection.get('rms_residual_m',float('inf')))<.004)
                  if passed:
-@@ -144,7 +247,7 @@ class VisualObserver:
+@@ -144,7 +248,7 @@ class VisualObserver:
                  if name in model.CELLS and detection.get('visible'):
                      detection['public_cad_seeded']=name in supplied
                      detection['independent_rgb_support']={'fresh_rgb_fit':True,
@@ -4337,7 +5370,7 @@ index 1f67ff3..0454bff 100644
                          'center_support':detection.get('center_support',[]),'view_track_disjoint':True}
              result['poses']={n:d['pose'] for n,d in detections.items() if d.get('visible')}
              result['observation_source']='calibrated_rgb_cad_seeded'
-@@ -165,6 +268,7 @@ class VisualObserver:
+@@ -165,6 +269,7 @@ class VisualObserver:
                      request.get('conflicting_poses',()),current_poses=result['poses'])
              result['prefix_track_reassociation']=witnesses
          self._disambiguate_withheld(result, timestamp)
@@ -4345,19 +5378,32 @@ index 1f67ff3..0454bff 100644
          if completion_check:
              from .assembly_completion import evaluate as completion
              result['assembly_completion'] = (completion(images, self.cameras, result['poses']['board'], self.targets)
-@@ -177,7 +281,10 @@ class VisualObserver:
+@@ -175,9 +280,23 @@ class VisualObserver:
+             result['robot_geometry_provenance']=dict(self.capture.__self__.robot_geometry_provenance)
+         result['assessment'] = assess(result, self.targets)
          disputed = [name for name, error in result['assessment']['bead_error_m'].items() if error is not None and error >= .003]
++        # A caller may ask for goal-pixel support of pieces this frame did not
++        # re-measure (a conflicted prefix piece hidden by the arms or a held part).
++        disputed = sorted(set(disputed) | set(requested_support))
          if disputed and 'board' in result.get('poses', {}):
              from .assembly_completion import goal_support
 -            result['goal_pixel_support'] = goal_support(images, self.cameras, result['poses']['board'], self.targets, disputed)
 +            # Current fits of parts away from their goal (a held part) and the
 +            # projected robot hide goal sites; those sites are not tested.
++            blockers = dict(result['poses'])
++            held_name = (held_prediction or {}).get('name') if isinstance(held_prediction, dict) else None
++            if held_name in model.CELLS and held_name not in blockers:
++                # The held part's owned prediction (attachment x encoder FK)
++                # only removes the goal sites it may hide; it never counts as
++                # a match or a measurement.
++                blockers[held_name] = list(map(float, held_prediction['pose']))
++                result['goal_pixel_support_held_blocker'] = dict(name=held_name, source='owned held prediction; site skipping only')
 +            result['goal_pixel_support'] = goal_support(images, self.cameras, result['poses']['board'], self.targets, disputed,
-+                                                        current_poses=result['poses'])
++                                                        current_poses=blockers)
          result['frame_sha256'] = {k: hashlib.sha256(a.tobytes()).hexdigest() for k, a in images.items()}
          for witness in result.get('prefix_track_reassociation',{}).values():
              witness.update(timestamp=result['timestamp'],frame_sha256=dict(result['frame_sha256']),
-@@ -200,6 +307,11 @@ class VisualObserver:
+@@ -200,6 +319,11 @@ class VisualObserver:
              # Persist the actual sensor input. No ground truth is written here.
              np.savez_compressed(self.output/f'{len(self.records):04d}.npz', **images)
          self.previous.update(result['poses'])
