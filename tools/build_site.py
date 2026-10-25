@@ -265,16 +265,19 @@ def runs_cell(rows):
     return f'<td>{head}<small>{esc(detail)}</small></td>'
 
 
-def repeats_html(before, after):
+def repeats_html(before, after, latest=None):
     """One row summarising every nominal repeat."""
     return (f'<tr><th scope="row">Layout C, repeats</th><td class="mono small">as designed</td>'
-            f'{runs_cell(before)}{runs_cell(after)}</tr>')
+            f'{runs_cell(before)}{runs_cell(after)}{runs_cell(latest) if latest is not None else ""}</tr>')
 
 
-def variants_html(variants, repeats=''):
-    head = '<thead><tr><th scope="col">Scene</th><th scope="col">What changed</th><th scope="col">v13 policy (one run)</th><th scope="col">This work (all runs)</th></tr></thead>'
+def variants_html(variants, repeats='', latest_label=None):
+    extra = f'<th scope="col">{esc(latest_label)}</th>' if latest_label else ''
+    head = ('<thead><tr><th scope="col">Scene</th><th scope="col">What changed</th><th scope="col">v13 policy (one run)</th>'
+            f'<th scope="col">This work (all runs)</th>{extra}</tr></thead>')
     body = repeats + ''.join(f'<tr><th scope="row">{esc(v["label"])}</th><td class="mono small">{esc(v["change"])}</td>'
-                   f'{outcome_cell(v["before"])}{runs_cell(v["after"])}</tr>' for v in variants)
+                   f'{outcome_cell(v["before"])}{runs_cell(v["after"])}'
+                   f'{runs_cell(v["latest"]) if latest_label else ""}</tr>' for v in variants)
     return head + '<tbody>' + body + '</tbody>'
 
 
@@ -346,6 +349,9 @@ def main():
     parser.add_argument('--repeats-before', nargs='*', default=[])
     parser.add_argument('--note', default='', help='which code produced each column')
     parser.add_argument('--repeats-after', nargs='*', default=[])
+    parser.add_argument('--latest', nargs='*', default=[], help='runs of the newest code, shown as their own column')
+    parser.add_argument('--repeats-latest', nargs='*', default=[])
+    parser.add_argument('--latest-label', default='Latest code')
     args = parser.parse_args()
     from PIL import Image
 
@@ -389,11 +395,14 @@ def main():
     after = {}
     for row in map(variant_row, args.after):
         after.setdefault(row['variant'], []).append(row)
+    latest = {}
+    for row in map(variant_row, args.latest):
+        latest.setdefault(row['variant'], []).append(row)
     names = [n for n in ('nominal', 'board_a', 'board_b', 'jitter_a', 'jitter_b', 'friction_050', 'friction_080',
                          'combined', 'shuffled') if n in before or n in after]
     variants = [dict(variant=n, label=variant_label(before.get(n) or after[n][0]),
                      change=describe((before.get(n) or after[n][0])['scene'] or {}),
-                     before=before.get(n), after=after.get(n, [])) for n in names]
+                     before=before.get(n), after=after.get(n, []), latest=latest.get(n, [])) for n in names]
     data['variants'] = variants
     (SITE / 'data/page.json').write_text(json.dumps(data, indent=1) + '\n')
     witness = json.loads((SRC / 'data/v13_completion_witness.json').read_text())
@@ -402,7 +411,9 @@ def main():
         PIECES_PLACED=str(data['pieces_placed']), CHECKPOINTS=f"{data['checkpoints_passed']}/{data['checkpoints_total']}",
         SIM_TIME=f"{data['sim_time_s']:.0f}", AUDIT_MAX=f"{data['audit_max_mm']:.1f}" if data['audit_max_mm'] else '—',
         VARIANT_ROWS=variants_html(variants, repeats_html([variant_row(r) for r in args.repeats_before],
-                                                          [variant_row(r) for r in args.repeats_after])),
+                                                          [variant_row(r) for r in args.repeats_after],
+                                                          [variant_row(r) for r in args.repeats_latest] if args.latest else None),
+                                   args.latest_label if args.latest else None),
         GRID=grid, LOOP_SVG=loop_svg(), GEN_NOTE=esc(args.note), HIGHLIGHT=highlight,
         GENERALIZATION_CASES=(SRC / 'generalization_cases.html').read_text() if (SRC / 'generalization_cases.html').exists() else '',
         DRIFT_SVG=drift_svg(SRC / 'data/v13_board_drift.json'),
