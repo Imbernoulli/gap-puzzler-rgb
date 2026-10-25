@@ -3,9 +3,9 @@
 `policy.diff` turns `policy/` (commit 13c9010) into the policy that sees only the
 official I2RT YAM station cameras: the gantry D405 (eye 0.0865, 0, 1.726, looking at
 0.6497, 0, 0.75, 58° fov) and the two wrist D405s on `link_6`. It is the exact code of
-round 29d (`officialcam29d_*`), which completed 4 of 6 fresh runs: nominal ×2 and all
-perturbations combined ×2, each 12/12 with 84/84 checkpoints, RSS and GaP success and
-an independent audit of 2.62-2.89 mm.
+round 29f (`officialcam29f_*`), which completed 3 of 4 fresh runs: case moved and turned
+the other way ×2 and all perturbations combined, each 12/12 with 84/84 checkpoints, RSS
+and GaP success and an independent audit of 2.57-2.64 mm.
 
 Main changes:
 
@@ -20,6 +20,12 @@ Main changes:
   robot (`assembly_completion.goal_support`).
 - **Finish.** The completion check pools the home frame with wrist looks that cover pieces
   the gantry cannot see.
+- **Screened free-arm motion.** Every look move of the free arm is checked against both arms,
+  the table, the case and every known piece before it runs; a hand bracing the case first
+  leaves straight up (`free_arm_motion.py`).
+- **Apex reach.** Before the last hand-off, the top piece's final grasp is checked for reach
+  at the measured case; if it fails, the same pinch rolled 10° or 20° is tried
+  (`red_bimanual_handoff.py`).
 
 No checkpoint, gate or threshold is relaxed.
 

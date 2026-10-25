@@ -43,6 +43,8 @@ VARIANTS = {
     'random_palette': dict(seed=0, scene_variant=dict(appearance='random'), label='Random piece colors (seed 0)'),
     'monochrome': dict(seed=0, scene_variant=dict(appearance='monochrome'), label='All pieces one grey'),
 }
+VARIANTS.update({f'random_palette_{k}': dict(seed=0, scene_variant=dict(appearance=f'random{k}'),
+                                            label=f'Random piece colors (palette seed {k})') for k in range(1, 10)})
 # Demo starts: every loose piece moved up to ±10 mm and turned up to ±10°, and the case
 # moved up to ±5 mm and turned up to ±2.5°, drawn from the seed.
 def _demo(k):
