@@ -35,6 +35,8 @@ def main():
     parser.add_argument('--stride', type=int, default=6)
     parser.add_argument('--pieces', type=int, default=0, help='end each clip at its Nth placed piece')
     parser.add_argument('--labels', nargs='*', default=[], help='cell captions, in --runs order')
+    parser.add_argument('--cols', type=int, default=0, help='columns (default: a square grid)')
+    parser.add_argument('--fill-text', default='', help='text for empty cells when the runs do not fill the grid')
     args = parser.parse_args()
     out = Path(args.out).resolve()
     cells_dir = out.with_suffix('')
@@ -55,7 +57,8 @@ def main():
         shown = min(len(steps), args.pieces) if args.pieces else len(steps)
         cells.append(dict(frames=frames, label=args.labels[k] if k < len(args.labels) else manifest.get('variant_label', path.name),
                           status='done ✓' if shown == 12 else f"{shown} placed"))
-    side = math.ceil(math.sqrt(len(cells)))
+    side = args.cols or math.ceil(math.sqrt(len(cells)))
+    rows = math.ceil(len(cells) / side)
     length = max(len(c['frames']) for c in cells)
     try:
         font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 14)
@@ -63,7 +66,7 @@ def main():
         font = ImageFont.load_default()
     with iio.get_writer(str(out), fps=30, codec='libx264', quality=7, output_params=['-pix_fmt', 'yuv420p']) as writer:
         for i in range(length):
-            canvas = Image.new('RGB', (side * CELL[0], side * CELL[1]), (20, 22, 26))
+            canvas = Image.new('RGB', (side * CELL[0], rows * CELL[1]), (20, 22, 26))
             for k, cell in enumerate(cells):
                 frame = Image.fromarray(cell['frames'][min(i, len(cell['frames']) - 1)])
                 draw = ImageDraw.Draw(frame)
@@ -72,6 +75,13 @@ def main():
                 if i >= len(cell['frames']) - 1:
                     draw.text((CELL[0] - draw.textlength(cell['status'], font=font) - 8, 3), cell['status'], fill=(140, 220, 160), font=font)
                 canvas.paste(frame, ((k % side) * CELL[0], (k // side) * CELL[1]))
+            for k in range(len(cells), side * rows):
+                card = Image.new('RGB', CELL, (32, 35, 40))
+                d = ImageDraw.Draw(card)
+                for j, line in enumerate(args.fill_text.split('|')):
+                    w = d.textlength(line, font=font)
+                    d.text(((CELL[0] - w) / 2, CELL[1] / 2 - 10 + 20 * j), line, fill=(200, 205, 210), font=font)
+                canvas.paste(card, ((k % side) * CELL[0], (k // side) * CELL[1]))
             writer.append_data(np.asarray(canvas))
     print(out, length, 'frames')
 

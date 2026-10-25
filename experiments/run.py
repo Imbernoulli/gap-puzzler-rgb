@@ -41,6 +41,19 @@ VARIANTS = {
                      label='Case, pieces and friction together (seed 201)'),
     'shuffled': dict(seed=0, scene_variant=dict(appearance='shuffled'), label='Piece colors shuffled'),
 }
+# Demo starts: every loose piece moved up to ±10 mm and turned up to ±10°, and the case
+# moved up to ±5 mm and turned up to ±2.5°, drawn from the seed.
+def _demo(k):
+    import numpy as np
+    rng = np.random.default_rng(500 + k)
+    dx, dy = (float(v) for v in rng.uniform(-.005, .005, 2))
+    yaw = float(rng.uniform(-np.radians(2.5), np.radians(2.5)))
+    return dict(seed=500 + k, scene_variant=dict(board_dx=round(dx, 4), board_dy=round(dy, 4), board_yaw=round(yaw, 4),
+                                                 piece_jitter=.010, piece_yaw=round(float(np.radians(10)), 4)),
+                label=f'Demo start {k}')
+
+
+VARIANTS.update({f'demo_{k}': _demo(k) for k in range(1, 17)})
 # Loose pieces re-placed anywhere on their own arm's side and turned up to ±45°.
 VARIANTS.update({f'scatter_{k}': dict(seed=0, scene_variant=dict(scatter_seed=k), label=f'Scattered layout {k}')
                  for k in range(1, 13)})

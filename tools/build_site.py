@@ -376,6 +376,8 @@ def piece_ref(name):
 
 RIG_TEXT = {
     'official': dict(cameras='Official YAM station: one gantry D405 overhead, one D405 on each wrist',
+                     source='https://github.com/i2rt-robotics/i2rt/blob/120c3c81400171174604e503943f8d1ebc891058/'
+                            'i2rt/robot_models/station/yam_station_linear_4310_d405/README.md',
                      rig='Where the cameras are: one fixed overhead camera and one on each wrist, here at 677 s '
                          'while both wrists look at the case.',
                      views='The gantry camera at t = 0, and all three cameras during piece 12\'s hand-to-hand transfer; '
@@ -443,12 +445,17 @@ def main():
         else:
             image = 'media/policy_views_official.jpg" width="1280" height="720'
         text = RIG_TEXT[name]
-        views.append(f'<div class="rig-row" data-rig="{name}">'
+        left = Image.open(SRC / 'media' / f'rig_{name}.jpg').size
+        right = Image.open((out / 'policy_views.jpg') if name == 'custom' else (SRC / 'media/policy_views_official.jpg')).size
+        cols = f'grid-template-columns: {left[0] / left[1]:.3f}fr {right[0] / right[1]:.3f}fr'
+        views.append(f'<div class="rig-row" data-rig="{name}" style="{cols}">'
                      f'<figure><img src="media/rig_{name}.jpg" loading="lazy" alt="{esc(text["rig"])}">'
                      f'<figcaption>{esc(text["rig"])}</figcaption></figure>'
                      f'<figure class="views"><img src="{image}" loading="lazy" alt="{esc(text["views"])}">'
                      f'<figcaption>{esc(text["views"])}</figcaption></figure></div>')
-        facts.append(f'<div data-rig="{name}"><dt>Cameras</dt><dd>{esc(text["cameras"])}</dd></div>')
+        source = (f' (<a href="{text["source"]}">I2RT YAM station model ↗</a>; wrist mounts as in the '
+                  f'RoboSimStudio YAM arm)') if text.get('source') else ''
+        facts.append(f'<div data-rig="{name}"><dt>Cameras</dt><dd>{esc(text["cameras"])}{source}</dd></div>')
         players.append(player_html(name))
         hands.append(hands_html(name))
         rigs[name] = data

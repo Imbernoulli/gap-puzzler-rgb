@@ -16,10 +16,10 @@
   <header class="top wrap">
     <a class="mark" href="#top">Puzzler<span aria-hidden="true">·</span>GaP</a>
     <nav aria-label="Sections">
+      <a href="#generalize">Generalization</a>
       <a href="#rss">Real to sim</a>
       <a href="#gap">Graph as policy</a>
       <a href="#refine">Self-refinement</a>
-      <a href="#generalize">Generalization</a>
     </nav>
   </header>
 
@@ -38,6 +38,11 @@
       </div>
     </div>
 
+    <section class="block wrap demo" id="generalize" aria-labelledby="gen-title">
+      <h2 id="gen-title"><span class="kicker">Generalization</span>Different starts, same graph, every run to the finished pyramid</h2>
+      {{GRIDS}}
+    </section>
+
     <section class="block wrap" id="rss" aria-labelledby="rss-title">
       <h2 id="rss-title"><span class="kicker">RoboSimStudio</span>Real to sim</h2>
       <div class="rss-grid">
@@ -50,6 +55,10 @@
           <figcaption>Drag the line. Real frame: <a href="https://www.youtube.com/watch?v=PSgC31TvdxA&amp;t=213s">source video ↗</a> at 3:33; the sim rebuilds the same arrangement from the same viewpoint.</figcaption>
         </figure>
         <div class="rss-side">
+          <figure class="yt">
+            <iframe src="https://www.youtube-nocookie.com/embed/PSgC31TvdxA?start=213" title="Source video: the IQ Puzzler Pro pyramid built by hand" loading="lazy" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+            <figcaption>The source video, from 3:33.</figcaption>
+          </figure>
           <dl class="facts">
             {{CAMERA_FACTS}}
             <div><dt>Physics</dt><dd>MuJoCo-Warp on GPU</dd></div>
@@ -77,46 +86,42 @@
         <article>
           <h3>Let go of {{P:lime}} cleanly <span class="rig-chip">3 cameras</span></h3>
           <div class="strip">
-            <figure class="wide"><img src="media/refine_lime_release.jpg" width="1390" height="589" loading="lazy" alt="Close-up of piece 8 at its seat. Before: dashed goal rings with the beads shifted 4.8 mm sideways. After: beads inside the rings, 1.0 mm off"><figcaption><b class="bad">Before</b> The gripper opened slowly; one pad let go late and flicked piece 8 sideways, 4.8 mm off its spots. <b class="fix">Fix</b> Open in two quick steps so both pads leave together. <b class="good">After</b> It drops straight, 1.0 mm off.</figcaption></figure>
+            <figure class="wide"><img src="media/refine_lime_release.jpg" width="1390" height="589" loading="lazy" alt="Close-up of piece 8 at its seat. Before: dashed goal rings with the beads shifted 4.8 mm sideways. After: beads inside the rings, 1.0 mm off"><figcaption><b class="bad">Before</b> The gripper opened slowly; one pad let go late and flicked piece 8 sideways, 4.8 mm off its spots.<br><b class="fix">Fix</b> Open in two quick steps so both pads leave together.<br><b class="good">After</b> It drops straight, 1.0 mm off.</figcaption></figure>
           </div>
         </article>
         <article>
           <h3>Blocked from view is not moved <span class="rig-chip">3 cameras</span></h3>
           <div class="strip">
-            <figure class="wide"><img src="media/refine_hidden_piece.jpg" width="1390" height="709" loading="lazy" alt="Wrist and top camera views with piece 6's goal spots ringed. Before: spots behind the held piece 12 count against piece 6. After: they are skipped, and every visible spot shows piece 6"><figcaption><b class="bad">Before</b> Piece 12, held above the case, covers piece 6's spots; the policy read them as "piece 6 has moved" and stopped. <b class="fix">Fix</b> Skip spots hidden by a held piece or the gripper. <b class="good">After</b> Every spot it can see shows piece 6; the build finishes.</figcaption></figure>
+            <figure class="wide"><img src="media/refine_hidden_piece.jpg" width="1390" height="709" loading="lazy" alt="Wrist and top camera views with piece 6's goal spots ringed. Before: spots behind the held piece 12 count against piece 6. After: they are skipped, and every visible spot shows piece 6"><figcaption><b class="bad">Before</b> Piece 12, held above the case, covers piece 6's spots; the policy read them as "piece 6 has moved" and stopped.<br><b class="fix">Fix</b> Skip spots hidden by a held piece or the gripper.<br><b class="good">After</b> Every spot it can see shows piece 6; the build finishes.</figcaption></figure>
           </div>
         </article>
         <article>
           <h3>Open wider so the camera sees {{P:cyan}} land <span class="rig-chip">4 cameras</span></h3>
           <div class="strip">
-            <figure class="wide"><img src="media/refine_cyan_opening.jpg" width="1390" height="644" loading="lazy" alt="Top camera after release. Before, 55 mm opening: a finger covers piece 6's middle bead. After, 75 mm opening: the bead is seen"><figcaption><b class="bad">Before</b> At a 55 mm opening a finger hides piece 6, so the camera cannot confirm it landed. <b class="fix">Fix</b> Open to 75 mm, found by tracing camera rays past the finger. <b class="good">After</b> Seen, 0.8 mm from its spots.</figcaption></figure>
+            <figure class="wide"><img src="media/refine_cyan_opening.jpg" width="1390" height="644" loading="lazy" alt="Top camera after release. Before, 55 mm opening: a finger covers piece 6's middle bead. After, 75 mm opening: the bead is seen"><figcaption><b class="bad">Before</b> At a 55 mm opening a finger hides piece 6, so the camera cannot confirm it landed.<br><b class="fix">Fix</b> Open to 75 mm, found by tracing camera rays past the finger.<br><b class="good">After</b> Seen, 0.8 mm from its spots.</figcaption></figure>
           </div>
         </article>
         <article>
           <h3>The robot confirms the pyramid is done by itself <span class="rig-chip">4 cameras</span></h3>
           <div class="strip">
-            <figure class="wide"><img src="media/refine_completion_witness.jpg" width="1530" height="300" loading="lazy" alt="Final camera frames with each expected bead site marked: with piece 12 still held, its sites fail; with the pyramid complete, every site matches"><figcaption><b class="bad">Before</b> All 12 pieces were in place, but the policy could not tell, so it would not finish. <b class="fix">Fix</b> Look at every spot that should hold a bead and check the right piece is there (green yes, red no). <b class="good">After</b> With piece 12 missing it says no; with the pyramid done it says yes.</figcaption></figure>
+            <figure class="wide"><img src="media/refine_completion_witness.jpg" width="1530" height="300" loading="lazy" alt="Final camera frames with each expected bead site marked: with piece 12 still held, its sites fail; with the pyramid complete, every site matches"><figcaption><b class="bad">Before</b> All 12 pieces were in place, but the policy could not tell, so it would not finish.<br><b class="fix">Fix</b> Look at every spot that should hold a bead and check the right piece is there (green yes, red no).<br><b class="good">After</b> With piece 12 missing it says no; with the pyramid done it says yes.</figcaption></figure>
           </div>
         </article>
         <article>
           <h3>Keep {{P:lime}} in view while {{P:cyan}} changes hands <span class="rig-chip">4 cameras</span></h3>
           <div class="strip">
-            <figure class="wide lime"><img src="media/refine_lime_layout.jpg" width="938" height="376" loading="lazy" alt="Top camera during piece 6's transfer: in the first layout the arms hide piece 8; started 70 mm further out it stays visible"><figcaption><b class="bad">Before</b> While piece 6 changes hands, the arms block the camera's view of piece 8, and the robot has to wait. <b class="good">After</b> Piece 8 starts 70 mm further out and stays in view.</figcaption></figure>
+            <figure class="wide lime"><img src="media/refine_lime_layout.jpg" width="938" height="376" loading="lazy" alt="Top camera during piece 6's transfer: in the first layout the arms hide piece 8; started 70 mm further out it stays visible"><figcaption><b class="bad">Before</b> While piece 6 changes hands, the arms block the camera's view of piece 8, and the robot has to wait.<br><b class="good">After</b> Piece 8 starts 70 mm further out and stays in view.</figcaption></figure>
           </div>
         </article>
         <article>
           <h3>A bad guess about {{P:purple}} must not undo it <span class="rig-chip">4 cameras</span></h3>
           <div class="strip">
-            <figure class="wide lime"><img src="media/refine_fit_alias.jpg" width="770" height="300" loading="lazy" alt="Front and side camera at 424 s: red rings mark a fit of piece 5 that lands on the beads of pieces 9 and 6; green rings mark piece 5's goal spots, which still show it"><figcaption><b class="bad">Before</b> Only two beads of piece 5 are visible, and the policy guessed it had turned (red rings, which actually land on piece 9). <b class="good">After</b> It checks piece 5's own spots, still filled by piece 5 (green), so it stays placed.</figcaption></figure>
+            <figure class="wide lime"><img src="media/refine_fit_alias.jpg" width="770" height="300" loading="lazy" alt="Front and side camera at 424 s: red rings mark a fit of piece 5 that lands on the beads of pieces 9 and 6; green rings mark piece 5's goal spots, which still show it"><figcaption><b class="bad">Before</b> Only two beads of piece 5 are visible, and the policy guessed it had turned (red rings, which actually land on piece 9).<br><b class="good">After</b> It checks piece 5's own spots, still filled by piece 5 (green), so it stays placed.</figcaption></figure>
           </div>
         </article>
       </div>
     </section>
 
-    <section class="block wrap" id="generalize" aria-labelledby="gen-title">
-      <h2 id="gen-title"><span class="kicker">Generalization</span>Same graph, changed scenes, start to finish</h2>
-      {{GRIDS}}
-    </section>
   </main>
 
   <footer class="wrap foot">
