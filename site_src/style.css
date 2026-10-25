@@ -247,7 +247,7 @@ body[data-rig="official"] [data-rig="custom"], body[data-rig="custom"] [data-rig
 .yt figcaption { font-size: 12.5px; color: var(--muted); }
 .strip figcaption { line-height: 1.7; }
 
-.hero h1 { max-width: 34ch; font-size: clamp(24px, 2.7vw, 34px); }
+.hero h1 { max-width: 26ch; }
 .demo .grid-video figcaption { font-size: 12.5px; color: var(--muted); }
 
 /* Standing pieces: 2x2 trail videos, then the grip notes. */
