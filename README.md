@@ -36,9 +36,11 @@ jittered layouts, friction 0.50, friction 0.80, all perturbations combined),
 7/7; fix10 completed 6/6. The v13 policy completed none of them.
 
 **Official camera rig** (gantry D405 + two wrist D405s, `experiments/official_rig/`):
-the first complete run is `casefit_board_a2`, case moved +6/-6 mm and turned 2.9°:
-12/12 pieces, 84/84 checkpoints, RSS and GaP success, audit 2.61 mm, 931 s simulated.
-More official-rig scenes are still being run.
+12 fresh runs from loose pieces have completed 12/12 with every checkpoint, the RSS goal
+and the GaP success exit (audits 2.6-3.0 mm), over six scenes: nominal (5), all
+perturbations combined (2), friction 0.80 (2), case moved and turned, loose pieces
+jittered, and friction 0.50 (1 each). The latest combined patch is
+`runs/OFFICIAL_CAMERAS.diff`; its round 29d completed 4 of 6 runs.
 
 Perturbed scenes and scattered layouts are on the site.
 
