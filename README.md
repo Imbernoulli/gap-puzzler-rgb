@@ -3,10 +3,14 @@
 Two simulated YAM arms build the five-layer IQ Puzzler Pro pyramid from twelve
 loose pieces in RoboSimStudio (RSS). The controller is a Graph-as-Policy (GaP)
 workflow: one typed subgraph per piece, independent physical checkpoints after
-every node. It sees the table only through four calibrated RGB cameras, the
-robot's joint encoders and the parts' CAD.
+every node. It sees the table only through calibrated RGB cameras (four fixed cameras, or
+the official YAM station rig: a gantry D405 and two wrist D405s), the robot's
+joint encoders and the parts' CAD.
 
-Site: <https://bohanlyu.com/gap-puzzler-rgb/>
+Site: <https://bohanlyu.com/gap-puzzler-rgb/>. Tabs switch between the official
+three-camera rig (default) and our custom four-camera rig. We got the task working
+with four fixed cameras first; the official rig, whose wrist cameras move with the
+arms, took much longer.
 
 ## Results
 
@@ -32,6 +36,11 @@ Perturbed scenes, all fresh full runs from loose pieces: the current policy,
 fix11 (13c9010), completed all seven (case moved and turned both ways, both
 jittered layouts, friction 0.50, friction 0.80, all perturbations combined),
 7/7; fix10 completed 6/6. The v13 policy completed none of them.
+
+**Official camera rig** (gantry D405 + two wrist D405s, `experiments/official_rig/`):
+the first complete run is `casefit_board_a2`, case moved +6/-6 mm and turned 2.9°:
+12/12 pieces, 84/84 checkpoints, RSS and GaP success, audit 2.61 mm, 931 s simulated.
+More official-rig scenes are still being run.
 
 Perturbed scenes and scattered layouts are on the site.
 

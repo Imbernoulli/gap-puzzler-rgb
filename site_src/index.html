@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="style.css">
   <script src="app.js" defer></script>
 </head>
-<body>
+<body data-rig="official">
   <header class="top wrap">
     <a class="mark" href="#top">Puzzler<span aria-hidden="true">·</span>GaP</a>
     <nav aria-label="Sections">
@@ -27,15 +27,17 @@
     <section class="hero wrap">
       <div>
         <h1>Two arms build the IQ Puzzler pyramid from camera images.</h1>
-        <p class="lede">RoboSimStudio workcell · Graph-as-Policy controller · inputs: four RGB cameras, joint encoders, part CAD.</p>
+        <p class="lede">RoboSimStudio workcell · Graph-as-Policy controller · inputs: RGB cameras, joint encoders, part CAD.</p>
       </div>
-      <dl class="stats">
-        <div><dt>Pieces</dt><dd>{{PIECES_PLACED}}<small>/12</small></dd></div>
-        <div><dt>Checkpoints</dt><dd>{{CHECKPOINTS}}</dd></div>
-        <div><dt>Sim time</dt><dd>{{SIM_TIME}}<small> s</small></dd></div>
-        <div><dt>Worst bead</dt><dd>{{AUDIT_MAX}}<small> mm</small></dd></div>
-      </dl>
     </section>
+
+    <div class="wrap rig-bar">
+      <div class="rig-tabs" role="tablist" aria-label="Camera setup">
+        <button type="button" role="tab" data-rig-tab="official" aria-selected="true">Official rig · 3 cameras</button>
+        <button type="button" role="tab" data-rig-tab="custom" aria-selected="false">Custom rig · 4 cameras</button>
+      </div>
+      <p class="rig-note">Both took a long time. We first got the whole task working with four fixed cameras of our own placement. The official YAM station cameras, one overhead gantry camera and one on each wrist, took much longer: the wrist cameras move with the arms, and the arms often hide the pieces, so the free hand has to move its camera to look.</p>
+    </div>
 
     <section class="block wrap" id="rss" aria-labelledby="rss-title">
       <h2 id="rss-title"><span class="kicker">RoboSimStudio</span>Real to sim</h2>
@@ -46,19 +48,16 @@
           <span class="compare-line" aria-hidden="true"></span>
           <span class="tag left">Real</span><span class="tag right">RSS</span>
           <input type="range" min="0" max="100" value="58" aria-label="Drag to compare the real frame with the simulation" id="compare-range">
-          <figcaption>Drag the line. Real frame: <a href="https://www.youtube.com/watch?v=PSgC31TvdxA&amp;t=213s">Puzzle Master on YouTube</a>, 3:33.</figcaption>
+          <figcaption>Drag the line. Real frame: <a href="https://www.youtube.com/watch?v=PSgC31TvdxA&amp;t=213s">source video ↗</a> at 3:33; the sim rebuilds the same arrangement from the same viewpoint.</figcaption>
         </figure>
         <div class="rss-side">
-          <figure class="views">
-            <img src="media/policy_views_t0.jpg" width="1280" height="1024" loading="lazy" alt="The four RGB frames the policy receives at the start: top, front, rear and side">
-            <figcaption>All the policy sees: four RGB cameras, t = 0.</figcaption>
-          </figure>
+          {{VIEWS}}
           <dl class="facts">
+            {{CAMERA_FACTS}}
             <div><dt>Physics</dt><dd>MuJoCo-Warp, GPU, 500 Hz · control 50 Hz</dd></div>
             <div><dt>Robot</dt><dd>Two YAM 6-DoF arms, parallel jaws</dd></div>
             <div><dt>Parts</dt><dd>12 rigid pieces · 55 beads · 25 mm · μ 0.65</dd></div>
-            <div><dt>Case</dt><dd>Free body, 0.28 kg</dd></div>
-            <div><dt>Goal</dt><dd>Every bead ≤ 4 mm, still, hands home, 2 s</dd></div>
+            <div><dt>Goal</dt><dd>Every bead within 4 mm of its spot, still, hands home, 2 s</dd></div>
           </dl>
         </div>
       </div>
@@ -66,93 +65,84 @@
 
     <section class="block wrap" id="gap" aria-labelledby="gap-title">
       <h2 id="gap-title"><span class="kicker">Graph-as-Policy</span>Watch the graph execute</h2>
-      <div class="player" id="player">
-        <div class="screen">
-          <video id="run-video" src="media/gap_full12.mp4" poster="media/gap_full12_poster.jpg" playsinline controls preload="metadata" aria-label="Full twelve-piece run, replayed from the recorded episode"></video>
-          <div class="track" id="track" role="group" aria-label="Jump to a piece"></div>
-          <p class="clock"><span id="clock-time">t = 0.0 s</span><span id="clock-speed"></span></p>
-        </div>
-        <aside class="graph" aria-live="polite">
-          <div class="graph-head">
-            <span class="swatch" id="now-swatch"></span>
-            <h3 id="now-piece">Azure</h3>
-            <span class="mono small muted" id="now-index"></span>
-          </div>
-          <svg id="graph-svg" class="graph-svg" role="img" aria-label="The current piece's subgraph"></svg>
-          <p class="node-detail" id="node-detail"></p>
-        </aside>
-      </div>
-      <p class="legend mono small"><span><i class="k-done"></i>passed checkpoint</span><span><i class="k-now"></i>running</span><span><i class="k-abort"></i>error exit → abort</span><span>↻ bounded re-look inside the node</span><span>Click a node or a colour bar to jump.</span></p>
+      {{PLAYERS}}
+      <p class="legend mono small"><span><i class="k-done"></i>done, checked</span><span><i class="k-now"></i>running</span><span><i class="k-abort"></i>on error → stop</span><span>↻ looks again</span><span>Click a step or a colour bar to jump.</span></p>
 
       <h3 class="sub">Why Cyan and Red change hands</h3>
-      <div class="hands">
-        <figure>
-          <video src="media/cyan_transfer.mp4" muted loop playsinline controls preload="metadata" aria-label="Cyan passed from one gripper to the other"></video>
-          <figcaption><b>Cyan</b> One-hand attempts held it off-centre: it landed 16–44 mm off, or crept to the fingertips and slipped. The second hand regrasps it centred.</figcaption>
-        </figure>
-        <figure>
-          <video src="media/red_transfer.mp4" muted loop playsinline controls preload="metadata" aria-label="Red passed between the grippers twice"></video>
-          <figcaption><b>Red</b> From its source grasp, every one-arm entry to the apex left 0.014–0.018 rad of joint reserve, below the 0.035 rad floor. Two transfers give a grasp the arm can bring in.</figcaption>
-        </figure>
-      </div>
+      {{HANDS}}
     </section>
 
     <section class="block wrap" id="refine" aria-labelledby="refine-title">
-      <h2 id="refine-title"><span class="kicker">Self-refinement</span>From each trial, a better skill</h2>
-      {{LOOP_SVG}}
+      <h2 id="refine-title"><span class="kicker">Self-refinement</span>Problems a trial exposed, and the fix</h2>
       <div class="rounds">
         <article>
-          <h3>Cyan release · make the bead visible</h3>
+          <h3>Lime release · don't let the gripper flick the piece <span class="rig-chip">3 cameras</span></h3>
           <div class="strip">
-            <figure><img src="media/refine_cyan_55.jpg" width="450" height="420" loading="lazy" alt="Top camera after release at a 55 mm opening; a finger covers Cyan's middle bead"><figcaption><b>1</b> 55 mm: finger covers the bead</figcaption></figure>
+            <figure class="bars" aria-label="Sideways speed of Lime as it falls">
+              <div><span>slow</span><i style="--v:1"></i><em>110 mm/s</em></div>
+              <div><span>fast</span><i style="--v:.03"></i><em>3 mm/s</em></div>
+              <figcaption><b class="bad">Before</b> The jaw opened over 1 s; one pad let go late and flicked Lime sideways</figcaption>
+            </figure>
+            <figure class="bars" aria-label="How far Lime lands from its spot">
+              <div><span>before</span><i style="--v:1"></i><em>5.0 mm</em></div>
+              <div><span>after</span><i style="--v:.2"></i><em>1.0 mm</em></div>
+              <figcaption><b class="fix">Fix</b> Open in two steps so both pads leave together · <b class="good">After</b> Lime drops straight and seats</figcaption>
+            </figure>
+          </div>
+        </article>
+        <article>
+          <h3>Red over the case · a hidden piece is not a moved piece <span class="rig-chip">3 cameras</span></h3>
+          <div class="strip">
+            <figure><img src="media/refine_cyan_hidden.jpg" width="520" height="360" loading="lazy" alt="Right wrist camera: the held Red piece hangs over the pyramid and covers Cyan's spots"><figcaption><b class="bad">Before</b> Red, held above the case, covers Cyan's spots; red pixels counted against Cyan and the run stopped</figcaption></figure>
+            <figure class="bars" aria-label="Cyan's spots in this frame: matching versus against">
+              <div><span>old rule</span><i style="--v:.5"></i><em>2 vs 2</em></div>
+              <div><span>new rule</span><i style="--v:1"></i><em>3 vs 0</em></div>
+              <figcaption><b class="fix">Fix</b> Skip spots hidden by a held piece or the arm · <b class="good">After</b> Cyan kept; the first full build on the official cameras</figcaption>
+            </figure>
+          </div>
+        </article>
+        <article>
+          <h3>Cyan release · the camera must see the piece land <span class="rig-chip">4 cameras</span></h3>
+          <div class="strip">
+            <figure><img src="media/refine_cyan_55.jpg" width="450" height="420" loading="lazy" alt="Top camera after release at a 55 mm opening; a finger covers Cyan's middle bead"><figcaption><b class="bad">Before</b> Opening 55 mm: a finger hides the bead, the policy cannot confirm and stops</figcaption></figure>
             <figure class="bars" aria-label="Clear sight lines to the bead by jaw opening">
               <div><span>65 mm</span><i style="--v:.846"></i><em>11/13</em></div>
               <div><span>75 mm</span><i style="--v:1"></i><em>13/13</em></div>
               <div><span>80 mm</span><i style="--v:1"></i><em>13/13</em></div>
-              <figcaption><b>2</b> Trace camera rays past the finger mesh</figcaption>
+              <figcaption><b class="fix">Fix</b> Trace camera rays past the fingers; open to 75 mm</figcaption>
             </figure>
-            <figure><img src="media/refine_cyan_75.jpg" width="450" height="420" loading="lazy" alt="Top camera after release at a 75 mm opening; Cyan is visible"><figcaption><b>3</b> 75 mm: seen, placed at 0.78 mm ✓</figcaption></figure>
+            <figure><img src="media/refine_cyan_75.jpg" width="450" height="420" loading="lazy" alt="Top camera after release at a 75 mm opening; Cyan is visible"><figcaption><b class="good">After</b> Seen, placed 0.8 mm from its spot</figcaption></figure>
           </div>
         </article>
         <article>
-          <h3>Finish · the policy confirms the pyramid itself</h3>
+          <h3>Finish · the policy confirms the pyramid itself <span class="rig-chip">4 cameras</span></h3>
           <div class="strip">
-            <figure class="chart-fig">{{DRIFT_SVG}}<figcaption><b>1</b> Case fit drifts; old receipts get flagged</figcaption></figure>
-            <figure class="wide"><img src="media/refine_completion_witness.jpg" width="1530" height="300" loading="lazy" alt="Final camera frames with each expected bead site marked: with Red still held, its sites fail; with the pyramid complete, every site matches"><figcaption><b>2</b> Check every visible bead site: Red missing ✕ · complete ✓ ({{WITNESS}})</figcaption></figure>
+            <figure class="wide"><img src="media/refine_completion_witness.jpg" width="1530" height="300" loading="lazy" alt="Final camera frames with each expected bead site marked: with Red still held, its sites fail; with the pyramid complete, every site matches"><figcaption><b class="bad">Before</b> All 12 seated but the policy could not tell, so it refused · <b class="fix">Fix</b> Check that every visible bead spot shows its colour · <b class="good">After</b> Red missing: no; complete: yes</figcaption></figure>
           </div>
         </article>
         <article>
-          <h3>Cyan transfer · keep Lime in view</h3>
+          <h3>Cyan transfer · keep Lime in view <span class="rig-chip">4 cameras</span></h3>
           <div class="strip">
-            <figure class="wide lime"><img src="media/refine_lime_layout.jpg" width="938" height="376" loading="lazy" alt="Top camera during Cyan's transfer: in the first layout the arms hide Lime; with Lime 70 mm further out it stays visible"><figcaption><b>1</b> Arms hide Lime, carry waits ✕ · <b>2</b> Lime starts 70 mm out, stays in view ✓</figcaption></figure>
+            <figure class="wide lime"><img src="media/refine_lime_layout.jpg" width="938" height="376" loading="lazy" alt="Top camera during Cyan's transfer: in the first layout the arms hide Lime; with Lime 70 mm further out it stays visible"><figcaption><b class="bad">Before</b> The arms hide Lime, the carry waits · <b class="good">After</b> Lime starts 70 mm further out and stays in view</figcaption></figure>
           </div>
         </article>
         <article>
-          <h3>Seated Purple · a wrong-turn fit is not evidence</h3>
+          <h3>Seated Purple · a wrong-turn fit is not evidence <span class="rig-chip">4 cameras</span></h3>
           <div class="strip">
-            <figure class="wide lime"><img src="media/refine_fit_alias.jpg" width="770" height="300" loading="lazy" alt="Front and side camera at 424 s: red rings mark a 'Purple' fit that lands on Maroon and Cyan beads; green rings mark Purple's goal sites, which still show purple"><figcaption><b>1</b> Two beads visible, fit turns the rest onto Maroon (red rings) · <b>2</b> Purple's goal sites still show purple (green) → kept ✓</figcaption></figure>
-            <figure class="bars" aria-label="Goal-site pixel check">
-              <div><span>Purple</span><i style="--v:1"></i><em>5/5</em></div>
-              <div><span>Red, absent</span><i style="--v:.25"></i><em>3/12</em></div>
-              <div><span>Pink, absent</span><i style="--v:0"></i><em>0/11</em></div>
-              <figcaption><b>3</b> Matching goal sites; absent pieces still fail</figcaption>
-            </figure>
+            <figure class="wide lime"><img src="media/refine_fit_alias.jpg" width="770" height="300" loading="lazy" alt="Front and side camera at 424 s: red rings mark a 'Purple' fit that lands on Maroon and Cyan beads; green rings mark Purple's goal sites, which still show purple"><figcaption><b class="bad">Before</b> Two beads visible, the fit turns the rest onto Maroon (red rings) · <b class="good">After</b> Purple's own spots still show purple (green), so it stays placed</figcaption></figure>
           </div>
         </article>
-        {{GENERALIZATION_CASES}}
       </div>
     </section>
 
     <section class="block wrap" id="generalize" aria-labelledby="gen-title">
-      <h2 id="gen-title"><span class="kicker">Generalization</span>Same graph, changed scenes</h2>
-      {{HIGHLIGHT}}
-      {{GRID}}
-      <div class="table-wrap"><table class="results">{{VARIANT_ROWS}}</table></div>
-      <p class="note">One fresh all-loose episode per row. The policy never receives these settings; it re-measures every pose from RGB. Jittered starts are rejection-sampled so no loose pieces overlap. {{GEN_NOTE}}</p>
+      <h2 id="gen-title"><span class="kicker">Generalization</span>Same graph, changed scenes, start to finish</h2>
+      {{GRIDS}}
     </section>
   </main>
 
   <footer class="wrap foot">
+    <p>Switch between the official three-camera rig and our custom four-camera rig with the tabs at the top. The policy is the same graph; only the cameras, and the looks they need, differ.</p>
     <p>Puzzler · RoboSimStudio × Graph-as-Policy</p>
   </footer>
   <script id="page-data" type="application/json">{{DATA}}</script>

@@ -189,9 +189,11 @@ figcaption b { color: var(--ink); font-weight: 600; margin-right: 6px; }
 .strip figure.chart-fig { flex: 1.3 1 300px; }
 .strip img { width: 100%; height: auto; border-radius: 6px; }
 .strip figcaption { margin: 0; font-size: 12px; }
-.strip figcaption b { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--ink); color: var(--bg); font: 600 10px var(--mono); margin-right: 4px; }
+.strip figcaption b { display: inline-block; padding: 1px 6px; border-radius: 9px; background: var(--ink); color: var(--bg); font: 600 10px var(--mono); margin-right: 4px; text-transform: uppercase; letter-spacing: .04em; }
+.strip figcaption b.bad { background: var(--fail, #c2410c); color: #fff; }
+.strip figcaption b.good { background: var(--pass, #15803d); color: #fff; }
 .bars { align-self: center; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px; gap: 9px !important; align-content: center !important; }
-.bars div { display: grid; grid-template-columns: 50px minmax(0, 1fr) 40px; gap: 8px; align-items: center; font: 11px var(--mono); color: var(--muted); }
+.bars div { display: grid; grid-template-columns: 56px minmax(0, 1fr) 64px; gap: 8px; align-items: center; font: 11px var(--mono); color: var(--muted); }
 .bars i { height: 10px; border-radius: 3px; background: linear-gradient(90deg, var(--pass) calc(var(--v) * 100%), var(--line) 0); }
 .bars em { font-style: normal; color: var(--ink); }
 
@@ -203,3 +205,16 @@ figcaption b { color: var(--ink); font-weight: 600; margin-right: 6px; }
 }
 
 .views img { border-radius: 8px; width: 100%; height: auto; }
+
+/* Camera-rig tabs: one rig's views, player, clips and grid at a time. */
+body[data-rig="official"] [data-rig="custom"], body[data-rig="custom"] [data-rig="official"] { display: none !important; }
+.rig-bar { display: grid; gap: 8px; margin-top: 4px; }
+.rig-tabs { display: inline-flex; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); justify-self: start; flex-wrap: wrap; }
+.rig-tabs button { font: 600 14px var(--body); color: var(--muted); background: none; border: 0; border-radius: 7px; padding: 8px 14px; cursor: pointer; }
+.rig-tabs button[aria-selected="true"] { background: var(--ink); color: var(--bg); }
+.rig-tabs button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.rig-note { font-size: 13px; color: var(--muted); max-width: 75ch; margin: 0; }
+.rig-chip { font: 500 10px var(--mono); text-transform: uppercase; letter-spacing: .05em; color: var(--muted); border: 1px solid var(--line); border-radius: 9px; padding: 1px 7px; margin-left: 6px; vertical-align: 2px; }
+.graph-svg .abort-notch { fill: var(--fail); opacity: .55; }
+.graph-svg.two-col .node-label { font-size: 11px; }
+.player { align-items: stretch; }

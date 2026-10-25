@@ -1,11 +1,13 @@
 """Build site/ from recorded runs.
 
-  python tools/build_site.py --main runs/nominal_fix1 [--before DIR ...] [--after DIR ...]
+  python tools/build_site.py --rig official RUN MEDIA --rig custom RUN MEDIA \
+      [--grid RIG VIDEO CAPTION ...] [--note RIG TEXT ...]
 
---main is the full-12 episode shown in the player. --before/--after name
-variant run directories (each containing workspace/runs/<RUN>/ or that inner
-run directory itself). Every number on the page is read here from the
-recorded result, checkpoint log and workflow; nothing is typed by hand.
+Each --rig names a camera rig, the full-12 run shown in its player (a run
+directory containing workspace/runs/<RUN>/, or that inner directory) and the
+tools/make_media.py folder rendered from it. The page shows one rig at a time
+behind tabs. Every number on the page is read here from the recorded result,
+checkpoint log and workflow; nothing is typed by hand.
 """
 import argparse
 import json
@@ -54,6 +56,8 @@ LABELS = {
 
 # Nodes whose code takes a bounded extra look before refusing.
 RELOOK = {'receipt_settle', 'finish'}
+# Muted inline clips may autoplay in Safari and iOS; app.js plays only what is on screen.
+AUTOPLAY = 'data-autoplay autoplay muted loop playsinline controls preload="auto"'
 
 
 def jsonl(path):
@@ -335,90 +339,89 @@ def loop_svg():
     return ''.join(parts)
 
 
+RIG_TEXT = {
+    'official': dict(cameras='Official YAM station: one gantry D405 overhead, one D405 on each wrist',
+                     views='The gantry camera at t = 0, and all three cameras during Red\'s hand-to-hand transfer; '
+                           'a free hand moves its camera to look.'),
+    'custom': dict(cameras='Four fixed RGB cameras of our own placement: top, front, rear, side',
+                   views='All the policy sees at t = 0: four fixed cameras.'),
+}
+
+
+def player_html(rig):
+    return (f'<div class="player" data-rig="{rig}">'
+            f'<div class="screen"><video data-k="video" src="media/{rig}/gap_full12.mp4" poster="media/{rig}/gap_full12_poster.jpg" '
+            f'{AUTOPLAY} aria-label="Full twelve-piece run, replayed from the recorded episode"></video>'
+            f'<div class="track" data-k="track" role="group" aria-label="Jump to a piece"></div>'
+            f'<p class="clock"><span data-k="time">t = 0.0 s</span><span data-k="speed"></span></p></div>'
+            f'<aside class="graph" aria-live="polite"><div class="graph-head"><span class="swatch" data-k="swatch"></span>'
+            f'<h3 data-k="piece">Azure</h3><span class="mono small muted" data-k="index"></span></div>'
+            f'<svg data-k="graph" class="graph-svg" role="img" aria-label="The current piece\'s subgraph"></svg>'
+            f'<p class="node-detail" data-k="detail"></p></aside></div>')
+
+
+def hands_html(rig):
+    return (f'<div class="hands" data-rig="{rig}">'
+            f'<figure><video src="media/{rig}/cyan_transfer.mp4" {AUTOPLAY} aria-label="Cyan passed from one gripper to the other"></video>'
+            '<figcaption><b>Cyan</b> One-hand attempts held it off-centre: it landed 16–44 mm off, or crept to the fingertips and slipped. '
+            'The second hand regrasps it centred.</figcaption></figure>'
+            f'<figure><video src="media/{rig}/red_transfer.mp4" {AUTOPLAY} aria-label="Red passed between the grippers twice"></video>'
+            '<figcaption><b>Red</b> From where Red starts, no one-arm path reaches the top without running a joint to its limit. '
+            'Two transfers give a grasp the arm can bring in.</figcaption></figure></div>')
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('--main', required=True)
-    parser.add_argument('--media', required=True, help='output folder of tools/make_media.py for --main')
+    parser.add_argument('--rig', nargs=3, action='append', required=True, metavar=('NAME', 'MAIN_RUN', 'MEDIA'),
+                        help='a camera rig (official or custom), its full-12 run and the tools/make_media.py folder for it')
+    parser.add_argument('--grid', nargs=3, action='append', default=[], metavar=('RIG', 'VIDEO', 'CAPTION'),
+                        help='a start-to-finish grid (tools/make_grid.py) or single full-run video for a rig')
+    parser.add_argument('--note', nargs=2, action='append', default=[], metavar=('RIG', 'TEXT'))
     parser.add_argument('--video-stride', type=int, default=3)
-    parser.add_argument('--grid', help='grid video (tools/make_grid.py) for the generalization section')
-    parser.add_argument('--grid-caption', default='')
-    parser.add_argument('--highlight', help='a complete run on a changed scene, shown as a full video')
-    parser.add_argument('--highlight-video')
-    parser.add_argument('--before', nargs='*', default=[])
-    parser.add_argument('--after', nargs='*', default=[])
-    parser.add_argument('--repeats-before', nargs='*', default=[])
-    parser.add_argument('--note', default='', help='which code produced each column')
-    parser.add_argument('--repeats-after', nargs='*', default=[])
-    parser.add_argument('--latest', nargs='*', default=[], help='runs of the newest code, shown as their own column')
-    parser.add_argument('--repeats-latest', nargs='*', default=[])
-    parser.add_argument('--latest-label', default='Latest code')
     args = parser.parse_args()
     from PIL import Image
 
     if SITE.exists():
         shutil.rmtree(SITE)
     shutil.copytree(SRC, SITE, ignore=shutil.ignore_patterns('index.html', '*.html'))
-    media = Path(args.media)
-    main_run = inner(args.main)
-    data = timeline(main_run)
-    for piece in data['pieces']:
-        for node in piece['nodes']:
-            node['relook'] = node['kind'] in RELOOK
-    data['video'] = dict(src='media/gap_full12.mp4', poster='media/gap_full12_poster.jpg',
-                         steps_per_second=30 * args.video_stride * FRAME_STEPS)
-    for name in ('gap_full12.mp4', 'cyan_transfer.mp4', 'red_transfer.mp4'):
-        shutil.copy2(media / name, SITE / 'media' / name)
-    Image.open(media / 'gap_full12_final.png').convert('RGB').save(SITE / 'media/gap_full12_poster.jpg', quality=85)
-    Image.open(media / 'stills/real_match.png').convert('RGB').resize((960, 540), Image.LANCZOS).save(
-        SITE / 'media/rss_sim.jpg', quality=88)
-    camera_grid(main_run, SITE / 'media/policy_views_t0.jpg')
-    grid = ''
-    if args.grid:
-        shutil.copy2(args.grid, SITE / 'media/generalization_grid.mp4')
-        grid = (f'<figure class="grid-video"><video src="media/generalization_grid.mp4" muted loop playsinline controls '
-                f'preload="metadata" aria-label="{esc(args.grid_caption)}"></video><figcaption>{esc(args.grid_caption)}</figcaption></figure>')
-
-    highlight = ''
-    if args.highlight:
-        run = inner(args.highlight)
-        stats = timeline(run)
-        manifest = json.loads((run / 'manifest.json').read_text())
-        shutil.copy2(args.highlight_video, SITE / 'media/highlight_full12.mp4')
-        Image.open(Path(args.highlight_video).with_name(Path(args.highlight_video).stem + '_final.png')).convert('RGB').save(
-            SITE / 'media/highlight_full12_poster.jpg', quality=85)
-        caption = (f"Everything changed at once ({describe(manifest['scene_variant'])}): all 12 pieces, "
-                   f"{stats['checkpoints_passed']}/{stats['checkpoints_total']} checkpoints, worst bead "
-                   f"{stats['audit_max_mm']:.1f} mm, {stats['sim_time_s']:.0f} s simulated.")
-        highlight = (f'<figure class="grid-video"><video src="media/highlight_full12.mp4" poster="media/highlight_full12_poster.jpg" '
-                     f'playsinline controls preload="metadata" aria-label="{esc(caption)}"></video><figcaption>{esc(caption)}</figcaption></figure>')
-    before = {r['variant']: r for r in map(variant_row, args.before)}
-    after = {}
-    for row in map(variant_row, args.after):
-        after.setdefault(row['variant'], []).append(row)
-    latest = {}
-    for row in map(variant_row, args.latest):
-        latest.setdefault(row['variant'], []).append(row)
-    names = [n for n in ('nominal', 'board_a', 'board_b', 'jitter_a', 'jitter_b', 'friction_050', 'friction_080',
-                         'combined', 'shuffled') if n in before or n in after]
-    variants = [dict(variant=n, label=variant_label(before.get(n) or after[n][0]),
-                     change=describe((before.get(n) or after[n][0])['scene'] or {}),
-                     before=before.get(n), after=after.get(n, []), latest=latest.get(n, [])) for n in names]
-    data['variants'] = variants
-    (SITE / 'data/page.json').write_text(json.dumps(data, indent=1) + '\n')
-    witness = json.loads((SRC / 'data/v13_completion_witness.json').read_text())
-
-    fill = dict(
-        PIECES_PLACED=str(data['pieces_placed']), CHECKPOINTS=f"{data['checkpoints_passed']}/{data['checkpoints_total']}",
-        SIM_TIME=f"{data['sim_time_s']:.0f}", AUDIT_MAX=f"{data['audit_max_mm']:.1f}" if data['audit_max_mm'] else '—',
-        VARIANT_ROWS=variants_html(variants, repeats_html([variant_row(r) for r in args.repeats_before],
-                                                          [variant_row(r) for r in args.repeats_after],
-                                                          [variant_row(r) for r in args.repeats_latest] if args.latest else None),
-                                   args.latest_label if args.latest else None),
-        GRID=grid, LOOP_SVG=loop_svg(), GEN_NOTE=esc(args.note), HIGHLIGHT=highlight,
-        GENERALIZATION_CASES=(SRC / 'generalization_cases.html').read_text() if (SRC / 'generalization_cases.html').exists() else '',
-        DRIFT_SVG=drift_svg(SRC / 'data/v13_board_drift.json'),
-        WITNESS=f"{witness['complete']['matched']}/{witness['complete']['decisive']} views",
-        DATA=json.dumps(data).replace('</', '<\\/'))
+    rigs, views, facts, players, hands = {}, [], [], [], []
+    for name, main, media in args.rig:
+        media, run = Path(media), inner(main)
+        out = SITE / 'media' / name
+        out.mkdir(parents=True, exist_ok=True)
+        data = timeline(run)
+        for piece in data['pieces']:
+            for node in piece['nodes']:
+                node['relook'] = node['kind'] in RELOOK
+        data['video'] = dict(steps_per_second=30 * args.video_stride * FRAME_STEPS)
+        for clip in ('gap_full12.mp4', 'cyan_transfer.mp4', 'red_transfer.mp4'):
+            shutil.copy2(media / clip, out / clip)
+        Image.open(media / 'gap_full12_final.png').convert('RGB').save(out / 'gap_full12_poster.jpg', quality=85)
+        if name == 'custom':
+            camera_grid(run, out / 'policy_views.jpg')
+            image = f'media/{name}/policy_views.jpg" width="1280" height="1024'
+        else:
+            image = 'media/policy_views_official.jpg" width="1280" height="720'
+        text = RIG_TEXT[name]
+        views.append(f'<figure class="views" data-rig="{name}"><img src="{image}" loading="lazy" alt="{esc(text["views"])}">'
+                     f'<figcaption>{esc(text["views"])}</figcaption></figure>')
+        facts.append(f'<div data-rig="{name}"><dt>Cameras</dt><dd>{esc(text["cameras"])}</dd></div>')
+        players.append(player_html(name))
+        hands.append(hands_html(name))
+        rigs[name] = data
+    notes = dict(args.note)
+    grids = []
+    for name, video, caption in args.grid:
+        target = SITE / 'media' / name / 'grid.mp4'
+        shutil.copy2(video, target)
+        grids.append(f'<div data-rig="{name}"><figure class="grid-video"><video src="media/{name}/grid.mp4" {AUTOPLAY} '
+                     f'aria-label="{esc(caption)}"></video><figcaption>{esc(caption)}</figcaption></figure>'
+                     f'<p class="note">Each run starts from loose pieces and ends with the finished pyramid. The policy is never told what '
+                     f'changed; it re-measures every pose from the cameras. {esc(notes.get(name, ""))}</p></div>')
+    page_data = dict(rigs=rigs)
+    (SITE / 'data/page.json').write_text(json.dumps(page_data, indent=1) + '\n')
+    fill = dict(VIEWS=''.join(views), CAMERA_FACTS=''.join(facts), PLAYERS=''.join(players), HANDS=''.join(hands),
+                GRIDS=''.join(grids), DATA=json.dumps(page_data).replace('</', '<\\/'))
     page = (SRC / 'index.html').read_text()
     for key, value in fill.items():
         page = page.replace('{{' + key + '}}', value)
@@ -426,8 +429,9 @@ def main():
     if missing:
         raise SystemExit('Unfilled placeholders: ' + ', '.join(missing))
     (SITE / 'index.html').write_text(page)
-    print(f"site/: {data['pieces_placed']} pieces, {data['checkpoints_passed']}/{data['checkpoints_total']} checkpoints, "
-          f"{len(variants)} variants, graph_success={data['graph_success']}")
+    for name, data in rigs.items():
+        print(f"site/ {name}: {data['pieces_placed']} pieces, {data['checkpoints_passed']}/{data['checkpoints_total']} checkpoints, "
+              f"graph_success={data['graph_success']}")
 
 
 if __name__ == '__main__':

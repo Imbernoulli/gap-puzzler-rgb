@@ -54,7 +54,7 @@ def main():
         frames = [np.asarray(Image.fromarray(f).resize(CELL, Image.LANCZOS)) for f in iio.mimread(str(clip), memtest=False)]
         shown = min(len(steps), args.pieces) if args.pieces else len(steps)
         cells.append(dict(frames=frames, label=args.labels[k] if k < len(args.labels) else manifest.get('variant_label', path.name),
-                          status=f"{shown} placed"))
+                          status='done ✓' if shown == 12 else f"{shown} placed"))
     side = math.ceil(math.sqrt(len(cells)))
     length = max(len(c['frames']) for c in cells)
     try:
@@ -70,7 +70,7 @@ def main():
                 draw.rectangle((0, 0, CELL[0], 22), fill=(21, 23, 26))
                 draw.text((8, 3), cell['label'], fill=(240, 240, 240), font=font)
                 if i >= len(cell['frames']) - 1:
-                    draw.text((CELL[0] - 74, 3), cell['status'], fill=(140, 220, 160), font=font)
+                    draw.text((CELL[0] - draw.textlength(cell['status'], font=font) - 8, 3), cell['status'], fill=(140, 220, 160), font=font)
                 canvas.paste(frame, ((k % side) * CELL[0], (k // side) * CELL[1]))
             writer.append_data(np.asarray(canvas))
     print(out, length, 'frames')
