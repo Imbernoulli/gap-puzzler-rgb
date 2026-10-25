@@ -466,9 +466,10 @@ def main():
     notes = dict(args.note)
     grids = []
     for name, video, caption in args.grid:
-        target = SITE / 'media' / name / 'grid.mp4'
+        stem = Path(video).stem
+        target = SITE / 'media' / name / f'{stem}.mp4'
         shutil.copy2(video, target)
-        grids.append(f'<div data-rig="{name}"><figure class="grid-video"><video src="media/{name}/grid.mp4" {AUTOPLAY} '
+        grids.append(f'<div data-rig="{name}"><figure class="grid-video"><video src="media/{name}/{stem}.mp4" {AUTOPLAY} '
                      f'aria-label="{esc(caption)}"></video><figcaption>{esc(caption)}</figcaption></figure></div>')
     page_data = dict(rigs=rigs)
     (SITE / 'data/page.json').write_text(json.dumps(page_data, indent=1) + '\n')
