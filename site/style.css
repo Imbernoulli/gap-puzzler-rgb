@@ -266,3 +266,6 @@ body[data-rig="official"] [data-rig="custom"], body[data-rig="custom"] [data-rig
 .grip-notes { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 13.5px; }
 @media (max-width: 760px) { .standing, .grip { grid-template-columns: minmax(0, 1fr); } }
 .grip-fig { margin: 0; display: grid; gap: 6px; } .grip-fig img { width: 100%; height: auto; border-radius: 8px; } .grip-fig figcaption { font-size: 12.5px; color: var(--muted); }
+/* The title gets the full width: two lines at most. */
+.hero { grid-template-columns: minmax(0, 1fr); }
+.hero h1 { max-width: none; }
