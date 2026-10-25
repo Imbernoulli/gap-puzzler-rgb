@@ -232,3 +232,11 @@ body[data-rig="official"] [data-rig="custom"], body[data-rig="custom"] [data-rig
 #rss { border-top: 0; padding-top: 18px; }
 /* Before/after images stay a readable size instead of filling the row. */
 .strip figure:not(.wide) { flex: 0 1 400px; }
+
+/* Camera layout and what the cameras see, side by side under the slider. */
+.rig-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 16px; align-items: start; margin-top: 6px; }
+.rig-row figure { margin: 0; display: grid; gap: 6px; }
+.rig-row img { width: 100%; height: auto; border-radius: 8px; background: var(--sim); }
+.rig-row figcaption { font-size: 12.5px; color: var(--muted); }
+.hero-note { font-size: 13px; color: var(--muted); max-width: 46ch; justify-self: end; align-self: end; margin: 0; }
+@media (max-width: 760px) { .rig-row { grid-template-columns: minmax(0, 1fr); } .hero-note { justify-self: start; } }

@@ -376,9 +376,12 @@ def piece_ref(name):
 
 RIG_TEXT = {
     'official': dict(cameras='Official YAM station: one gantry D405 overhead, one D405 on each wrist',
+                     rig='Where the cameras are: one fixed overhead camera and one on each wrist, here at 677 s '
+                         'while both wrists look at the case.',
                      views='The gantry camera at t = 0, and all three cameras during piece 12\'s hand-to-hand transfer; '
                            'a free hand moves its camera to look.'),
     'custom': dict(cameras='Four fixed RGB cameras of our own placement: top, front, rear, side',
+                   rig='Where the cameras are: four fixed cameras around the table, top, front, rear and side.',
                    views='All the policy sees at t = 0: four fixed cameras.'),
 }
 
@@ -440,8 +443,11 @@ def main():
         else:
             image = 'media/policy_views_official.jpg" width="1280" height="720'
         text = RIG_TEXT[name]
-        views.append(f'<figure class="views" data-rig="{name}"><img src="{image}" loading="lazy" alt="{esc(text["views"])}">'
-                     f'<figcaption>{esc(text["views"])}</figcaption></figure>')
+        views.append(f'<div class="rig-row" data-rig="{name}">'
+                     f'<figure><img src="media/rig_{name}.jpg" loading="lazy" alt="{esc(text["rig"])}">'
+                     f'<figcaption>{esc(text["rig"])}</figcaption></figure>'
+                     f'<figure class="views"><img src="{image}" loading="lazy" alt="{esc(text["views"])}">'
+                     f'<figcaption>{esc(text["views"])}</figcaption></figure></div>')
         facts.append(f'<div data-rig="{name}"><dt>Cameras</dt><dd>{esc(text["cameras"])}</dd></div>')
         players.append(player_html(name))
         hands.append(hands_html(name))
