@@ -227,3 +227,6 @@ body[data-rig="official"] [data-rig="custom"], body[data-rig="custom"] [data-rig
 .graph-svg .abort-notch { fill: var(--fail); opacity: .55; }
 .graph-svg.two-col .node-label { font-size: 11px; }
 .player { align-items: stretch; }
+
+/* No rule between the tabs and the first section. */
+#rss { border-top: 0; padding-top: 18px; }
