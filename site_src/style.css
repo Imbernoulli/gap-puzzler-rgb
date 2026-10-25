@@ -217,12 +217,12 @@ figcaption b { color: var(--ink); font-weight: 600; margin-right: 6px; }
 
 /* Camera-rig tabs: one rig's views, player, clips and grid at a time. */
 body[data-rig="official"] [data-rig="custom"], body[data-rig="custom"] [data-rig="official"] { display: none !important; }
-.rig-bar { display: grid; gap: 8px; margin-top: 4px; }
+.rig-bar { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; margin-top: 4px; }
 .rig-tabs { display: inline-flex; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); justify-self: start; flex-wrap: wrap; }
 .rig-tabs button { font: 600 14px var(--body); color: var(--muted); background: none; border: 0; border-radius: 7px; padding: 8px 14px; cursor: pointer; }
 .rig-tabs button[aria-selected="true"] { background: var(--ink); color: var(--bg); }
 .rig-tabs button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-.rig-note { font-size: 13px; color: var(--muted); max-width: 75ch; margin: 0; }
+.rig-note { font-size: 13px; color: var(--muted); max-width: 60ch; margin: 0; flex: 1 1 320px; }
 .rig-chip { font: 500 10px var(--mono); text-transform: uppercase; letter-spacing: .05em; color: var(--muted); border: 1px solid var(--line); border-radius: 9px; padding: 1px 7px; margin-left: 6px; vertical-align: 2px; }
 .graph-svg .abort-notch { fill: var(--fail); opacity: .55; }
 .graph-svg.two-col .node-label { font-size: 11px; }
@@ -255,7 +255,7 @@ body[data-rig="official"] [data-rig="custom"], body[data-rig="custom"] [data-rig
 .standing figure { margin: 0; display: grid; gap: 6px; }
 .standing video { width: 100%; aspect-ratio: 16 / 9; border-radius: 8px; background: var(--sim); }
 .standing figcaption { font-size: 13px; }
-.grip { display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); gap: 20px; align-items: center; margin-top: 8px; border-top: 1px solid var(--line); padding-top: 14px; }
+.grip { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: center; margin-top: 8px; border-top: 1px solid var(--line); padding-top: 14px; }
 .grip-svg { width: 100%; height: auto; }
 .grip-svg .bead { fill: #f05aa0; stroke: #7a2350; stroke-width: 1.5; }
 .grip-svg .pad { fill: #4a525c; }
