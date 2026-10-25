@@ -62,7 +62,7 @@ function initPlayer(root, run) {
   // subgraphs fold into two columns so the panel stays about as tall as the video.
   function drawGraph(piece) {
     const n = piece.nodes.length, cols = n > 6 ? 2 : 1, rows = Math.ceil(n / cols);
-    const W = 300, boxH = 24, gap = 18, boxW = cols === 2 ? 138 : 200, xs = cols === 2 ? [4, 158] : [50];
+    const W = 300, boxH = 24, gap = 18, boxW = cols === 2 ? 130 : 200, xs = cols === 2 ? [18, 166] : [50];
     const H = 6 + rows * (boxH + gap) - gap + 6;
     const at = i => ({x: xs[Math.floor(i / rows)], y: 6 + (i % rows) * (boxH + gap)});
     const arrow = `arrow-${root.dataset.rig}`;
@@ -94,7 +94,8 @@ function initPlayer(root, run) {
       const group = el('g', {class: 'node', tabindex: 0, role: 'button', 'aria-label': `${node.label}: jump to this step`});
       group.append(el('rect', {x, y, width: boxW, height: boxH, rx: 5}));
       group.append(el('rect', {x: x + boxW - 4, y: y + 5, width: 2, height: boxH - 10, class: 'abort-notch'}));
-      group.append(el('text', {x: x + 8, y: y + boxH / 2 + 4, class: 'node-label'}, (node.relook ? '↻ ' : '') + node.label));
+      group.append(el('text', {x: x + 8, y: y + boxH / 2 + 4, class: 'node-label'}, node.label));
+      if (node.relook) group.append(el('text', {x: x - 14, y: y + boxH / 2 + 5, class: 'relook'}, '↻'));
       if (cols === 1) group.append(el('text', {x: x + boxW - 10, y: y + boxH / 2 + 4, class: 'node-time', 'text-anchor': 'end'},
         node.end != null ? `${(node.end / run.control_hz).toFixed(0)} s` : ''));
       group.addEventListener('click', () => seek(node.start));

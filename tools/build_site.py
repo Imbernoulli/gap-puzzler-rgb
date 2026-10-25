@@ -100,7 +100,8 @@ def exits(workflow, name):
 
 
 def exit_text(names):
-    return names[0] + (f' +{len(names) - 1}' if len(names) > 1 else '')
+    """The main success exit, in plain words (the others show on hover)."""
+    return names[0].replace('_', ' ')
 
 
 def metrics(row, first=False):

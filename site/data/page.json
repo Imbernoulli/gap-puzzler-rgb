@@ -76,7 +76,7 @@
         "missed",
         "uncertain"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 843,
        "end": 1682,
        "passed": true,
@@ -97,7 +97,7 @@
         "executed_visual_unknown",
         "executed_visual_unverified"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 1682,
        "end": 1688,
        "passed": true,
@@ -224,7 +224,7 @@
         "missed",
         "uncertain"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 2433,
        "end": 3326,
        "passed": true,
@@ -246,7 +246,7 @@
         "executed_visual_unknown",
         "executed_visual_unverified"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 3326,
        "end": 3333,
        "passed": true,
@@ -375,7 +375,7 @@
         "missed",
         "uncertain"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 4743,
        "end": 5583,
        "passed": true,
@@ -397,7 +397,7 @@
         "executed_visual_unknown",
         "executed_visual_unverified"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 5583,
        "end": 5594,
        "passed": true,
@@ -526,7 +526,7 @@
         "missed",
         "uncertain"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 6209,
        "end": 7083,
        "passed": true,
@@ -548,7 +548,7 @@
         "executed_visual_unknown",
         "executed_visual_unverified"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 7083,
        "end": 7090,
        "passed": true,
@@ -673,7 +673,7 @@
         "missed",
         "uncertain"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 8153,
        "end": 9124,
        "passed": true,
@@ -695,7 +695,7 @@
         "executed_visual_unknown",
         "executed_visual_unverified"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 9124,
        "end": 9130,
        "passed": true,
@@ -804,7 +804,7 @@
        "exits": [
         "receiver_ready"
        ],
-       "exit": "receiver_ready",
+       "exit": "receiver ready",
        "start": 10094,
        "end": 11329,
        "passed": true,
@@ -822,7 +822,7 @@
        "exits": [
         "receiver_closed"
        ],
-       "exit": "receiver_closed",
+       "exit": "receiver closed",
        "start": 11329,
        "end": 11672,
        "passed": true,
@@ -840,7 +840,7 @@
        "exits": [
         "donor_released"
        ],
-       "exit": "donor_released",
+       "exit": "donor released",
        "start": 11672,
        "end": 12037,
        "passed": true,
@@ -858,7 +858,7 @@
        "exits": [
         "receiver_verified"
        ],
-       "exit": "receiver_verified",
+       "exit": "receiver verified",
        "start": 12037,
        "end": 12090,
        "passed": true,
@@ -896,7 +896,7 @@
         "missed",
         "uncertain"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 14641,
        "end": 15932,
        "passed": true,
@@ -918,7 +918,7 @@
         "executed_visual_unknown",
         "executed_visual_unverified"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 15932,
        "end": 16007,
        "passed": true,
@@ -1039,7 +1039,7 @@
         "missed",
         "uncertain"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 17224,
        "end": 18301,
        "passed": true,
@@ -1061,7 +1061,7 @@
         "executed_visual_unknown",
         "executed_visual_unverified"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 18301,
        "end": 18323,
        "passed": true,
@@ -1190,7 +1190,7 @@
         "missed",
         "uncertain"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 19485,
        "end": 20348,
        "passed": true,
@@ -1212,7 +1212,7 @@
         "executed_visual_unknown",
         "executed_visual_unverified"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 20348,
        "end": 20375,
        "passed": true,
@@ -1341,7 +1341,7 @@
         "missed",
         "uncertain"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 22521,
        "end": 25016,
        "passed": true,
@@ -1363,7 +1363,7 @@
         "executed_visual_unknown",
         "executed_visual_unverified"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 25016,
        "end": 25197,
        "passed": true,
@@ -1488,7 +1488,7 @@
         "missed",
         "uncertain"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 26568,
        "end": 27409,
        "passed": true,
@@ -1510,7 +1510,7 @@
         "executed_visual_unknown",
         "executed_visual_unverified"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 27409,
        "end": 27434,
        "passed": true,
@@ -1635,7 +1635,7 @@
         "missed",
         "uncertain"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 28755,
        "end": 29987,
        "passed": true,
@@ -1657,7 +1657,7 @@
         "executed_visual_unknown",
         "executed_visual_unverified"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 29987,
        "end": 30043,
        "passed": true,
@@ -1784,7 +1784,7 @@
        "exits": [
         "dual_held"
        ],
-       "exit": "dual_held",
+       "exit": "dual held",
        "start": 33671,
        "end": 34209,
        "passed": true,
@@ -1856,7 +1856,7 @@
        "exits": [
         "dual_held"
        ],
-       "exit": "dual_held",
+       "exit": "dual held",
        "start": 36634,
        "end": 37172,
        "passed": true,
@@ -1930,7 +1930,7 @@
         "missed",
         "uncertain"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 41095,
        "end": 45136,
        "passed": true,
@@ -2102,7 +2102,7 @@
         "missed",
         "uncertain"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 664,
        "end": 1314,
        "passed": true,
@@ -2123,7 +2123,7 @@
         "executed_visual_unknown",
         "executed_visual_unverified"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 1314,
        "end": 1322,
        "passed": true,
@@ -2250,7 +2250,7 @@
         "missed",
         "uncertain"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 2083,
        "end": 2757,
        "passed": true,
@@ -2272,7 +2272,7 @@
         "executed_visual_unknown",
         "executed_visual_unverified"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 2757,
        "end": 2771,
        "passed": true,
@@ -2401,7 +2401,7 @@
         "missed",
         "uncertain"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 3696,
        "end": 4368,
        "passed": true,
@@ -2423,7 +2423,7 @@
         "executed_visual_unknown",
         "executed_visual_unverified"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 4368,
        "end": 4380,
        "passed": true,
@@ -2552,7 +2552,7 @@
         "missed",
         "uncertain"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 5002,
        "end": 5691,
        "passed": true,
@@ -2574,7 +2574,7 @@
         "executed_visual_unknown",
         "executed_visual_unverified"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 5691,
        "end": 5755,
        "passed": true,
@@ -2699,7 +2699,7 @@
         "missed",
         "uncertain"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 6560,
        "end": 7206,
        "passed": true,
@@ -2721,7 +2721,7 @@
         "executed_visual_unknown",
         "executed_visual_unverified"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 7206,
        "end": 7215,
        "passed": true,
@@ -2830,7 +2830,7 @@
        "exits": [
         "receiver_ready"
        ],
-       "exit": "receiver_ready",
+       "exit": "receiver ready",
        "start": 8132,
        "end": 9545,
        "passed": true,
@@ -2848,7 +2848,7 @@
        "exits": [
         "receiver_closed"
        ],
-       "exit": "receiver_closed",
+       "exit": "receiver closed",
        "start": 9545,
        "end": 9915,
        "passed": true,
@@ -2866,7 +2866,7 @@
        "exits": [
         "donor_released"
        ],
-       "exit": "donor_released",
+       "exit": "donor released",
        "start": 9915,
        "end": 10312,
        "passed": true,
@@ -2884,7 +2884,7 @@
        "exits": [
         "receiver_verified"
        ],
-       "exit": "receiver_verified",
+       "exit": "receiver verified",
        "start": 10312,
        "end": 10346,
        "passed": true,
@@ -2922,7 +2922,7 @@
         "missed",
         "uncertain"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 12330,
        "end": 13650,
        "passed": true,
@@ -2944,7 +2944,7 @@
         "executed_visual_unknown",
         "executed_visual_unverified"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 13650,
        "end": 13749,
        "passed": true,
@@ -3065,7 +3065,7 @@
         "missed",
         "uncertain"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 14749,
        "end": 15375,
        "passed": true,
@@ -3087,7 +3087,7 @@
         "executed_visual_unknown",
         "executed_visual_unverified"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 15375,
        "end": 15415,
        "passed": true,
@@ -3216,7 +3216,7 @@
         "missed",
         "uncertain"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 16293,
        "end": 16906,
        "passed": true,
@@ -3238,7 +3238,7 @@
         "executed_visual_unknown",
         "executed_visual_unverified"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 16906,
        "end": 16967,
        "passed": true,
@@ -3367,7 +3367,7 @@
         "missed",
         "uncertain"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 18285,
        "end": 20041,
        "passed": true,
@@ -3389,7 +3389,7 @@
         "executed_visual_unknown",
         "executed_visual_unverified"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 20041,
        "end": 20068,
        "passed": true,
@@ -3514,7 +3514,7 @@
         "missed",
         "uncertain"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 20968,
        "end": 21596,
        "passed": true,
@@ -3536,7 +3536,7 @@
         "executed_visual_unknown",
         "executed_visual_unverified"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 21596,
        "end": 21622,
        "passed": true,
@@ -3661,7 +3661,7 @@
         "missed",
         "uncertain"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 22569,
        "end": 23322,
        "passed": true,
@@ -3683,7 +3683,7 @@
         "executed_visual_unknown",
         "executed_visual_unverified"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 23322,
        "end": 23358,
        "passed": true,
@@ -3810,7 +3810,7 @@
        "exits": [
         "dual_held"
        ],
-       "exit": "dual_held",
+       "exit": "dual held",
        "start": 26368,
        "end": 26748,
        "passed": true,
@@ -3882,7 +3882,7 @@
        "exits": [
         "dual_held"
        ],
-       "exit": "dual_held",
+       "exit": "dual held",
        "start": 28793,
        "end": 29111,
        "passed": true,
@@ -3956,7 +3956,7 @@
         "missed",
         "uncertain"
        ],
-       "exit": "placed +2",
+       "exit": "placed",
        "start": 30926,
        "end": 32832,
        "passed": true,
