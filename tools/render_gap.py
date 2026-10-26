@@ -40,6 +40,8 @@ def render(episode, out, stride, limit, start=0, end=None, camera=None, plain=Fa
     result = json.loads((episode / 'result.json').read_text())
     variant = dict(result['variant'])
     variant['preset_pieces'] = tuple(variant.get('preset_pieces', ()))
+    if variant.get('appearance') == 'withheld':  # the policy is not told the colours; the scene's are in the manifest
+        variant['appearance'] = json.loads((episode.parent / 'manifest.json').read_text())['scene_variant']['appearance']
     sim = scene(Variant(**variant)).build()
     eye, look = camera or CAMERA
     cam = rss.CameraSpec(name='replay', width=1280, height=720, fov_y=44, eye=eye, look_at=look, up=(0, 0, 1))

@@ -80,6 +80,8 @@ def main():
     episode = Path(args.episode)
     result = json.loads((episode / 'result.json').read_text())
     variant = dict(result['variant']); variant['preset_pieces'] = tuple(variant.get('preset_pieces', ()))
+    if variant.get('appearance') == 'withheld':  # the policy is not told the colours; the scene's are in the manifest
+        variant['appearance'] = json.loads((episode.parent / 'manifest.json').read_text())['scene_variant']['appearance']
     sim = scene(Variant(**variant)).build()
     frames = [f for f in json.loads((episode / 'frames.json').read_text()) if args.start <= f['step'] <= args.end]
     picked = frames[::args.stride]
