@@ -1,0 +1,64 @@
+--- a/puzzler/task.py
++++ b/puzzler/task.py
+@@ -86,7 +86,13 @@
+     return {n:tuple(float(c) for c in colorsys.hsv_to_rgb(float(rng.uniform()),float(rng.uniform(.7,1.)),float(rng.uniform(.45,1.))))
+             for n in m.CELLS}
+ 
+-TEXTURED=('wood','wood_natural','speckle','speckle_soft')
++TEXTURED=('wood','wood_natural','wood_rich','wood_species','speckle','speckle_soft')
++# wood_species: one real wood per piece, typical finished-wood tones (sRGB 0-255)
++# and how strongly its latewood/figure shows (grain contrast, 1 = oak-like).
++WOOD_SPECIES=(('maple',(228,204,164),.55),('zebrano',(204,170,112),1.),('yellowheart',(214,172,72),.7),
++              ('olive',(178,158,98),.9),('amber oak',(196,140,70),1.),('teak',(168,118,66),.9),
++              ('cherry',(172,94,58),.7),('padauk',(184,70,40),.8),('bubinga',(156,76,62),.8),
++              ('sapele',(146,86,54),.9),('mahogany',(130,60,40),.8),('walnut',(118,82,56),1.))
+ OAK=(.888,.584,.356)  # RSS LAB_OAK_COLOR (robosimstudio/core/render/room.py), linear
+ 
+ 
+@@ -106,13 +112,17 @@
+     wood: one oak grain (growth rings along the piece's long axis, fine
+     streaks, a little figure), stained per piece with its own hue.
+     wood_natural: the same untinted oak on every piece.
++    wood_rich: the same grain dyed with a saturated stain per piece (hue
++    spacing as wood, saturation .9, value .85, no pale lift).
++    wood_species: a different real wood on every piece (WOOD_SPECIES: its
++    finished tone and grain contrast), the same grain pattern.
+     speckle: a per-piece base hue with a granite-like 1-2 mm speckle of
+     lighter, darker and hue-shifted grains over about a third of the surface.
+     speckle_soft: the same speckle with gentler grains (11 degree hue shift).
+     """
+     import colorsys
+     rng=np.random.default_rng(seed*1000+sorted(m.CELLS).index(name)+17)
+-    if appearance in ('wood','wood_natural'):
++    if appearance in ('wood','wood_natural','wood_rich','wood_species'):
+         grain=np.random.default_rng(31)  # the same oak on every piece
+         x=np.arange(size)/size
+         warp=1.5*_value_noise((size,size),grain,6)+.4*_value_noise((size,size),grain,24)
+@@ -125,12 +135,24 @@
+         shade=1.12-.62*latewood+.16*streak+.08*figure
+         oak=np.asarray(OAK) if appearance=='wood' else np.asarray((.80,.42,.16))  # natural: warmer, more saturated
+         img=oak[None,None,:]*shade[...,None]
+-        if appearance=='wood':
++        if appearance=='wood_species':
++            order=np.random.default_rng(seed+5016).permutation(12)
++            _,srgb,contrast=WOOD_SPECIES[int(order[sorted(m.CELLS).index(name)])]
++            tone=np.asarray(srgb,float)/255.
++            tone=np.where(tone<=.04045,tone/12.92,((tone+.055)/1.055)**2.4)
++            grain_shade=1.+contrast*(shade-1.)
++            # latewood is a little warmer and darker, as in real wood
++            img=tone[None,None,:]*grain_shade[...,None]*(1.-.12*contrast*latewood[...,None]*np.array([0.,.25,.5]))
++            return np.clip(img,0.,1.)
++        if appearance in ('wood','wood_rich'):
+             hues=(np.arange(12)/12.+np.random.default_rng(seed+5003).uniform(-.02,.02,12))%1.
+             order=np.random.default_rng(seed+5009).permutation(12)
+             h=float(hues[order[sorted(m.CELLS).index(name)]])
+-            stain=np.asarray(colorsys.hsv_to_rgb(h,.75,1.))
+-            img=img*(.40+.60*stain)[None,None,:]
++            if appearance=='wood_rich':
++                img=shade[...,None]*(.85*np.asarray(colorsys.hsv_to_rgb(h,.9,1.)))[None,None,:]
++            else:
++                stain=np.asarray(colorsys.hsv_to_rgb(h,.75,1.))
++                img=img*(.40+.60*stain)[None,None,:]
+         return np.clip(img,0.,1.)
+     h=float(rng.uniform());base=np.asarray(colorsys.hsv_to_rgb(h,float(rng.uniform(.7,1.)),float(rng.uniform(.55,.95))))
+     img=np.repeat(np.repeat(base[None,None,:],size,0),size,1)

@@ -1,0 +1,132 @@
+--- a/puzzler/appearance.py
++++ b/puzzler/appearance.py
+@@ -332,9 +332,22 @@
+             masks[name] = mask
+             continue
+         if len(group) == 1:
+-            # Unchanged from the palette detector: keep the largest spatial group.
++            # Keep the largest spatial group, among those touching the projected
++            # footprint of a pose supplied for this piece in ``near`` when one
++            # does (a pale tint can label a few pixels of other parts as this
++            # one, in a group larger than a partly hidden piece).
+             sizes = np.bincount(components.ravel(), weights=mask.ravel(), minlength=count)
+             sizes[0] = 0
++            poses = (near or {}).get(name)
++            if camera is not None and poses is not None:
++                poses = [poses] if np.asarray(poses, dtype=float).ndim == 1 else list(poses)
++                roi = np.zeros(labels.shape, np.uint8)
++                for pose in poses:
++                    roi |= footprint(name, pose, camera, labels.shape)
++                touching = np.unique(components[(roi > 0) & (mask > 0)])
++                touching = touching[touching > 0]
++                if len(touching):
++                    keep = np.zeros_like(sizes); keep[touching] = sizes[touching]; sizes = keep
+             masks[name] = (mask & (components == sizes.argmax())).astype(np.uint8)
+             continue
+         poses = (near or {}).get(name)
+--- a/puzzler/shape_vision.py
++++ b/puzzler/shape_vision.py
+@@ -35,6 +35,19 @@
+     return (((high-low>24)&(high>35))|((high-low<=24)&(high>108))).astype(np.uint8)
+ 
+ 
++def silhouette(rgb):
++    """Dim chromatic pixels: foreground's chromatic test made brightness-invariant.
++
++    A shaded side of a pale part keeps its hue but drops below foreground's
++    absolute spread; its edge is shading, not the part's outline. These
++    pixels only extend a fitted part's own outline (object_masks); every
++    support gate still uses foreground().
++    """
++    fg=foreground(rgb)
++    high=rgb.max(axis=2).astype(np.int32);low=rgb.min(axis=2).astype(np.int32)
++    return ((((high-low)*255>24*high)&(high>35))&(fg==0)).astype(np.uint8)
++
++
+ def colour_split(part,groups,min_pixels=150,centres=None):
+     """Split one foreground component into its anonymous colour groups.
+ 
+@@ -353,8 +366,13 @@
+     return list(matches.values())
+ 
+ 
+-def object_masks(name,seed,foregrounds,cameras):
+-    """Select local image evidence by geometry, never an expected part colour."""
++def object_masks(name,seed,foregrounds,cameras,outlines=None,others=()):
++    """Select local image evidence by geometry, never an expected part colour.
++
++    ``outlines`` (silhouette() per view) adds dim same-part pixels to the
++    contour source, only inside this part's own seed footprint and outside
++    the footprints of the other known parts (``others``: (name, pose)). The
++    evidence masks are always the foregrounds."""
+     seed=np.asarray(seed)
+     centers=local_beads(name)@Rotation.from_quat(seed[3:]).as_matrix().T+seed[:3]
+     masks={};contours={}
+@@ -369,7 +387,15 @@
+         masks[key]=foregrounds[key]&roi
+         # Use observed foreground edges. Clipping a mask creates synthetic ROI
+         # edges, which must never become evidence for a physical silhouette.
+-        points=boundary(foregrounds[key],limit=16000)
++        source=foregrounds[key]
++        if outlines is not None:
++            shape=source.shape
++            own=appearance.footprint(name,seed,camera,shape,pad=3)
++            foreign=np.zeros(shape,np.uint8)
++            for other,pose in others:
++                foreign|=appearance.footprint(other,pose,camera,shape,pad=3)
++            source=source|(outlines[key]&own&(1-foreign))
++        points=boundary(source,limit=16000)
+         if len(points):
+             pixels=np.rint(points).astype(int)
+             points=points[roi[pixels[:,1],pixels[:,0]]>0]
+@@ -827,12 +853,14 @@
+         appearance.active().stage(measured,source='CAD-shape identification, partial, ambiguous or wrist-view assignment')
+     seeds={**new,**previous}
+     masks={key:foreground(rgb) for key,rgb in images.items()}
++    outlines={key:silhouette(rgb) for key,rgb in images.items()}
+     raw_evidence=raw_image_evidence(masks,cameras)
+     detections={};cache={};color_rescue={}
+     def fit(name,seed):
+         key=(name,tuple(seed))
+         if key not in cache:
+-            evidence,contours=object_masks(name,seed,masks,cameras)
++            others=[(n,p) for n,p in seeds.items() if n in CELLS and n!=name]
++            evidence,contours=object_masks(name,seed,masks,cameras,outlines,others)
+             cache[key]=fit_piece(name,evidence,cameras,previous=seed,contour_points=contours)
+             if cache[key]['visible']:
+                 supported,diagnostic=bead_image_support(name,cache[key]['pose'],raw_evidence,cameras)
+--- a/puzzler/red_rgb_recovery.py
++++ b/puzzler/red_rgb_recovery.py
+@@ -44,11 +44,30 @@
+                             near={name:previous[name]} if previous and name in previous else None
+                             masks={key:plain_vision.detect(rgb,only_names=(name,),camera=cameras.get(key),near=near)[name]
+                                    for key,rgb in images.items()}
+-                            if previous and name in previous:
+-                                detection=plain_vision.fit_piece(name,masks,cameras,previous=previous[name])
+                             foregrounds={key:foreground(rgb) for key,rgb in images.items()}
+                             evidence=raw_image_evidence(foregrounds,cameras)
+                             supported,diagnostic=bead_image_support(name,detection['pose'],evidence,cameras) if detection.get('visible') else (False,{})
++                            if previous and name in previous:
++                                # Optimizer starts only: the held proposal and the
++                                # proposal moved one bead pitch along each table
++                                # axis (a stale held prediction can be a pitch or
++                                # more off). The best supported fit is then gated
++                                # exactly as before.
++                                import numpy as np
++                                from puzzler.model import PITCH
++                                base=np.asarray(previous[name],dtype=float);best=None
++                                for dx,dy in ((0,0),(PITCH,0),(-PITCH,0),(0,PITCH),(0,-PITCH)):
++                                    start=base.copy();start[:2]+=(dx,dy)
++                                    fitted=plain_vision.fit_piece(name,masks,cameras,previous=start.tolist())
++                                    if not fitted.get('visible'):continue
++                                    ok,proof=bead_image_support(name,fitted['pose'],evidence,cameras)
++                                    if ok and (best is None or float(fitted['rms_residual_m'])<float(best[0]['rms_residual_m'])):
++                                        best=(fitted,proof)
++                                    if ok and (dx,dy)==(0,0):break
++                                if best is not None:detection,diagnostic=best;supported=True
++                                else:
++                                    detection=plain_vision.fit_piece(name,masks,cameras,previous=previous[name])
++                                    supported,diagnostic=bead_image_support(name,detection['pose'],evidence,cameras) if detection.get('visible') else (False,{})
+                             if supported:
+                                 trial=deepcopy(strict['detections'])
+                                 trial[name]=dict(detection,independent_rgb_support=diagnostic)

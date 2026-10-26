@@ -43,6 +43,12 @@ VARIANTS = {
     'random_palette': dict(seed=0, scene_variant=dict(appearance='random'), label='Random piece colors (seed 0)'),
     'monochrome': dict(seed=0, scene_variant=dict(appearance='monochrome'), label='All pieces one grey'),
 }
+VARIANTS.update({look: dict(seed=0, scene_variant=dict(appearance=look), label=label) for look, label in (
+    ('wood', 'Oak-grain pieces, one stain per piece'), ('wood_natural', 'Oak-grain pieces, all the same untinted oak'),
+    ('wood_rich', 'Wood-grain pieces, one rich stain per piece'),
+    ('wood_species', 'Twelve real woods, one per piece'),
+    ('speckle', 'Speckled pieces, one base hue per piece'),
+    ('speckle_soft', 'Gently speckled pieces, one base hue per piece'))})
 VARIANTS.update({f'random_palette_{k}': dict(seed=0, scene_variant=dict(appearance=f'random{k}'),
                                             label=f'Random piece colors (palette seed {k})') for k in range(1, 10)})
 # Demo starts: every loose piece moved up to ±10 mm and turned up to ±10°, and the case

@@ -182,7 +182,7 @@ diff -ruN '--exclude=__pycache__' clean/policy/profiles/pyramid.json A/policy/pr
 diff -ruN '--exclude=__pycache__' clean/policy/puzzler/appearance.py A/policy/puzzler/appearance.py
 --- a/policy/puzzler/appearance.py
 +++ b/policy/puzzler/appearance.py
-@@ -0,0 +1,349 @@
+@@ -0,0 +1,353 @@
 +"""Piece colours measured by the policy itself; no fixed colour-to-part table.
 +
 +Task assumption: each piece is one uniform colour, but which colour is unknown.
@@ -254,9 +254,13 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/appearance.py A/policy/pu
 +    A grain of another hue inside a textured piece is not a silhouette edge.
 +    The gap between beads of one piece (the centre of a 2x2 block is about
 +    half a bead disc) is larger and stays open as silhouette evidence.
++    Grain lines that reach the rim are not enclosed; a 3x3 closing first
++    bridges such slits (at most 2 px wide), far narrower than a neck gap.
 +    """
 +    if radius <= 0 or not mask.any():
 +        return mask
++    mask = cv2.morphologyEx(mask.astype(np.uint8), cv2.MORPH_CLOSE,
++                            cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)))
 +    inverse = (1-mask).astype(np.uint8)
 +    count, components, stats, _ = cv2.connectedComponentsWithStats(inverse, connectivity=4)
 +    h, w = mask.shape
@@ -2623,13 +2627,55 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/cyan_receiver_release_fee
  
  
  def _board_current(scene):
-@@ -379,14 +537,38 @@
+@@ -325,6 +483,41 @@
+     return state,observed,scene,belief,records
+ 
+ 
++SCENE_SCOPE_TEXT='Receiver motor scene exceeded its original30s actual RGB scope'
++
++
++def _scene_age_only(ctx):
++    """The receiver scope refused only because its RGB epoch aged out."""
++    reference=getattr(ctx,'reference',None) or {}
++    now=ctx.ctx.tool('robot.execution_journal_cursor').get('timestamp') if hasattr(ctx,'ctx') else None
++    stamp=reference.get('timestamp')
++    return (isinstance(now,(int,float)) and np.isfinite(now) and isinstance(stamp,(int,float)) and np.isfinite(stamp)
++            and now-stamp>float(getattr(ctx,'limit',30.)) and bool(reference.get('frame_sha256'))
++            and reference.get('observation_source')=='rgb_shape_geometry')
++
++
++def _scene_scoped(ctx,state,belief,motion,label):
++    """Run ``motion(state,belief)`` (it screens against state['planning_scene'] and
++    issues its first motor command only after that). If the receiver scope
++    refuses that first command only because the scene's RGB epoch aged out
++    (the sim kept stepping while the policy computed), take a new real packet
++    and rebuild the dated scene (cyan_dated_scene: a two-view fit past 30 s no
++    longer enters; its gantry proposal does), rebind the scope, and run the
++    motion again, so it is screened against the new scene. Once; any other
++    refusal, or a rebuild that cannot date every entry, stands."""
++    try:
++        return state,motion(state,belief)
++    except c.PlanningRefusal as error:
++        if SCENE_SCOPE_TEXT not in str(error) or not _scene_age_only(ctx):raise
++        refusal=error
++    old=dict(getattr(ctx,'reference',None) or {})
++    state,observed,scene,belief,source=_refresh(ctx,state)
++    state.setdefault('receiver_delivery',{}).setdefault('scene_age_renewals',[]).append(dict(
++        label=label,original_refusal=str(refusal),old_reference_timestamp=old.get('timestamp'),
++        new_reference_timestamp=scene['reference']['reference_timestamp'],observation=source.get('observation')))
++    return state,motion(state,belief)
++
++
+ def _execute_transport(ctx,state):
+     state=deepcopy(state)
+     if state['piece']!='cyan' or state['arm']!=state['transfer']['receiver']:
+@@ -379,14 +572,38 @@
                      joint=True,path_fraction=.5,allow_actual_intermediate=True)
      state,middle,scene,belief,middle_source=_refresh(ctx,state)
      if first.get('actual_intermediate_feedback') and 'cyan' not in middle.get('poses',{}):
 +        # Official rig: one screened look with the free arm's wrist camera,
 +        # then the same screened joint path back before any held motion.
-+        look=_free_arm_look(ctx,state,belief)
++        state,look=_scene_scoped(ctx,state,belief,lambda st,bel:_free_arm_look(ctx,st,bel),'middle_free_arm_look')
 +        if look is not None:
 +            state,middle,scene,belief,middle_source=_refresh(ctx,state)
 +            c.feed_joint_plan(ctx,{'current':look['joints'],'joints':look['current']},look['arm'])
@@ -2663,7 +2709,7 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/cyan_receiver_release_fee
          target=_hover(state,scene,belief,relative)
          feedback.append(dict(source=entry,target=target))
          if target['authored_bound_estimate_public_hover_error_m']<=.003:break
-@@ -400,7 +582,7 @@
+@@ -400,7 +617,7 @@
      carry=dict(contract='receiver_owned_RGB_or_honest_conditional_segmented_carry_v1',
          receiver_first_actual_view_steps=view_steps,
          donor_screened_public_home=donor_home,release_selection_view_renewal=release_views,segments=[first,second],sources=[source,source2,middle_source],
@@ -2672,7 +2718,7 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/cyan_receiver_release_fee
      state.update(cyan_selected_goal=target,transport_record=carry)
      return result('carried',state,observed,'transport',transport_record=carry)
  
-@@ -613,6 +795,19 @@
+@@ -613,6 +830,19 @@
      # screened terminal descent remains the original vertical approach.
      state,preopen,scene,belief,release_views=_renew_board_by_views(ctx,state,preopen,scene,belief,
          grid=(0.,),lifts=(.05,.10))
@@ -2692,7 +2738,7 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/cyan_receiver_release_fee
      target=_select_target(ctx,state,scene,belief,lock_relative=True)
      min_height,robust_height=_robust_release_height(ctx,state,scene,belief,target)
      if min_height>float(target['height']):
-@@ -621,7 +816,7 @@
+@@ -621,7 +851,7 @@
      width=float(belief['current_robot_encoder_values'][off+6]-belief['current_robot_encoder_values'][off+7])
      descent=move_held(ctx,state,target['release_tcp'],target['rotation'],scene,width,belief=belief,terminal=True)
      ctx.tool('robot.wait_steps',steps=30)
@@ -2701,7 +2747,7 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/cyan_receiver_release_fee
      corrections=[]
      for attempt in range(3):
          target=_select_target(ctx,state,scene,belief,lock_relative=True,min_height=min_height)
-@@ -633,7 +828,7 @@
+@@ -633,7 +863,7 @@
              raise c.PlanningRefusal('Receiver actual preopen alignment exceeds bounded correction contract')
          width=float(belief['current_robot_encoder_values'][off+6]-belief['current_robot_encoder_values'][off+7])
          corrections.append(move_held(ctx,state,target['release_tcp'],target['rotation'],scene,width,belief=belief,terminal=True))
@@ -2710,7 +2756,7 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/cyan_receiver_release_fee
      # Recheck the complete actual loaded-to-open sweep in both robot arms.
      # Search bounded opening widths, then the next original release heights,
      # with the same material sweep and board margin; never weaken a gate.
-@@ -657,7 +852,9 @@
+@@ -657,7 +887,9 @@
      scene=state['planning_scene']
      q16=after_open['robot_geometry_provenance']['robot_encoder_values']
      retreat=_material_empty(ctx,state,scene,arm,actual+[0.,0.,.055],actual_q,body,q16,released_body_envelope_m=released_bound)
