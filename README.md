@@ -36,15 +36,15 @@ jittered layouts, friction 0.50, friction 0.80, all perturbations combined),
 7/7; fix10 completed 6/6. The v13 policy completed none of them.
 
 **Official camera rig** (gantry D405 + two wrist D405s, `experiments/official_rig/`):
-32 fresh runs from loose pieces have completed 12/12 with every checkpoint, the RSS goal
-and the GaP success exit (audits 2.4-3.1 mm), over all eight scenes: nominal (9), all
-perturbations combined (7), case moved and turned the other way (5), loose pieces
-jittered (3), and, with 2 each, case moved and turned, friction 0.50, friction 0.80 and the
-second jittered layout. `experiments/official_rig/policy.diff` is the code of round 30,
-which completed 5 of 6 runs (nominal, combined, case turned the other way, second jittered
-layout, and a different starting layout). Different starting layouts have completed on 12
-of 16 jittered layouts and on one spread-out layout, and runs with shuffled or random piece
-colours completed 5 of 5; the policy never reads a colour table.
+38 fresh runs from loose pieces have completed 12/12 with every checkpoint, the RSS goal
+and the GaP success exit (audits 2.4-3.1 mm), over all eight scenes: nominal (11), all
+perturbations combined (9), case moved and turned the other way (5), loose pieces
+jittered (4), case moved and turned (3), and, with 2 each, friction 0.50, friction 0.80 and
+the second jittered layout. `experiments/official_rig/policy.diff` is the code of round 32,
+which completed 5 of 6 runs (nominal, combined, jittered pieces, a different starting
+layout, and a spread-out layout). Different starting layouts have completed on 15 of 16
+jittered layouts and on one spread-out layout (twice). Runs with shuffled or random piece
+colours completed 5 of 6; the policy never reads a colour table.
 
 Perturbed scenes and scattered layouts are on the site.
 

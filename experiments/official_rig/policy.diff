@@ -1,6 +1,30 @@
 diff -ruN '--exclude=__pycache__' clean/policy/graphs/pyramid_original_order_layout_c_v10/params.json A/policy/graphs/pyramid_original_order_layout_c_v10/params.json
 --- a/policy/graphs/pyramid_original_order_layout_c_v10/params.json
 +++ b/policy/graphs/pyramid_original_order_layout_c_v10/params.json
+@@ -683,12 +683,12 @@
+         "bead_in_tcp_m": [
+           0.0,
+           0.0,
+-          0.0125
++          0.01
+         ],
+         "hand_in_body_position": [
+           0.008333333333333338,
+           0.016666666666666684,
+-          0.0125
++          0.01
+         ],
+         "hand_in_body_rotation": [
+           [
+@@ -709,7 +709,7 @@
+         ],
+         "stable_contact_constraint": {
+           "public_blade_front_z_m": 0.0165,
+-          "bead_beyond_blade_front_m": -0.004,
++          "bead_beyond_blade_front_m": -0.0065,
+           "contact_normal_tangential_to_pinch_ratio": 0.0,
+           "closing_axis_centered": true,
+           "scope": "Nominal centered bead0 on opposed blade faces; actual RGB/q16 geometry must confirm; no stability claim from profile."
 @@ -1073,6 +1073,7 @@
        "source_open_width": 0.055,
        "release_open_width": 0.04,
@@ -31,6 +55,30 @@ diff -ruN '--exclude=__pycache__' clean/policy/graphs/pyramid_original_order_lay
 diff -ruN '--exclude=__pycache__' clean/policy/graphs/pyramid_original_order_layout_c_v10/workflow.json A/policy/graphs/pyramid_original_order_layout_c_v10/workflow.json
 --- a/policy/graphs/pyramid_original_order_layout_c_v10/workflow.json
 +++ b/policy/graphs/pyramid_original_order_layout_c_v10/workflow.json
+@@ -848,12 +848,12 @@
+                   "bead_in_tcp_m": [
+                     0.0,
+                     0.0,
+-                    0.0125
++                    0.01
+                   ],
+                   "hand_in_body_position": [
+                     0.008333333333333338,
+                     0.016666666666666684,
+-                    0.0125
++                    0.01
+                   ],
+                   "hand_in_body_rotation": [
+                     [
+@@ -874,7 +874,7 @@
+                   ],
+                   "stable_contact_constraint": {
+                     "public_blade_front_z_m": 0.0165,
+-                    "bead_beyond_blade_front_m": -0.004,
++                    "bead_beyond_blade_front_m": -0.0065,
+                     "contact_normal_tangential_to_pinch_ratio": 0.0,
+                     "closing_axis_centered": true,
+                     "scope": "Nominal centered bead0 on opposed blade faces; actual RGB/q16 geometry must confirm; no stability claim from profile."
 @@ -1238,6 +1238,7 @@
                  "source_open_width": 0.055,
                  "release_open_width": 0.04,
@@ -58,6 +106,33 @@ diff -ruN '--exclude=__pycache__' clean/policy/graphs/pyramid_original_order_lay
                  "source_hover": 0.04,
                  "source_open_width": 0.055,
                  "source_phase_scope": "Source-only contact geometry/IK + actual closed/lift evidence. Carry/release uses common owned postliftRGB+q16 belief and newly computed publicCAD goals.",
+diff -ruN '--exclude=__pycache__' clean/policy/profiles/cyan_vertical_bimanual_v1.json A/policy/profiles/cyan_vertical_bimanual_v1.json
+--- a/policy/profiles/cyan_vertical_bimanual_v1.json
++++ b/policy/profiles/cyan_vertical_bimanual_v1.json
+@@ -388,12 +388,12 @@
+     "bead_in_tcp_m": [
+       0.0,
+       0.0,
+-      0.0125
++      0.01
+     ],
+     "hand_in_body_position": [
+       0.008333333333333338,
+       0.016666666666666684,
+-      0.0125
++      0.01
+     ],
+     "hand_in_body_rotation": [
+       [
+@@ -414,7 +414,7 @@
+     ],
+     "stable_contact_constraint": {
+       "public_blade_front_z_m": 0.0165,
+-      "bead_beyond_blade_front_m": -0.004,
++      "bead_beyond_blade_front_m": -0.0065,
+       "contact_normal_tangential_to_pinch_ratio": 0.0,
+       "closing_axis_centered": true,
+       "scope": "Nominal centered bead0 on opposed blade faces; actual RGB/q16 geometry must confirm; no stability claim from profile."
 diff -ruN '--exclude=__pycache__' clean/policy/profiles/pyramid.json A/policy/profiles/pyramid.json
 --- a/policy/profiles/pyramid.json
 +++ b/policy/profiles/pyramid.json
@@ -107,7 +182,7 @@ diff -ruN '--exclude=__pycache__' clean/policy/profiles/pyramid.json A/policy/pr
 diff -ruN '--exclude=__pycache__' clean/policy/puzzler/appearance.py A/policy/puzzler/appearance.py
 --- a/policy/puzzler/appearance.py
 +++ b/policy/puzzler/appearance.py
-@@ -0,0 +1,301 @@
+@@ -0,0 +1,349 @@
 +"""Piece colours measured by the policy itself; no fixed colour-to-part table.
 +
 +Task assumption: each piece is one uniform colour, but which colour is unknown.
@@ -151,17 +226,60 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/appearance.py A/policy/pu
 +GREY = np.full(3, 1/np.sqrt(3.))
 +
 +
-+def chroma(rgb):
-+    """Brightness-normalized RGB and the lit-part-pixel mask."""
-+    a = np.asarray(rgb)[..., :3].astype(np.float32)/255
++SURFACE_MEDIAN = 5  # px: colour of a surface patch, not of one texel (grain, speckle)
++
++
++def surface(rgb, size=SURFACE_MEDIAN):
++    """The image as surface patches: a 5x5 median, which keeps edges sharp and
++    removes texture finer than a few pixels (wood grain, speckle). A uniform
++    colour region is unchanged by it."""
++    a = np.ascontiguousarray(np.asarray(rgb)[..., :3])
++    return cv2.medianBlur(a, int(size)) if a.dtype == np.uint8 and int(size) > 1 else a
++
++
++def bead_image_radius(camera, poses):
++    """Image radius (px) of the nearest bead among the given (name, pose) seeds."""
++    radius = 0.
++    for name, pose in poses:
++        pose = np.asarray(pose, float)
++        depth = float((pose[:3]-camera.camera_to_world[:3, 3]) @ camera.camera_to_world[:3, 2])
++        if depth > .05:
++            radius = max(radius, camera.K[0, 0]*RADIUS/depth)
++    return radius
++
++
++def fill_texture_holes(mask, radius):
++    """Fill enclosed holes smaller than 15% of a bead's image disc.
++
++    A grain of another hue inside a textured piece is not a silhouette edge.
++    The gap between beads of one piece (the centre of a 2x2 block is about
++    half a bead disc) is larger and stays open as silhouette evidence.
++    """
++    if radius <= 0 or not mask.any():
++        return mask
++    inverse = (1-mask).astype(np.uint8)
++    count, components, stats, _ = cv2.connectedComponentsWithStats(inverse, connectivity=4)
++    h, w = mask.shape
++    small = .15*np.pi*radius*radius
++    out = mask.copy()
++    for k in range(1, count):
++        x, y, bw, bh, area = stats[k]
++        if area < small and x > 0 and y > 0 and x+bw < w and y+bh < h:
++            out[components == k] = 1
++    return out
++
++
++def chroma(rgb, size=SURFACE_MEDIAN):
++    """Brightness-normalized RGB and the lit-part-pixel mask, of surface patches."""
++    a = surface(rgb, size).astype(np.float32)/255
 +    norm = np.linalg.norm(a, axis=2)
 +    unit = a/np.maximum(norm[..., None], 1e-6)
 +    lit = ((a.max(axis=2)-a.min(axis=2)) > MIN_SPREAD) & (norm > MIN_NORM)
 +    return unit, lit
 +
 +
-+def bright_neutral(rgb):
-+    a = np.asarray(rgb)[..., :3].astype(np.int16)
++def bright_neutral(rgb, size=SURFACE_MEDIAN):
++    a = surface(rgb, size).astype(np.int16)
 +    high = a.max(axis=2)
 +    return ((high-a.min(axis=2)) <= 24) & (high > 108)
 +
@@ -235,7 +353,7 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/appearance.py A/policy/pu
 +            neutral_beads += int(grey[yy, xx].mean() >= .5)
 +            continue
 +        values = unit[yy[ok], xx[ok]]
-+        mean = values.mean(axis=0)
++        mean = np.median(values, axis=0)  # robust to grain and speckle
 +        per_bead.append(mean/np.linalg.norm(mean)); samples.append(values)
 +    if len(per_bead) < 3:
 +        # No chroma: a uniformly grey piece is measured as bright neutral.
@@ -309,14 +427,14 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/appearance.py A/policy/pu
 +    def merged(self, name):
 +        return self.within(name, MERGE_DEG)
 +
-+    def labels(self, rgb, dot=LABEL_DOT):
++    def labels(self, rgb, dot=LABEL_DOT, size=1):
 +        """Nearest measured piece colour per pixel; -1 where none is within ``dot``.
 +
 +        Chromatic measured colours compete on lit pixels; a grey (neutral)
 +        measured colour claims the bright neutral pixels no chromatic one took.
 +        """
 +        names, colours = self.matrix()
-+        unit, lit = chroma(rgb)
++        unit, lit = chroma(rgb, size)
 +        labels = np.full(lit.shape, -1)
 +        if not names:
 +            return labels, names
@@ -326,7 +444,7 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/appearance.py A/policy/pu
 +            labels = np.where(lit & (scores.max(axis=2) > dot), np.asarray(chromatic)[scores.argmax(axis=2)], -1)
 +        greys = [i for i, n in enumerate(names) if self.colours[n].get('neutral')]
 +        if greys:
-+            labels = np.where((labels < 0) & bright_neutral(rgb), greys[0], labels)
++            labels = np.where((labels < 0) & bright_neutral(rgb, size), greys[0], labels)
 +        return labels, names
 +
 +    def summary(self):
@@ -374,7 +492,10 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/appearance.py A/policy/pu
 +    test), otherwise the mask stays empty. An unmeasured piece's mask is empty.
 +    """
 +    memory = memory or active()
++    seeds = [(n, p) for n, value in (near or {}).items() if n in CELLS
++             for p in ([value] if np.asarray(value, dtype=float).ndim == 1 else value)]
 +    labels, names = memory.labels(rgb, DETECT_DOT)
++    radius = bead_image_radius(camera, seeds) if camera is not None and seeds else 0.
 +    wanted = [n for n in CELLS if only_names is None or n in only_names]
 +    empty = np.zeros(labels.shape, np.uint8)
 +    if not names:
@@ -408,6 +529,8 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/appearance.py A/policy/pu
 +        keep = np.unique(components[(roi > 0) & (mask > 0)])
 +        keep = keep[keep > 0]
 +        masks[name] = (mask & np.isin(components, keep)).astype(np.uint8)
++    if radius > 0:
++        masks = {n: fill_texture_holes(v, radius) for n, v in masks.items()}
 +    return masks
 diff -ruN '--exclude=__pycache__' clean/policy/puzzler/assembly_completion.py A/policy/puzzler/assembly_completion.py
 --- a/policy/puzzler/assembly_completion.py
@@ -4090,6 +4213,67 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/modular_maroon_scene.py A
 +            else:options=[old['poses'][item]];source='dated_recent_RGB_unplaced_assumption4mm';inflation=.004
          occupancy[item]=dict(source=source,pose_hypotheses=options,inflation_m=inflation)
      return dict(contract='maroon_actualRGB_attributed_geometry_v1',measurement=_observation(seen),occupancy=occupancy,board_for_planning=dict(pose=board.tolist(),uncertainty_m=margin,source='currentRGB'if'board'in raw else'datedRGB_bound4mm')),board
+diff -ruN '--exclude=__pycache__' clean/policy/puzzler/modular_red_contact.py A/policy/puzzler/modular_red_contact.py
+--- a/policy/puzzler/modular_red_contact.py
++++ b/policy/puzzler/modular_red_contact.py
+@@ -97,6 +97,38 @@
+         fallback='original vertical lift; later full transfer guard decides')
+ 
+ 
++# Execute the pre-screened IK branch (red_source_prescreen) for the source
++# hover and descent, so the moves are the joint lines that were screened for
++# robot material clearance; native re-solving from the live seed could take
++# another branch. Used only when the plan is unchanged (no RGB rebind) and the
++# actual encoders still equal the screened seed; otherwise the original moves.
++SCREENED_SEED_TOLERANCE_RAD=.002
++SCREENED_HOVER_TOLERANCE_RAD=.02
++
++
++def _arm_joints(ctx,arm):
++    from . import modular_red_placement as base
++    q16=np.asarray(base.proprio(ctx,arm)['robot_encoder_values'],float);return q16[8*arm:8*arm+6]
++
++
++def _screened_branch(ctx,candidate,g,q,arm,p):
++    branch=candidate.get('source_screened_branch')
++    if not branch or not all(k in branch for k in ('seed_joints','hover_joints','grasp_joints','grasp_position','rotation_xyzw')):return None
++    if not np.allclose(branch['grasp_position'],np.asarray(g,float),atol=1e-6):return None
++    if not np.allclose(np.abs(np.dot(branch['rotation_xyzw'],[q[k] for k in 'xyzw'])),1.,atol=1e-6):return None
++    if np.max(np.abs(_arm_joints(ctx,arm)-np.asarray(branch['seed_joints'],float)))>SCREENED_SEED_TOLERANCE_RAD:return None
++    return branch
++
++
++def _branch_still_near(ctx,arm,joints):
++    return float(np.max(np.abs(_arm_joints(ctx,arm)-np.asarray(joints,float))))<=SCREENED_HOVER_TOLERANCE_RAD
++
++
++def _feed_screened(ctx,arm,joints):
++    from . import vision_controller as c
++    c.feed_joint_plan(ctx,dict(current=_arm_joints(ctx,arm).tolist(),joints=[float(v) for v in joints]),arm)
++
++
+ def execute_contact_source(ctx,state,observed,plan):
+     """Run the first-feasible RED contact fan with strict fresh RGB gates.
+ 
+@@ -173,9 +205,16 @@
+                     attempts.append(dict(candidate=deepcopy(candidate.get('selected_contact_candidate',{})),status='refused',reason='fresh CAD guard',guard=guard));continue
+             if attempts and attempts[-1].get('candidate')==candidate.get('selected_contact_candidate',{}):
+                 continue
+-        c.move(ctx,g+[0,0,float(p['source_hover'])],q,arm)
++        branch=_screened_branch(ctx,candidate,g,q,arm,p) if family_index==0 and not p.get('source_cartesian',False) else None
++        print(json.dumps(dict(event='red_source_screened_branch',used=branch is not None,family_index=family_index)),flush=True)
++        if branch is None:c.move(ctx,g+[0,0,float(p['source_hover'])],q,arm)
++        else:_feed_screened(ctx,arm,branch['hover_joints']);c.settle_motion(ctx,g+[0,0,float(p['source_hover'])],q,arm,False,.006)
+         accuracy_error=None
+-        try:c.move(ctx,g,q,arm,cartesian=p.get('source_cartesian',False),contact='grasp')
++        try:
++            descent_screened=branch is not None and _branch_still_near(ctx,arm,branch['hover_joints'])
++            if descent_screened:
++                _feed_screened(ctx,arm,branch['grasp_joints']);c.settle_motion(ctx,g,q,arm,'grasp',.006)
++            else:c.move(ctx,g,q,arm,cartesian=p.get('source_cartesian',False),contact='grasp')
+         except c.MotorAccuracyError as error:
+             if error.pe>spec['max_tcp_residual_m']or error.re>spec['max_rotation_residual_rad']:raise
+             accuracy_error=dict(type=type(error).__name__,message=str(error),position_error_m=float(error.pe),rotation_error_rad=float(error.re))
 diff -ruN '--exclude=__pycache__' clean/policy/puzzler/modular_release.py A/policy/puzzler/modular_release.py
 --- a/policy/puzzler/modular_release.py
 +++ b/policy/puzzler/modular_release.py
@@ -4822,7 +5006,7 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/red_source_geometry.py A/
 diff -ruN '--exclude=__pycache__' clean/policy/puzzler/red_source_prescreen.py A/policy/puzzler/red_source_prescreen.py
 --- a/policy/puzzler/red_source_prescreen.py
 +++ b/policy/puzzler/red_source_prescreen.py
-@@ -0,0 +1,117 @@
+@@ -0,0 +1,122 @@
 +"""Red source grasp: same-arm self-clearance pre-screen (official rig start layouts).
 +
 +Red's public bead-4 side pinch is near the right arm's link_3/link_5 contact
@@ -4916,6 +5100,11 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/red_source_prescreen.py A
 +    closed = solve(grasp, hover)
 +    if closed is None:
 +        return dict(record, refusal='grasp IK/reserve')
++    # The screened IK branch itself (seed, hover, grasp joints): the source
++    # contact executes these joints when its encoders still equal the seed.
++    record.update(seed_joints=q16[off:off+6].tolist(), hover_joints=hover[off:off+6].tolist(),
++                  grasp_joints=closed[off:off+6].tolist(), hover_position=(grasp+[0., 0., float(p.get('source_hover', .04))]).tolist(),
++                  grasp_position=grasp.tolist(), rotation_xyzw=[float(v) for v in quat])
 +    approach = _segment(g, q16, arm, q16[off:off+6], hover[off:off+6])
 +    descent = _segment(g, q16, arm, hover[off:off+6], closed[off:off+6])
 +    record.update(approach_clearance_m=approach, descent_clearance_m=descent)
@@ -5266,18 +5455,36 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/shape_vision.py A/policy/
  
  
  def foreground(rgb):
-@@ -29,24 +35,54 @@
+@@ -29,24 +35,72 @@
      return (((high-low>24)&(high>35))|((high-low<=24)&(high>108))).astype(np.uint8)
  
  
-+def colour_split(part,groups,min_pixels=150):
+-def planar_candidates(rgb,camera):
+-    mask=foreground(rgb)
++def colour_split(part,groups,min_pixels=150,centres=None):
 +    """Split one foreground component into its anonymous colour groups.
 +
 +    Each foreground pixel (including highlights and shading) joins the colour
-+    group of its nearest labelled pixel. One group (or none) leaves the part whole.
++    group of its nearest labelled pixel. One group (or none) leaves the part
++    whole. Groups closer than appearance.CONFUSABLE_DEG are one colour here:
++    a split needs a colour difference a pixel test could tell, so shading on
++    similar tints never cuts a piece; the CAD assignment separates those.
 +    """
 +    present=[g for g in np.unique(groups[part>0]) if g>=0 and np.count_nonzero((groups==g)&(part>0))>=min_pixels]
 +    if len(present)<2:return [part]
++    if centres is not None and len(centres):
++        root={g:g for g in present}
++        def find(g):
++            while root[g]!=g:g=root[g]
++            return g
++        for i,a in enumerate(present):
++            for b in present[i+1:]:
++                if appearance.angle_deg(centres[a],centres[b])<appearance.CONFUSABLE_DEG:root[find(b)]=find(a)
++        lut=np.arange(int(groups.max())+1,dtype=np.int32)
++        for g in present:lut[g]=find(g)
++        groups=np.where(groups>=0,lut[np.maximum(groups,0)],groups)
++        present=sorted({find(g) for g in present})
++        if len(present)<2:return [part]
 +    seeds=np.isin(groups,present)&(part>0)
 +    _,nearest=cv2.distanceTransformWithLabels((~seeds).astype(np.uint8),cv2.DIST_L2,5,labelType=cv2.DIST_LABEL_PIXEL)
 +    ys,xs=np.nonzero(seeds)
@@ -5287,9 +5494,11 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/shape_vision.py A/policy/
 +    return [((assigned==g)&(part>0)).astype(np.uint8) for g in present]
 +
 +
- def planar_candidates(rgb,camera):
-     mask=foreground(rgb)
-+    groups,_=appearance.colour_groups(rgb,region=mask>0)
++def planar_candidates(rgb,camera,surface=False):
++    # ``surface``: read surface patches (a 5x5 median), so wood grain or a
++    # speckle finer than a few pixels cannot thin a bead below the peak test.
++    mask=foreground(appearance.surface(rgb) if surface else rgb)
++    groups,centres=appearance.colour_groups(rgb,region=mask>0)
      connected=cv2.dilate(mask,np.ones((5,5),np.uint8))
      count,labels,stats,_=cv2.connectedComponentsWithStats(connected)
      candidates=[]
@@ -5310,7 +5519,7 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/shape_vision.py A/policy/
 -        if not (.12<cloud[:,0].mean()<1.05 and abs(cloud[:,1].mean())<.5):continue
 -        candidates.append(dict(mask=part,cloud=cloud))
 +        whole=mask[y:y+h,x:x+w]&(labels[y:y+h,x:x+w]==k)
-+        for part in colour_split(whole,groups[y:y+h,x:x+w]):
++        for part in colour_split(whole,groups[y:y+h,x:x+w],centres=centres):
 +            dt=cv2.distanceTransform(part,cv2.DIST_L2,5)
 +            peaks=((dt==maximum_filter(dt,size=13))&(dt>6)).astype(np.uint8)
 +            _,peak_labels,_,centers=cv2.connectedComponentsWithStats(peaks)
@@ -5331,7 +5540,7 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/shape_vision.py A/policy/
      return candidates
  
  
-@@ -70,22 +106,114 @@
+@@ -70,22 +124,131 @@
      return best
  
  
@@ -5385,6 +5594,23 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/shape_vision.py A/policy/
 +    seeds,diagnostic=_identify(rgb,camera,hypotheses,required_names)
 +    names=list(CELLS)if required_names is None else list(required_names)
 +    missing=[n for n in names if n not in seeds]
++    if missing and (not seeds or (isinstance(diagnostic,dict) and 'assignment_refused' not in diagnostic)):
++        # Texture finer than a few pixels (wood grain, speckle) can thin a
++        # bead's silhouette below the peak test. Identify again on surface
++        # patches; a name is adopted only where all its beads stay clear (15
++        # mm) of every piece the raw image identified. Same assignment rules.
++        extra,extra_diagnostic=_identify(rgb,camera,False,required_names,surface=True)
++        used=[local_beads(n)@Rotation.from_quat(np.asarray(v)[3:]).as_matrix().T+np.asarray(v)[:3] for n,v in seeds.items()]
++        used=np.concatenate(used)[:,:2] if used else np.zeros((0,2))
++        if not seeds:diagnostic={}
++        for name in missing:
++            if name not in extra:continue
++            beads=(local_beads(name)@Rotation.from_quat(np.asarray(extra[name])[3:]).as_matrix().T+np.asarray(extra[name])[:3])[:,:2]
++            if len(used) and float(np.linalg.norm(beads[:,None]-used[None],axis=2).min())<.015:continue
++            seeds[name]=extra[name]
++            diagnostic[name]={**(extra_diagnostic.get(name,{}) if isinstance(extra_diagnostic.get(name),dict) else {}),
++                              'identity_source':'CAD geometry with non-overlapping bead assignment on surface patches'}
++        missing=[n for n in names if n not in seeds]
 +    if seeds and missing:
 +        # A part resting tilted on a neighbour (or partly hidden) projects its
 +        # beads a few mm off the table plane. Among bead centres no assigned
@@ -5418,10 +5644,11 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/shape_vision.py A/policy/
 +    return seeds,diagnostic
 +
 +
-+def _identify(rgb,camera,hypotheses=False,required_names=None):
++def _identify(rgb,camera,hypotheses=False,required_names=None,surface=False):
      names=list(CELLS)if required_names is None else list(required_names)
      if not names or len(names)!=len(set(names))or set(names)-set(CELLS):raise ValueError('Known unplaced identity scope must contain unique public CAD names')
-     components=planar_candidates(rgb,camera)
+-    components=planar_candidates(rgb,camera)
++    components=planar_candidates(rgb,camera,surface=surface)
      options={n:[] for n in names}
      offset=0
 +    bead_pixels=[];bead_radii=[]
@@ -5447,7 +5674,7 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/shape_vision.py A/policy/
      columns=[(n,v) for n in names for v in options[n]]
      matrix=np.zeros((len(names)+offset,len(columns)))
      for j,(name,candidate) in enumerate(columns):
-@@ -97,6 +225,22 @@
+@@ -97,6 +260,22 @@
                    integrality=np.ones(len(columns)),bounds=Bounds(0.,1.),
                    constraints=LinearConstraint(matrix,lower,upper),
                    options=dict(time_limit=3.,mip_rel_gap=0.))
@@ -5470,7 +5697,7 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/shape_vision.py A/policy/
      if not solution.success:return {},dict(candidate_counts=counts,assignment_refused=str(solution.message))
      selected={n:v for (n,v),x in zip(columns,solution.x) if x>.5}
      cuts=[];alternatives=[];changed=set();gap=None;current=solution
-@@ -126,14 +270,18 @@
+@@ -126,14 +305,18 @@
          diagnostic=dict(assignment_refused='multiple visually ambiguous CAD assignments',assignment_gap_m=gap,
                          alternative_seeds=alternatives[0],alternative_hypotheses=alternatives,
                          ambiguous_names=sorted(changed),near_assignment_count=1+len(alternatives))
@@ -5491,7 +5718,7 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/shape_vision.py A/policy/
      """Match a CAD shape inside a larger unlabelled bead cloud."""
      local=local_beads(name)[:,:2];points=cloud[:,:2]
      if len(local)>len(points):return []
-@@ -147,7 +295,7 @@
+@@ -147,7 +330,7 @@
          for i in range(len(points)):
              for j in range(len(points)):
                  delta=points[j]-points[i]
@@ -5500,7 +5727,7 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/shape_vision.py A/policy/
                  angle=np.arctan2(delta[1],delta[0])-source_angle
                  c,s=np.cos(angle),np.sin(angle);row=np.array([[c,s],[-s,c]])
                  predicted=source@row+points[i]-source[a]@row
-@@ -161,7 +309,7 @@
+@@ -161,7 +344,7 @@
                  # Noisy image peaks perturb the two-anchor proposal. Test the
                  # actual rigid fit, rather than rejecting a valid correspondence
                  # before all observed centres can refine its translation/yaw.
@@ -5509,7 +5736,7 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/shape_vision.py A/policy/
                  ids=frozenset(int(k)+offset for k in jj)
                  if ids in matches and matches[ids]['error']<=error:continue
                  R=np.zeros((3,3));R[:2,:2]=fitted.T;R[2,2]=np.linalg.det(fitted)
-@@ -404,6 +552,41 @@
+@@ -404,6 +587,41 @@
      return links
  
  
@@ -5551,7 +5778,7 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/shape_vision.py A/policy/
  def refuse_shape_aliases(detections,evidence,cameras,fit_candidate=None):
      """Resolve supported aliases together, including possible track swaps.
  
-@@ -427,6 +610,7 @@
+@@ -427,6 +645,7 @@
                      refined=fit_candidate(name,candidate)
                      if not refined['visible']:continue
                      candidate=np.asarray(refined['pose'])
@@ -5559,7 +5786,7 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/shape_vision.py A/policy/
                  if not any(shape_distance(name,candidate,existing)<=.003 for existing in candidates):
                      candidates.append(candidate)
          options[name]=[(p,local_beads(name)@Rotation.from_quat(p[3:]).as_matrix().T+p[:3]) for p in candidates]
-@@ -501,9 +685,81 @@
+@@ -501,9 +720,111 @@
              detections[name]['evidence_attribution']=attributions.get(name,{}).get(0,{})
  
  
@@ -5578,6 +5805,36 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/shape_vision.py A/policy/
 +    distance=cv2.distanceTransform(1-mask,cv2.DIST_L2,5)
 +    near=map_coordinates(distance,[uv[:,1],uv[:,0]],order=1,mode='nearest')<4.
 +    return bool(near.mean()<limit)
++
++
++def colour_proposal_unambiguous(name,proposal,images,cameras,alike=(),margin=1.0):
++    """A measured-colour proposal must not have an equally good shared-bead alias.
++
++    Every partial CAD alias of the proposed pose is refitted on the same
++    colour masks. If a distinct one (> 3 mm) passes the proposal's own gates
++    with an RMS residual no worse than the proposal's (``margin`` 1.0), the
++    colour evidence does not decide between them and the proposal is withheld,
++    as the shape tracker withholds distinct supported shared-bead poses.
++    """
++    pose=np.asarray(proposal['pose'],dtype=float);rotation=Rotation.from_quat(pose[3:]).as_matrix()
++    rms=float(proposal.get('rms_residual_m',float('inf')))
++    def passes(d):
++        support=np.asarray(d.get('center_support',[]),dtype=float)
++        return bool(d.get('visible') is True and len(d.get('views',[]))>=2 and int(np.sum(support>=.6))>=2
++                    and float(d.get('median_residual_m',float('inf')))<.0018 and float(d.get('rms_residual_m',float('inf')))<.004)
++    seeds=[np.r_[pose[:3]+rotation@shift,Rotation.from_matrix(rotation@local_R).as_quat()] for local_R,shift in partial_shape_aliases(name)]
++    # One set of colour masks and contours for every alias refit (the same
++    # evidence the proposal was fitted to).
++    masks={key:color_rgb.detect(rgb,only_names=(name,),camera=cameras.get(key),near={name:[pose,*seeds]})[name]
++           for key,rgb in images.items() if key in cameras}
++    contours=({key:color_rgb.contour_without(mask,cameras[key],list(alike)) for key,mask in masks.items()} if alike else None)
++    rivals=[]
++    for seed in seeds:
++        fitted=fit_piece(name,masks,cameras,previous=seed,contour_points=contours)
++        if passes(fitted) and shape_distance(name,fitted['pose'],pose)>.003 and float(fitted['rms_residual_m'])<=margin*rms:
++            rivals.append(dict(pose=list(map(float,fitted['pose'])),rms_residual_m=float(fitted['rms_residual_m'])))
++            break
++    return not rivals,dict(rule=f'no distinct alias refit within {margin:g}x the proposal RMS',proposal_rms_residual_m=rms,rivals=rivals)
 +
 +
 +def measured_colour_support(name,pose,images,cameras):
@@ -5641,7 +5898,7 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/shape_vision.py A/policy/
      seeds={**new,**previous}
      masks={key:foreground(rgb) for key,rgb in images.items()}
      raw_evidence=raw_image_evidence(masks,cameras)
-@@ -527,20 +783,21 @@
+@@ -527,20 +848,24 @@
          fitted=fit(name,seeds[name])
          # Packed foreground attribution can reject a target even when the
          # current calibrated RGB silhouettes yield an independent CAD fit.
@@ -5667,11 +5924,14 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/shape_vision.py A/policy/
                      and float(color.get('median_residual_m',float('inf')))<.0018
                      and float(color.get('rms_residual_m',float('inf')))<.004):
 -                fitted=dict(color);fitted['identity_source']='current RGB appearance plus public CAD geometry';fitted['color_proposal_only']=True;color_rescue[name]=dict(fitted)
-+                fitted=dict(color);fitted['identity_source']='current RGB measured colour plus public CAD geometry';fitted['color_proposal_only']=True;color_rescue[name]=dict(fitted)
++                clear,proof=colour_proposal_unambiguous(name,color,images,cameras,alike)
++                if clear:
++                    fitted=dict(color);fitted['identity_source']='current RGB measured colour plus public CAD geometry';fitted['color_proposal_only']=True;color_rescue[name]=dict(fitted)
++                else:fitted=dict(fitted,colour_proposal_refused=proof)
          if not fitted['visible'] and name in previous:
              # A rigid-grasp motion seed can become wrong after a drop. Try the
              # two public planar supports at the predicted xy, retaining shape
-@@ -557,9 +814,47 @@
+@@ -557,9 +882,47 @@
              if alternatives and all(shape_distance(name,alternatives[0]['pose'],a['pose'])<=.003 for a in alternatives[1:]):
                  fitted=min(alternatives,key=lambda d:d['rms_residual_m'])
                  fitted['relocalized_from_support_hypotheses']=True
@@ -5719,7 +5979,7 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/shape_vision.py A/policy/
      changed=[n for n in identity.get('ambiguous_names',[]) if n not in previous]
      if changed:
          alternatives=identity.get('alternative_hypotheses',[identity['alternative_seeds']])
-@@ -588,15 +883,13 @@
+@@ -588,15 +951,13 @@
          else:
              for name in changed:
                  detections[name]=dict(visible=False,reason='no unique complete CAD assignment supported by all RGB views')
@@ -5742,7 +6002,7 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/shape_vision.py A/policy/
      # Separate rigid parts cannot occupy the same bead volume. Independent
      # contour fits in a packed monochrome scene can otherwise claim a neighbor's
      # image evidence. Refuse both conflicting tracks, without guessing which
-@@ -614,7 +907,7 @@
+@@ -614,7 +975,7 @@
      # Missing tracks and stale predictions cannot rule out an image-supported
      # interpretation. Only mutually compatible fresh tracks can do that.
      refuse_shape_aliases(detections,raw_evidence,cameras,fit_candidate=fit)
@@ -5751,7 +6011,7 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/shape_vision.py A/policy/
      # other accepted rigid track.  This is a current RGB measurement, never a
      # public-goal or GT pose fill.
      for name,candidate in color_rescue.items():
-@@ -626,12 +919,19 @@
+@@ -626,12 +987,21 @@
              cloud=local_beads(other)@Rotation.from_quat(detection['pose'][3:]).as_matrix().T+np.asarray(detection['pose'][:3])
              if np.linalg.norm(ccloud[:,None]-cloud[None,:],axis=2).min()<.020:conflict=True;break
          if not conflict:detections[name]=candidate
@@ -5772,10 +6032,12 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/shape_vision.py A/policy/
 +               if detections.get(other,{}).get('visible') is True or other in seeds]
 +        candidate=measured_appearance.estimate(images,cameras,{'purple':seeds['purple']} if 'purple' in seeds else {},only_names=('purple',),
 +                                               neighbours={'purple':alike})['detections']['purple']
++        clear,proof=(colour_proposal_unambiguous('purple',candidate,images,cameras,alike) if candidate.get('visible') is True else (False,{}))
++        if candidate.get('visible') is True and not clear:candidate=dict(visible=False,reason='measured-colour proposal has an equally good shared-bead alias',colour_proposal_refused=proof)
          if candidate.get('visible') is True:
              supported,diagnostic=bead_image_support('purple',candidate['pose'],raw_evidence,cameras)
              diagnostic['fresh_rgb_fit']=True
-@@ -644,9 +944,9 @@
+@@ -644,9 +1014,9 @@
                  if np.linalg.norm(ccloud[:,None]-cloud[None,:],axis=2).min()<.020:
                      separated=False;break
              if supported and separated:
@@ -9162,7 +9424,7 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/survey.py A/policy/puzzle
 diff -ruN '--exclude=__pycache__' clean/policy/puzzler/task.py A/policy/puzzler/task.py
 --- a/policy/puzzler/task.py
 +++ b/policy/puzzler/task.py
-@@ -73,6 +73,19 @@
+@@ -73,6 +73,107 @@
          if len(result)==len(m.CELLS):return result
      raise RuntimeError('Could not sample a non-overlapping loose-piece layout')
  
@@ -9179,14 +9441,106 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/task.py A/policy/puzzler/
 +    return {n:tuple(float(c) for c in colorsys.hsv_to_rgb(float(rng.uniform()),float(rng.uniform(.7,1.)),float(rng.uniform(.45,1.))))
 +            for n in m.CELLS}
 +
++TEXTURED=('wood','wood_natural','speckle','speckle_soft')
++OAK=(.888,.584,.356)  # RSS LAB_OAK_COLOR (robosimstudio/core/render/room.py), linear
++
++
++def _value_noise(shape,rng,cells):
++    coarse=rng.random((cells+1,cells+1))
++    ys=np.linspace(0,cells,shape[0],endpoint=False);xs=np.linspace(0,cells,shape[1],endpoint=False)
++    y0,x0=np.floor(ys).astype(int),np.floor(xs).astype(int)
++    fy,fx=(ys-y0)[:,None],(xs-x0)[None,:]
++    fy,fx=fy*fy*(3-2*fy),fx*fx*(3-2*fx)
++    a,b,c,d=coarse[y0][:,x0],coarse[y0][:,x0+1],coarse[y0+1][:,x0],coarse[y0+1][:,x0+1]
++    return (a*(1-fx)+b*fx)*(1-fy)+(c*(1-fx)+d*fx)*fy
++
++
++def _texture_image(appearance,name,seed,size=512):
++    """Scene only: the diffuse map (linear RGB in [0, 1]) of one piece.
++
++    wood: one oak grain (growth rings along the piece's long axis, fine
++    streaks, a little figure), stained per piece with its own hue.
++    wood_natural: the same untinted oak on every piece.
++    speckle: a per-piece base hue with a granite-like 1-2 mm speckle of
++    lighter, darker and hue-shifted grains over about a third of the surface.
++    speckle_soft: the same speckle with gentler grains (11 degree hue shift).
++    """
++    import colorsys
++    rng=np.random.default_rng(seed*1000+sorted(m.CELLS).index(name)+17)
++    if appearance in ('wood','wood_natural'):
++        grain=np.random.default_rng(31)  # the same oak on every piece
++        x=np.arange(size)/size
++        warp=1.5*_value_noise((size,size),grain,6)+.4*_value_noise((size,size),grain,24)
++        # 40 growth rings across the 150 mm map: a 3.75 mm period, so a 25 mm
++        # bead shows six or seven dark latewood lines on lighter earlywood.
++        phase=(40*x[None,:]+warp)%1.
++        latewood=np.exp(-((phase-.5)/.09)**2)
++        streak=_value_noise((size,size),grain,160)-.5
++        figure=_value_noise((size,size),grain,8)-.5
++        shade=1.12-.62*latewood+.16*streak+.08*figure
++        oak=np.asarray(OAK) if appearance=='wood' else np.asarray((.80,.42,.16))  # natural: warmer, more saturated
++        img=oak[None,None,:]*shade[...,None]
++        if appearance=='wood':
++            hues=(np.arange(12)/12.+np.random.default_rng(seed+5003).uniform(-.02,.02,12))%1.
++            order=np.random.default_rng(seed+5009).permutation(12)
++            h=float(hues[order[sorted(m.CELLS).index(name)]])
++            stain=np.asarray(colorsys.hsv_to_rgb(h,.75,1.))
++            img=img*(.40+.60*stain)[None,None,:]
++        return np.clip(img,0.,1.)
++    h=float(rng.uniform());base=np.asarray(colorsys.hsv_to_rgb(h,float(rng.uniform(.7,1.)),float(rng.uniform(.55,.95))))
++    img=np.repeat(np.repeat(base[None,None,:],size,0),size,1)
++    cell=4  # texels per speckle grain (about 1.2 mm on a 150 mm map)
++    grains=rng.random((size//cell,size//cell))
++    kind=np.kron(np.digitize(grains,[.12,.24,.34]),np.ones((cell,cell),int))  # 0 light, 1 dark, 2 hue-shifted, 3 base
++    soft=appearance=='speckle_soft'  # gentler grains: lighter/darker by ~20-30%, hue shifted by 11 deg
++    img[kind==0]=np.clip(base*(1.2 if soft else 1.35)+(.03 if soft else .08),0,1)
++    img[kind==1]=base*(.7 if soft else .55)
++    shifted=np.asarray(colorsys.hsv_to_rgb((h+(.03 if soft else .08))%1.,.8,float(base.max())))
++    img[kind==2]=shifted
++    return np.clip(img,0.,1.)
++
++
++def textured_assets(appearance,seed,manifest):
++    """Scene only: per-piece visual meshes with UVs and procedural diffuse maps.
++
++    The colliders are the manifest's unchanged ones; only the drawn mesh gains
++    texture coordinates (planar, in the piece's own metres, a 150 mm map), and
++    a diffuse PNG. Written once under ROOT/scene_textures/<appearance>-<seed>/.
++    The policy never receives the appearance or these files' names.
++    """
++    import trimesh
++    from PIL import Image
++    folder=m.ROOT/'scene_textures'/f'{appearance}-{seed}'
++    folder.mkdir(parents=True,exist_ok=True)
++    out={}
++    for name in m.CELLS:
++        mesh_path=folder/f'{name}.obj';png=folder/f'{name}.png'
++        if not mesh_path.exists() or not png.exists():
++            mesh=trimesh.load(manifest[name]['path'],force='mesh',process=False)
++            p=np.asarray(mesh.vertices)
++            uv=np.c_[(p[:,0]-p[:,0].min())/.15,(p[:,1]-p[:,1].min()+.5*(p[:,2]-p[:,2].min()))/.15]
++            linear=_texture_image(appearance,name,seed)
++            srgb=np.where(linear<=.0031308,12.92*linear,1.055*np.power(linear,1/2.4)-.055)
++            Image.fromarray(np.clip(srgb*255+.5,0,255).astype(np.uint8)).save(png)
++            lines=[f'v {x:.7f} {y:.7f} {z:.7f}' for x,y,z in p]+[f'vt {s_:.6f} {t_:.6f}' for s_,t_ in uv]
++            lines+=[f'f {a_+1}/{a_+1} {b_+1}/{b_+1} {c_+1}/{c_+1}' for a_,b_,c_ in np.asarray(mesh.faces)]
++            mesh_path.write_text('\n'.join(lines)+'\n')
++        out[name]={**manifest[name],'path':str(mesh_path),'texture':str(png)}
++    return out
++
++
  def scene(v=Variant(), *, completed=False, robot=True):
      import robosimstudio as rss
      from robosimstudio.specs import AssetSpec
-@@ -90,6 +103,7 @@
+@@ -90,6 +191,11 @@
          order=np.random.default_rng(v.seed+104729).permutation(len(names))
          part_colors={n:palette[int(i)] for n,i in zip(names,order)}
      elif v.appearance=='monochrome':part_colors={n:(.70,.70,.70) for n in m.CELLS}
 +    elif v.appearance.startswith('random'):part_colors=random_palette(int(v.appearance[6:] or v.seed))
++    elif v.appearance in TEXTURED:
++        # Textured materials: the shape colour is white (the tiled tracer
++        # multiplies the sampled texel by it), the diffuse map carries the look.
++        a={**a,**textured_assets(v.appearance,v.seed,a)};part_colors={n:(1.,1.,1.) for n in m.CELLS}
      elif v.appearance!='original':raise ValueError('Unknown appearance '+v.appearance)
      for name in m.CELLS:
          if not completed and v.mode!='completion' and name not in v.preset_pieces:
@@ -9311,7 +9665,7 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/vision_controller.py A/po
              q=qdict(Rotation.from_matrix(learned_hand_R).as_quat())
          else:
              grasp=actual+np.array([p.get('pick_bias',0.),0,grasp_z])
-@@ -345,7 +363,16 @@
+@@ -345,7 +363,17 @@
              best_cost=min(best_cost,cost)
              if not feasible:
                  refused['kinematics']+=1;continue
@@ -9324,12 +9678,13 @@ diff -ruN '--exclude=__pycache__' clean/policy/puzzler/vision_controller.py A/po
 +            if not self_screen['passed']:
 +                refused['self_clearance']=refused.get('self_clearance',0)+1;continue
 +        out=dict(s=s,body=body,grasp=grasp,rotation=q,index=idx,target_center=target_center,target_R=candidate_R,heading=heading,lean=lean,grasp_height_m=grasp_z,planned_release_height_m=release_height,refused_candidates=refused)
-+        if self_screen is not None:out.update(pinch_heading_offset_deg=pinch,source_self_clearance_screens=self_screens)
++        if self_screen is not None:out.update(pinch_heading_offset_deg=pinch,source_self_clearance_screens=self_screens,
++                                               source_screened_branch={k:self_screen[k] for k in ('seed_joints','hover_joints','grasp_joints','hover_position','grasp_position','rotation_xyzw') if k in self_screen})
 +        return out
      raise RuntimeError(f'No feasible source/target grasp for {name}: {best_cost}; refusals={refused}')
  
  
-@@ -391,8 +418,12 @@
+@@ -391,8 +419,12 @@
          raise PlanningRefusal('Cannot screen release with unobserved scene geometry: '+str(sorted(missing)))
      from puzzler.gripper_geometry import scene_clearance
      b=np.array(poses['board']if'board'in poses else planning_scene['board_for_planning']['pose']);R=Rotation.from_quat(qarr(q)).as_matrix()

@@ -3,10 +3,9 @@
 `policy.diff` turns `policy/` (commit 13c9010) into the policy that sees only the
 official I2RT YAM station cameras: the gantry D405 (eye 0.0865, 0, 1.726, looking at
 0.6497, 0, 0.75, 58° fov) and the two wrist D405s on `link_6`. It is the exact code of
-round 30 (`officialcam30_*`), which completed 5 of 6 fresh runs (nominal, combined, case
-moved and turned the other way, second jittered layout, and a different starting layout),
-each 12/12 with 84/84 checkpoints, RSS and GaP success and an independent audit of
-2.65-2.70 mm.
+round 32 (`officialcam32_*`), which completed 5 of 6 fresh runs (nominal, combined, jittered
+pieces, a different starting layout, and a spread-out layout), each 12/12 with 84/84
+checkpoints, RSS and GaP success and an independent audit of 2.59-2.97 mm.
 
 Main changes:
 
