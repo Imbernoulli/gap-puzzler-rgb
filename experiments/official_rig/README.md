@@ -3,9 +3,10 @@
 `policy.diff` turns `policy/` (commit 13c9010) into the policy that sees only the
 official I2RT YAM station cameras: the gantry D405 (eye 0.0865, 0, 1.726, looking at
 0.6497, 0, 0.75, 58° fov) and the two wrist D405s on `link_6`. It is the exact code of
-round 29f (`officialcam29f_*`), which completed 3 of 4 fresh runs: case moved and turned
-the other way ×2 and all perturbations combined, each 12/12 with 84/84 checkpoints, RSS
-and GaP success and an independent audit of 2.57-2.64 mm.
+round 30 (`officialcam30_*`), which completed 5 of 6 fresh runs (nominal, combined, case
+moved and turned the other way, second jittered layout, and a different starting layout),
+each 12/12 with 84/84 checkpoints, RSS and GaP success and an independent audit of
+2.65-2.70 mm.
 
 Main changes:
 
@@ -23,6 +24,12 @@ Main changes:
 - **Screened free-arm motion.** Every look move of the free arm is checked against both arms,
   the table, the case and every known piece before it runs; a hand bracing the case first
   leaves straight up (`free_arm_motion.py`).
+- **Held pieces re-measured.** A piece held long enough to have turned in the grip is measured
+  again from RGB at the transport hover, or by the free wrist, before it is placed.
+- **Messy starts.** Loose pieces no camera sees are looked for with screened wrist looks;
+  pieces whose grasp cannot be planned where they lie are moved or turned on the table first.
+- **Shape, not colour.** Pieces are named by matching their CAD shape; each piece's colour is
+  measured from its own beads and used only after that.
 - **Apex reach.** Before the last hand-off, the top piece's final grasp is checked for reach
   at the measured case; if it fails, the same pinch rolled 10° or 20° is tried
   (`red_bimanual_handoff.py`).
