@@ -115,6 +115,37 @@ def metrics(row, first=False):
     return out
 
 
+def tool_tally(calls, start, end):
+    """The tools the policy called between two control steps, in first-call order, from the run's tool log."""
+    tally = {}
+    for call in calls:
+        if start <= call[0] < end:
+            tally[call[1]] = tally.get(call[1], 0) + 1
+    return tally
+
+
+def code_frame(workflow, name, graph_dir, tally=None):
+    """The GaP code behind one node: its workflow entry, the subgraph it calls, that subgraph's script and the tools it used."""
+    node = workflow['nodes'][name]
+    routes = workflow.get('conditional_edges', {}).get(name, {}).get('mapping', {})
+    lines = ['# workflow.json', f'"{name}": {{"type": "{node.get("type")}", "ref": "{node.get("ref")}"}}']
+    lines += [f'  exit {k:<12} → {v}' for k, v in routes.items()]
+    sub = workflow.get('subgraphs', {}).get(node.get('ref'), {})
+    act = next((n for n in sub.get('nodes', {}).values() if n.get('type') == 'script'), {})
+    script = act.get('script')
+    if sub:
+        ok = ', '.join(sub.get('exit', {}).get('success_values', []))
+        lines += ['', f'# subgraph {node.get("ref")}', f'skill:  {sub.get("skill")}', f'script: {script}',
+                  f'success when route ∈ {{{ok}}};  on_error → {sub.get("on_error")}']
+    path = graph_dir / script if script else None
+    if path and path.exists():
+        body = [l for l in path.read_text().splitlines() if l.strip() and not l.startswith('from __future__')]
+        lines += ['', f'# {script}', *body[:8]]
+    if tally:
+        lines += ['', f'# tool calls in this step ({sum(tally.values())})', *(f'{t:<40} ×{n}' for t, n in tally.items())]
+    return '\n'.join(lines)
+
+
 def timeline(run):
     episode = run / 'episode'
     result = json.loads((episode / 'result.json').read_text())
@@ -122,6 +153,9 @@ def timeline(run):
     rows = jsonl(run / 'independent_verification/checkpoint_results.jsonl')
     path = success_path(workflow)
     order = workflow['meta']['ordered_stages']
+    graph_dir = next((run.parents[1] / 'graphs').glob('*/scripts'), Path('.')).parent
+    log = episode / 'rgb/tools.jsonl'  # timestamps are sim seconds; control runs at 50 Hz
+    calls = [(round(c['timestamp'] * 50) - 1, c['tool']) for c in jsonl(log) if c.get('event') == 'call'] if log.exists() else []
     pieces, previous = [], 0
     for index, name in enumerate(path):
         piece = next((p for p in order if name.startswith(p + '_')), None) or 'finish'
@@ -132,7 +166,9 @@ def timeline(run):
         node = dict(id=name, kind=kind, label=label, detail=detail, exits=names, exit=exit_text(names),
                     start=previous, end=row['native_step'] if row else None,
                     passed=bool(row and row.get('passed')), checkpoint=row['phase'] if row else None,
-                    metrics=metrics(row, first=piece == order[0]) if row else {})
+                    metrics=metrics(row, first=piece == order[0]) if row else {},
+                    code=code_frame(workflow, name, graph_dir, tool_tally(calls, previous, row['native_step']) if row else None)
+                    if name in workflow['nodes'] else '')
         if row:
             previous = row['native_step']
         if not pieces or pieces[-1]['name'] != piece:
@@ -392,7 +428,9 @@ def player_html(rig):
             f'<div class="screen"><video data-k="video" src="media/{rig}/gap_full12.mp4" poster="media/{rig}/gap_full12_poster.jpg" '
             f'{AUTOPLAY} aria-label="Full twelve-piece run, replayed from the recorded episode"></video>'
             f'<div class="track" data-k="track" role="group" aria-label="Jump to a piece"></div>'
-            f'<p class="clock"><span data-k="time">t = 0.0 s</span><span data-k="speed"></span></p></div>'
+            f'<p class="clock"><span data-k="time">t = 0.0 s</span><span data-k="speed"></span></p>'
+            f'<details class="code-frame" open><summary class="mono small">GaP code for the current step</summary>'
+            f'<pre data-k="code"></pre></details></div>'
             f'<aside class="graph" aria-live="polite"><div class="graph-head"><span class="swatch" data-k="swatch"></span>'
             f'<h3 data-k="piece">Azure</h3><span class="mono small muted" data-k="index"></span></div>'
             f'<svg data-k="graph" class="graph-svg" role="img" aria-label="The current piece\'s subgraph"></svg>'

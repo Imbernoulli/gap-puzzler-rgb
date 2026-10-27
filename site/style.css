@@ -269,3 +269,9 @@ body[data-rig="official"] [data-rig="custom"], body[data-rig="custom"] [data-rig
 /* The title gets the full width: two lines at most. */
 .hero { grid-template-columns: minmax(0, 1fr); }
 .hero h1 { max-width: none; }
+
+.code-frame { min-width: 0; }
+.code-frame summary { cursor: pointer; color: var(--muted, #6b7280); }
+.code-frame pre { margin: 6px 0 0; padding: 10px 12px; max-height: 380px; overflow: auto; font: 11.5px/1.45 'JetBrains Mono', ui-monospace, monospace;
+  background: var(--code-bg, #0f1115); color: #e5e7eb; border-radius: 8px; white-space: pre; }
+.player .graph { align-content: start; }

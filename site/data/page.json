@@ -32,6 +32,7 @@
        "passed": true,
        "checkpoint": "perceive_plan",
        "metrics": {},
+       "code": "# workflow.json\n\"azure_perceive_plan\": {\"type\": \"subgraph\", \"ref\": \"perceive_plan_sg\"}\n  exit planned      \u2192 azure_grasp\n  exit error        \u2192 abort\n\n# subgraph perceive_plan_sg\nskill:  modular-rgb-puzzler\nscript: scripts/perceive_plan.py\nsuccess when route \u2208 {planned};  on_error \u2192 error\n\n# scripts/perceive_plan.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import observe_and_plan\ndef run(ctx, state: ModularState) -> ModularResult:\n    return observe_and_plan(ctx, state)\n\n# tool calls in this step (13)\nvision.observe                           \u00d72\nrobot.read_proprioception                \u00d71\nrobot.execute_trajectory                 \u00d71\nrobot.wait_steps                         \u00d71\nrobot.grasp_frame                        \u00d71\npuzzle.plan_pose                         \u00d75\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       },
       {
@@ -48,6 +49,7 @@
        "passed": true,
        "checkpoint": "grasp",
        "metrics": {},
+       "code": "# workflow.json\n\"azure_grasp\": {\"type\": \"subgraph\", \"ref\": \"grasp_sg\"}\n  exit verified     \u2192 azure_transport\n  exit error        \u2192 abort\n\n# subgraph grasp_sg\nskill:  modular-rgb-puzzler\nscript: scripts/grasp.py\nsuccess when route \u2208 {verified};  on_error \u2192 error\n\n# scripts/grasp.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import grasp_and_bind\ndef run(ctx, state: ModularState) -> ModularResult:\n    return grasp_and_bind(ctx, state)\n\n# tool calls in this step (24)\nrobot.read_proprioception                \u00d71\nrobot.set_grip                           \u00d72\npuzzle.plan_pose                         \u00d72\nrobot.execute_trajectory                 \u00d73\nrobot.get_ee_pose                        \u00d79\nrobot.wait_steps                         \u00d74\npuzzle.plan_path                         \u00d71\npuzzle.capture_conditional_attachment    \u00d71\nvision.observe                           \u00d71",
        "relook": false
       },
       {
@@ -64,6 +66,7 @@
        "passed": true,
        "checkpoint": "transport",
        "metrics": {},
+       "code": "# workflow.json\n\"azure_transport\": {\"type\": \"subgraph\", \"ref\": \"transport_sg\"}\n  exit carried      \u2192 azure_release\n  exit error        \u2192 abort\n\n# subgraph transport_sg\nskill:  modular-rgb-puzzler\nscript: scripts/transport.py\nsuccess when route \u2208 {carried};  on_error \u2192 error\n\n# scripts/transport.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import transport\ndef run(ctx, state: ModularState) -> ModularResult:\n    return transport(ctx, state)\n\n# tool calls in this step (11)\nrobot.read_proprioception                \u00d71\npuzzle.propagate_conditional_attachment  \u00d71\npuzzle.plan_path                         \u00d71\nrobot.execute_trajectory                 \u00d71\nrobot.get_ee_pose                        \u00d75\nrobot.wait_steps                         \u00d71\nrobot.execution_journal_cursor           \u00d71",
        "relook": false
       },
       {
@@ -85,6 +88,7 @@
         "placement_error_mm": 0.39,
         "stable_s": 14.0
        },
+       "code": "# workflow.json\n\"azure_release\": {\"type\": \"subgraph\", \"ref\": \"release_sg\"}\n  exit placed       \u2192 azure_receipt_settle\n  exit uncertain    \u2192 azure_receipt_settle\n  exit missed       \u2192 azure_receipt_settle\n  exit error        \u2192 abort\n\n# subgraph release_sg\nskill:  modular-rgb-puzzler\nscript: scripts/release.py\nsuccess when route \u2208 {placed, uncertain, missed};  on_error \u2192 error\n\n# scripts/release.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import carry_and_release\ndef run(ctx, state: ModularState) -> ModularResult:\n    if state['piece'] == 'cyan':\n        parameters = {**state['parameters'], 'release_module': 'puzzler.cyan_receiver_release_feedback_delivery'}\n        state = {**state, 'parameters': parameters}\n    return carry_and_release(ctx, state)\n\n# tool calls in this step (57)\npuzzle.propagate_conditional_attachment  \u00d72\nrobot.read_proprioception                \u00d72\nrobot.execution_journal_cursor           \u00d71\nvision.observe                           \u00d73\nrobot.get_ee_pose                        \u00d720\npuzzle.plan_pose                         \u00d71\nrobot.execute_trajectory                 \u00d74\nrobot.wait_steps                         \u00d712\nrobot.set_grip                           \u00d73\npuzzle.plan_path                         \u00d72\nrobot.grasp_frame                        \u00d74\nrobot.go_home                            \u00d73",
        "relook": false
       },
       {
@@ -106,6 +110,7 @@
         "placement_error_mm": 0.39,
         "stable_s": 14.16
        },
+       "code": "# workflow.json\n\"azure_receipt_settle\": {\"type\": \"subgraph\", \"ref\": \"receipt_settle_sg\"}\n  exit placed       \u2192 azure_handoff\n  exit executed_visual_unknown \u2192 azure_handoff\n  exit executed_visual_unverified \u2192 azure_handoff\n  exit error        \u2192 abort\n  exit unknown      \u2192 abort\n\n# subgraph receipt_settle_sg\nskill:  modular-rgb-puzzler\nscript: scripts/receipt_settle.py\nsuccess when route \u2208 {placed, unknown, executed_visual_unknown, executed_visual_unverified};  on_error \u2192 error\n\n# scripts/receipt_settle.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import settle_placement_evidence\ndef run(ctx, state: ModularState) -> ModularResult:\n    return settle_placement_evidence(ctx, state)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": true
       },
       {
@@ -125,6 +130,7 @@
         "placement_error_mm": 0.39,
         "stable_s": 14.32
        },
+       "code": "# workflow.json\n\"azure_handoff\": {\"type\": \"subgraph\", \"ref\": \"handoff_sg\"}\n  exit advanced     \u2192 orange_perceive_plan\n  exit error        \u2192 abort\n\n# subgraph handoff_sg\nskill:  modular-rgb-puzzler\nscript: scripts/handoff.py\nsuccess when route \u2208 {advanced};  on_error \u2192 error\n\n# scripts/handoff.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import verified_handoff\ndef run(ctx, state: ModularState, expected_piece: str) -> ModularResult:\n    return verified_handoff(ctx, state, expected_piece)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       }
      ],
@@ -176,6 +182,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.39
        },
+       "code": "# workflow.json\n\"orange_perceive_plan\": {\"type\": \"subgraph\", \"ref\": \"perceive_plan_sg\"}\n  exit planned      \u2192 orange_grasp\n  exit error        \u2192 abort\n\n# subgraph perceive_plan_sg\nskill:  modular-rgb-puzzler\nscript: scripts/perceive_plan.py\nsuccess when route \u2208 {planned};  on_error \u2192 error\n\n# scripts/perceive_plan.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import observe_and_plan\ndef run(ctx, state: ModularState) -> ModularResult:\n    return observe_and_plan(ctx, state)\n\n# tool calls in this step (13)\nvision.observe                           \u00d72\nrobot.read_proprioception                \u00d71\nrobot.execute_trajectory                 \u00d71\nrobot.wait_steps                         \u00d71\nrobot.grasp_frame                        \u00d71\npuzzle.plan_pose                         \u00d75\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       },
       {
@@ -194,6 +201,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.39
        },
+       "code": "# workflow.json\n\"orange_grasp\": {\"type\": \"subgraph\", \"ref\": \"grasp_sg\"}\n  exit verified     \u2192 orange_transport\n  exit error        \u2192 abort\n\n# subgraph grasp_sg\nskill:  modular-rgb-puzzler\nscript: scripts/grasp.py\nsuccess when route \u2208 {verified};  on_error \u2192 error\n\n# scripts/grasp.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import grasp_and_bind\ndef run(ctx, state: ModularState) -> ModularResult:\n    return grasp_and_bind(ctx, state)\n\n# tool calls in this step (26)\nrobot.read_proprioception                \u00d71\nrobot.set_grip                           \u00d72\npuzzle.plan_pose                         \u00d72\nrobot.execute_trajectory                 \u00d73\nrobot.get_ee_pose                        \u00d710\nrobot.wait_steps                         \u00d75\npuzzle.plan_path                         \u00d71\npuzzle.capture_conditional_attachment    \u00d71\nvision.observe                           \u00d71",
        "relook": false
       },
       {
@@ -212,6 +220,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.39
        },
+       "code": "# workflow.json\n\"orange_transport\": {\"type\": \"subgraph\", \"ref\": \"transport_sg\"}\n  exit carried      \u2192 orange_release\n  exit error        \u2192 abort\n\n# subgraph transport_sg\nskill:  modular-rgb-puzzler\nscript: scripts/transport.py\nsuccess when route \u2208 {carried};  on_error \u2192 error\n\n# scripts/transport.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import transport\ndef run(ctx, state: ModularState) -> ModularResult:\n    return transport(ctx, state)\n\n# tool calls in this step (11)\nrobot.read_proprioception                \u00d71\npuzzle.propagate_conditional_attachment  \u00d71\npuzzle.plan_path                         \u00d71\nrobot.execute_trajectory                 \u00d71\nrobot.get_ee_pose                        \u00d75\nrobot.wait_steps                         \u00d71\nrobot.execution_journal_cursor           \u00d71",
        "relook": false
       },
       {
@@ -234,6 +243,7 @@
         "earlier_pieces_max_mm": 0.5,
         "stable_s": 14.26
        },
+       "code": "# workflow.json\n\"orange_release\": {\"type\": \"subgraph\", \"ref\": \"release_sg\"}\n  exit placed       \u2192 orange_receipt_settle\n  exit uncertain    \u2192 orange_receipt_settle\n  exit missed       \u2192 orange_receipt_settle\n  exit error        \u2192 abort\n\n# subgraph release_sg\nskill:  modular-rgb-puzzler\nscript: scripts/release.py\nsuccess when route \u2208 {placed, uncertain, missed};  on_error \u2192 error\n\n# scripts/release.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import carry_and_release\ndef run(ctx, state: ModularState) -> ModularResult:\n    if state['piece'] == 'cyan':\n        parameters = {**state['parameters'], 'release_module': 'puzzler.cyan_receiver_release_feedback_delivery'}\n        state = {**state, 'parameters': parameters}\n    return carry_and_release(ctx, state)\n\n# tool calls in this step (55)\npuzzle.propagate_conditional_attachment  \u00d72\nrobot.read_proprioception                \u00d72\nrobot.execution_journal_cursor           \u00d71\nvision.observe                           \u00d73\nrobot.get_ee_pose                        \u00d719\npuzzle.plan_pose                         \u00d71\nrobot.execute_trajectory                 \u00d74\nrobot.wait_steps                         \u00d711\nrobot.set_grip                           \u00d73\npuzzle.plan_path                         \u00d72\nrobot.grasp_frame                        \u00d74\nrobot.go_home                            \u00d73",
        "relook": false
       },
       {
@@ -256,6 +266,7 @@
         "earlier_pieces_max_mm": 0.5,
         "stable_s": 14.36
        },
+       "code": "# workflow.json\n\"orange_receipt_settle\": {\"type\": \"subgraph\", \"ref\": \"receipt_settle_sg\"}\n  exit placed       \u2192 orange_handoff\n  exit executed_visual_unknown \u2192 orange_handoff\n  exit executed_visual_unverified \u2192 orange_handoff\n  exit error        \u2192 abort\n  exit unknown      \u2192 abort\n\n# subgraph receipt_settle_sg\nskill:  modular-rgb-puzzler\nscript: scripts/receipt_settle.py\nsuccess when route \u2208 {placed, unknown, executed_visual_unknown, executed_visual_unverified};  on_error \u2192 error\n\n# scripts/receipt_settle.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import settle_placement_evidence\ndef run(ctx, state: ModularState) -> ModularResult:\n    return settle_placement_evidence(ctx, state)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": true
       },
       {
@@ -276,6 +287,7 @@
         "earlier_pieces_max_mm": 0.5,
         "stable_s": 14.48
        },
+       "code": "# workflow.json\n\"orange_handoff\": {\"type\": \"subgraph\", \"ref\": \"handoff_sg\"}\n  exit advanced     \u2192 yellow_perceive_plan\n  exit error        \u2192 abort\n\n# subgraph handoff_sg\nskill:  modular-rgb-puzzler\nscript: scripts/handoff.py\nsuccess when route \u2208 {advanced};  on_error \u2192 error\n\n# scripts/handoff.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import verified_handoff\ndef run(ctx, state: ModularState, expected_piece: str) -> ModularResult:\n    return verified_handoff(ctx, state, expected_piece)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       }
      ],
@@ -327,6 +339,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.5
        },
+       "code": "# workflow.json\n\"yellow_perceive_plan\": {\"type\": \"subgraph\", \"ref\": \"perceive_plan_sg\"}\n  exit planned      \u2192 yellow_grasp\n  exit error        \u2192 abort\n\n# subgraph perceive_plan_sg\nskill:  modular-rgb-puzzler\nscript: scripts/perceive_plan.py\nsuccess when route \u2208 {planned};  on_error \u2192 error\n\n# scripts/perceive_plan.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import observe_and_plan\ndef run(ctx, state: ModularState) -> ModularResult:\n    return observe_and_plan(ctx, state)\n\n# tool calls in this step (13)\nvision.observe                           \u00d72\nrobot.read_proprioception                \u00d71\nrobot.execute_trajectory                 \u00d71\nrobot.wait_steps                         \u00d71\nrobot.grasp_frame                        \u00d71\npuzzle.plan_pose                         \u00d75\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       },
       {
@@ -345,6 +358,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.5
        },
+       "code": "# workflow.json\n\"yellow_grasp\": {\"type\": \"subgraph\", \"ref\": \"grasp_sg\"}\n  exit verified     \u2192 yellow_transport\n  exit error        \u2192 abort\n\n# subgraph grasp_sg\nskill:  modular-rgb-puzzler\nscript: scripts/grasp.py\nsuccess when route \u2208 {verified};  on_error \u2192 error\n\n# scripts/grasp.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import grasp_and_bind\ndef run(ctx, state: ModularState) -> ModularResult:\n    return grasp_and_bind(ctx, state)\n\n# tool calls in this step (28)\nrobot.read_proprioception                \u00d71\nrobot.set_grip                           \u00d72\npuzzle.plan_pose                         \u00d72\nrobot.execute_trajectory                 \u00d73\nrobot.get_ee_pose                        \u00d711\nrobot.wait_steps                         \u00d76\npuzzle.plan_path                         \u00d71\npuzzle.capture_conditional_attachment    \u00d71\nvision.observe                           \u00d71",
        "relook": false
       },
       {
@@ -363,6 +377,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.5
        },
+       "code": "# workflow.json\n\"yellow_transport\": {\"type\": \"subgraph\", \"ref\": \"transport_sg\"}\n  exit carried      \u2192 yellow_release\n  exit error        \u2192 abort\n\n# subgraph transport_sg\nskill:  modular-rgb-puzzler\nscript: scripts/transport.py\nsuccess when route \u2208 {carried};  on_error \u2192 error\n\n# scripts/transport.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import transport\ndef run(ctx, state: ModularState) -> ModularResult:\n    return transport(ctx, state)\n\n# tool calls in this step (12)\nrobot.read_proprioception                \u00d71\npuzzle.propagate_conditional_attachment  \u00d71\npuzzle.plan_path                         \u00d71\npuzzle.plan_joint_path                   \u00d71\nrobot.execute_trajectory                 \u00d71\nrobot.get_ee_pose                        \u00d75\nrobot.wait_steps                         \u00d71\nrobot.execution_journal_cursor           \u00d71",
        "relook": false
       },
       {
@@ -385,6 +400,7 @@
         "earlier_pieces_max_mm": 0.52,
         "stable_s": 13.9
        },
+       "code": "# workflow.json\n\"yellow_release\": {\"type\": \"subgraph\", \"ref\": \"release_sg\"}\n  exit placed       \u2192 yellow_receipt_settle\n  exit uncertain    \u2192 yellow_receipt_settle\n  exit missed       \u2192 yellow_receipt_settle\n  exit error        \u2192 abort\n\n# subgraph release_sg\nskill:  modular-rgb-puzzler\nscript: scripts/release.py\nsuccess when route \u2208 {placed, uncertain, missed};  on_error \u2192 error\n\n# scripts/release.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import carry_and_release\ndef run(ctx, state: ModularState) -> ModularResult:\n    if state['piece'] == 'cyan':\n        parameters = {**state['parameters'], 'release_module': 'puzzler.cyan_receiver_release_feedback_delivery'}\n        state = {**state, 'parameters': parameters}\n    return carry_and_release(ctx, state)\n\n# tool calls in this step (57)\npuzzle.propagate_conditional_attachment  \u00d72\nrobot.read_proprioception                \u00d72\nrobot.execution_journal_cursor           \u00d71\nvision.observe                           \u00d73\nrobot.get_ee_pose                        \u00d720\npuzzle.plan_pose                         \u00d71\nrobot.execute_trajectory                 \u00d74\nrobot.wait_steps                         \u00d712\nrobot.set_grip                           \u00d73\npuzzle.plan_path                         \u00d72\nrobot.grasp_frame                        \u00d74\nrobot.go_home                            \u00d73",
        "relook": false
       },
       {
@@ -407,6 +423,7 @@
         "earlier_pieces_max_mm": 0.52,
         "stable_s": 14.6
        },
+       "code": "# workflow.json\n\"yellow_receipt_settle\": {\"type\": \"subgraph\", \"ref\": \"receipt_settle_sg\"}\n  exit placed       \u2192 yellow_handoff\n  exit executed_visual_unknown \u2192 yellow_handoff\n  exit executed_visual_unverified \u2192 yellow_handoff\n  exit error        \u2192 abort\n  exit unknown      \u2192 abort\n\n# subgraph receipt_settle_sg\nskill:  modular-rgb-puzzler\nscript: scripts/receipt_settle.py\nsuccess when route \u2208 {placed, unknown, executed_visual_unknown, executed_visual_unverified};  on_error \u2192 error\n\n# scripts/receipt_settle.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import settle_placement_evidence\ndef run(ctx, state: ModularState) -> ModularResult:\n    return settle_placement_evidence(ctx, state)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": true
       },
       {
@@ -427,6 +444,7 @@
         "earlier_pieces_max_mm": 0.52,
         "stable_s": 14.9
        },
+       "code": "# workflow.json\n\"yellow_handoff\": {\"type\": \"subgraph\", \"ref\": \"handoff_sg\"}\n  exit advanced     \u2192 teal_perceive_plan\n  exit error        \u2192 abort\n\n# subgraph handoff_sg\nskill:  modular-rgb-puzzler\nscript: scripts/handoff.py\nsuccess when route \u2208 {advanced};  on_error \u2192 error\n\n# scripts/handoff.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import verified_handoff\ndef run(ctx, state: ModularState, expected_piece: str) -> ModularResult:\n    return verified_handoff(ctx, state, expected_piece)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       }
      ],
@@ -478,6 +496,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.92
        },
+       "code": "# workflow.json\n\"teal_perceive_plan\": {\"type\": \"subgraph\", \"ref\": \"perceive_plan_sg\"}\n  exit planned      \u2192 teal_grasp\n  exit error        \u2192 abort\n\n# subgraph perceive_plan_sg\nskill:  modular-rgb-puzzler\nscript: scripts/perceive_plan.py\nsuccess when route \u2208 {planned};  on_error \u2192 error\n\n# scripts/perceive_plan.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import observe_and_plan\ndef run(ctx, state: ModularState) -> ModularResult:\n    return observe_and_plan(ctx, state)\n\n# tool calls in this step (13)\nvision.observe                           \u00d72\nrobot.read_proprioception                \u00d71\nrobot.execute_trajectory                 \u00d71\nrobot.wait_steps                         \u00d71\nrobot.grasp_frame                        \u00d71\npuzzle.plan_pose                         \u00d75\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       },
       {
@@ -496,6 +515,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.86
        },
+       "code": "# workflow.json\n\"teal_grasp\": {\"type\": \"subgraph\", \"ref\": \"grasp_sg\"}\n  exit verified     \u2192 teal_transport\n  exit error        \u2192 abort\n\n# subgraph grasp_sg\nskill:  modular-rgb-puzzler\nscript: scripts/grasp.py\nsuccess when route \u2208 {verified};  on_error \u2192 error\n\n# scripts/grasp.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import grasp_and_bind\ndef run(ctx, state: ModularState) -> ModularResult:\n    return grasp_and_bind(ctx, state)\n\n# tool calls in this step (32)\nrobot.read_proprioception                \u00d71\nrobot.set_grip                           \u00d72\npuzzle.plan_pose                         \u00d72\nrobot.execute_trajectory                 \u00d73\nrobot.get_ee_pose                        \u00d713\nrobot.wait_steps                         \u00d78\npuzzle.plan_path                         \u00d71\npuzzle.capture_conditional_attachment    \u00d71\nvision.observe                           \u00d71",
        "relook": false
       },
       {
@@ -514,6 +534,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.76
        },
+       "code": "# workflow.json\n\"teal_transport\": {\"type\": \"subgraph\", \"ref\": \"transport_sg\"}\n  exit carried      \u2192 teal_release\n  exit error        \u2192 abort\n\n# subgraph transport_sg\nskill:  modular-rgb-puzzler\nscript: scripts/transport.py\nsuccess when route \u2208 {carried};  on_error \u2192 error\n\n# scripts/transport.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import transport\ndef run(ctx, state: ModularState) -> ModularResult:\n    return transport(ctx, state)\n\n# tool calls in this step (11)\nrobot.read_proprioception                \u00d71\npuzzle.propagate_conditional_attachment  \u00d71\npuzzle.plan_path                         \u00d71\nrobot.execute_trajectory                 \u00d71\nrobot.get_ee_pose                        \u00d75\nrobot.wait_steps                         \u00d71\nrobot.execution_journal_cursor           \u00d71",
        "relook": false
       },
       {
@@ -536,6 +557,7 @@
         "earlier_pieces_max_mm": 0.75,
         "stable_s": 15.08
        },
+       "code": "# workflow.json\n\"teal_release\": {\"type\": \"subgraph\", \"ref\": \"release_sg\"}\n  exit placed       \u2192 teal_receipt_settle\n  exit uncertain    \u2192 teal_receipt_settle\n  exit missed       \u2192 teal_receipt_settle\n  exit error        \u2192 abort\n\n# subgraph release_sg\nskill:  modular-rgb-puzzler\nscript: scripts/release.py\nsuccess when route \u2208 {placed, uncertain, missed};  on_error \u2192 error\n\n# scripts/release.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import carry_and_release\ndef run(ctx, state: ModularState) -> ModularResult:\n    if state['piece'] == 'cyan':\n        parameters = {**state['parameters'], 'release_module': 'puzzler.cyan_receiver_release_feedback_delivery'}\n        state = {**state, 'parameters': parameters}\n    return carry_and_release(ctx, state)\n\n# tool calls in this step (57)\npuzzle.propagate_conditional_attachment  \u00d72\nrobot.read_proprioception                \u00d72\nrobot.execution_journal_cursor           \u00d71\nvision.observe                           \u00d73\nrobot.get_ee_pose                        \u00d720\npuzzle.plan_pose                         \u00d71\nrobot.execute_trajectory                 \u00d74\nrobot.wait_steps                         \u00d712\nrobot.set_grip                           \u00d73\npuzzle.plan_path                         \u00d72\nrobot.grasp_frame                        \u00d74\nrobot.go_home                            \u00d73",
        "relook": false
       },
       {
@@ -558,6 +580,7 @@
         "earlier_pieces_max_mm": 0.52,
         "stable_s": 15.26
        },
+       "code": "# workflow.json\n\"teal_receipt_settle\": {\"type\": \"subgraph\", \"ref\": \"receipt_settle_sg\"}\n  exit placed       \u2192 teal_handoff\n  exit executed_visual_unknown \u2192 teal_handoff\n  exit executed_visual_unverified \u2192 teal_handoff\n  exit error        \u2192 abort\n  exit unknown      \u2192 abort\n\n# subgraph receipt_settle_sg\nskill:  modular-rgb-puzzler\nscript: scripts/receipt_settle.py\nsuccess when route \u2208 {placed, unknown, executed_visual_unknown, executed_visual_unverified};  on_error \u2192 error\n\n# scripts/receipt_settle.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import settle_placement_evidence\ndef run(ctx, state: ModularState) -> ModularResult:\n    return settle_placement_evidence(ctx, state)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": true
       },
       {
@@ -578,6 +601,7 @@
         "earlier_pieces_max_mm": 0.52,
         "stable_s": 15.56
        },
+       "code": "# workflow.json\n\"teal_handoff\": {\"type\": \"subgraph\", \"ref\": \"handoff_sg\"}\n  exit advanced     \u2192 purple_perceive_plan\n  exit error        \u2192 abort\n\n# subgraph handoff_sg\nskill:  modular-rgb-puzzler\nscript: scripts/handoff.py\nsuccess when route \u2208 {advanced};  on_error \u2192 error\n\n# scripts/handoff.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import verified_handoff\ndef run(ctx, state: ModularState, expected_piece: str) -> ModularResult:\n    return verified_handoff(ctx, state, expected_piece)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       }
      ],
@@ -625,6 +649,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.52
        },
+       "code": "# workflow.json\n\"purple_perceive_plan\": {\"type\": \"subgraph\", \"ref\": \"perceive_plan_sg\"}\n  exit planned      \u2192 purple_grasp\n  exit error        \u2192 abort\n\n# subgraph perceive_plan_sg\nskill:  modular-rgb-puzzler\nscript: scripts/perceive_plan.py\nsuccess when route \u2208 {planned};  on_error \u2192 error\n\n# scripts/perceive_plan.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import observe_and_plan\ndef run(ctx, state: ModularState) -> ModularResult:\n    return observe_and_plan(ctx, state)\n\n# tool calls in this step (561)\nvision.observe                           \u00d72\nrobot.read_proprioception                \u00d71\nrobot.execute_trajectory                 \u00d71\nrobot.wait_steps                         \u00d71\nrobot.grasp_frame                        \u00d7549\npuzzle.plan_pose                         \u00d75\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       },
       {
@@ -643,6 +668,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.52
        },
+       "code": "# workflow.json\n\"purple_grasp\": {\"type\": \"subgraph\", \"ref\": \"grasp_sg\"}\n  exit verified     \u2192 purple_transport\n  exit error        \u2192 abort\n\n# subgraph grasp_sg\nskill:  modular-rgb-puzzler\nscript: scripts/grasp.py\nsuccess when route \u2208 {verified};  on_error \u2192 error\n\n# scripts/grasp.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import grasp_and_bind\ndef run(ctx, state: ModularState) -> ModularResult:\n    return grasp_and_bind(ctx, state)\n\n# tool calls in this step (26)\nrobot.read_proprioception                \u00d71\nrobot.set_grip                           \u00d72\npuzzle.plan_pose                         \u00d72\nrobot.execute_trajectory                 \u00d73\nrobot.get_ee_pose                        \u00d710\nrobot.wait_steps                         \u00d75\npuzzle.plan_path                         \u00d71\npuzzle.capture_conditional_attachment    \u00d71\nvision.observe                           \u00d71",
        "relook": false
       },
       {
@@ -661,6 +687,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.52
        },
+       "code": "# workflow.json\n\"purple_transport\": {\"type\": \"subgraph\", \"ref\": \"transport_sg\"}\n  exit carried      \u2192 purple_release\n  exit error        \u2192 abort\n\n# subgraph transport_sg\nskill:  modular-rgb-puzzler\nscript: scripts/transport.py\nsuccess when route \u2208 {carried};  on_error \u2192 error\n\n# scripts/transport.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import transport\ndef run(ctx, state: ModularState) -> ModularResult:\n    return transport(ctx, state)\n\n# tool calls in this step (11)\nrobot.read_proprioception                \u00d71\npuzzle.propagate_conditional_attachment  \u00d71\npuzzle.plan_path                         \u00d71\nrobot.execute_trajectory                 \u00d71\nrobot.get_ee_pose                        \u00d75\nrobot.wait_steps                         \u00d71\nrobot.execution_journal_cursor           \u00d71",
        "relook": false
       },
       {
@@ -683,6 +710,7 @@
         "earlier_pieces_max_mm": 0.53,
         "stable_s": 7.02
        },
+       "code": "# workflow.json\n\"purple_release\": {\"type\": \"subgraph\", \"ref\": \"release_sg\"}\n  exit placed       \u2192 purple_receipt_settle\n  exit uncertain    \u2192 purple_receipt_settle\n  exit missed       \u2192 purple_receipt_settle\n  exit error        \u2192 abort\n\n# subgraph release_sg\nskill:  modular-rgb-puzzler\nscript: scripts/release.py\nsuccess when route \u2208 {placed, uncertain, missed};  on_error \u2192 error\n\n# scripts/release.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import carry_and_release\ndef run(ctx, state: ModularState) -> ModularResult:\n    if state['piece'] == 'cyan':\n        parameters = {**state['parameters'], 'release_module': 'puzzler.cyan_receiver_release_feedback_delivery'}\n        state = {**state, 'parameters': parameters}\n    return carry_and_release(ctx, state)\n\n# tool calls in this step (82)\npuzzle.propagate_conditional_attachment  \u00d73\nrobot.read_proprioception                \u00d72\nrobot.execution_journal_cursor           \u00d71\nvision.observe                           \u00d79\nrobot.get_ee_pose                        \u00d731\npuzzle.plan_pose                         \u00d74\nrobot.execute_trajectory                 \u00d76\nrobot.wait_steps                         \u00d715\nrobot.set_grip                           \u00d73\npuzzle.plan_path                         \u00d72\nrobot.grasp_frame                        \u00d74\nrobot.go_home                            \u00d72",
        "relook": false
       },
       {
@@ -705,6 +733,7 @@
         "earlier_pieces_max_mm": 0.53,
         "stable_s": 7.22
        },
+       "code": "# workflow.json\n\"purple_receipt_settle\": {\"type\": \"subgraph\", \"ref\": \"receipt_settle_sg\"}\n  exit placed       \u2192 purple_handoff\n  exit executed_visual_unknown \u2192 purple_handoff\n  exit executed_visual_unverified \u2192 purple_handoff\n  exit error        \u2192 abort\n  exit unknown      \u2192 abort\n\n# subgraph receipt_settle_sg\nskill:  modular-rgb-puzzler\nscript: scripts/receipt_settle.py\nsuccess when route \u2208 {placed, unknown, executed_visual_unknown, executed_visual_unverified};  on_error \u2192 error\n\n# scripts/receipt_settle.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import settle_placement_evidence\ndef run(ctx, state: ModularState) -> ModularResult:\n    return settle_placement_evidence(ctx, state)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": true
       },
       {
@@ -725,6 +754,7 @@
         "earlier_pieces_max_mm": 0.53,
         "stable_s": 7.38
        },
+       "code": "# workflow.json\n\"purple_handoff\": {\"type\": \"subgraph\", \"ref\": \"handoff_sg\"}\n  exit advanced     \u2192 cyan_perceive_plan\n  exit error        \u2192 abort\n\n# subgraph handoff_sg\nskill:  modular-rgb-puzzler\nscript: scripts/handoff.py\nsuccess when route \u2208 {advanced};  on_error \u2192 error\n\n# scripts/handoff.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import verified_handoff\ndef run(ctx, state: ModularState, expected_piece: str) -> ModularResult:\n    return verified_handoff(ctx, state, expected_piece)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       }
      ],
@@ -776,6 +806,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.69
        },
+       "code": "# workflow.json\n\"cyan_perceive_plan\": {\"type\": \"subgraph\", \"ref\": \"perceive_plan_sg\"}\n  exit planned      \u2192 cyan_grasp\n  exit error        \u2192 abort\n\n# subgraph perceive_plan_sg\nskill:  modular-rgb-puzzler\nscript: scripts/perceive_plan.py\nsuccess when route \u2208 {planned};  on_error \u2192 error\n\n# scripts/perceive_plan.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import observe_and_plan\ndef run(ctx, state: ModularState) -> ModularResult:\n    return observe_and_plan(ctx, state)\n\n# tool calls in this step (10)\nvision.observe                           \u00d72\nrobot.read_proprioception                \u00d71\nrobot.execute_trajectory                 \u00d71\nrobot.wait_steps                         \u00d71\npuzzle.plan_pose                         \u00d73\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       },
       {
@@ -794,6 +825,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.67
        },
+       "code": "# workflow.json\n\"cyan_grasp\": {\"type\": \"subgraph\", \"ref\": \"grasp_sg\"}\n  exit verified     \u2192 cyan_cyan_approach\n  exit error        \u2192 abort\n\n# subgraph grasp_sg\nskill:  modular-rgb-puzzler\nscript: scripts/grasp.py\nsuccess when route \u2208 {verified};  on_error \u2192 error\n\n# scripts/grasp.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import grasp_and_bind\ndef run(ctx, state: ModularState) -> ModularResult:\n    return grasp_and_bind(ctx, state)\n\n# tool calls in this step (58)\nrobot.get_ee_pose                        \u00d725\nrobot.grasp_frame                        \u00d71\npuzzle.plan_pose                         \u00d76\nrobot.execute_trajectory                 \u00d75\nrobot.wait_steps                         \u00d711\nrobot.set_grip                           \u00d73\npuzzle.plan_path                         \u00d71\nvision.observe                           \u00d73\nrobot.execution_journal_cursor           \u00d71\npuzzle.capture_conditional_attachment    \u00d71\npuzzle.propagate_conditional_attachment  \u00d71",
        "relook": false
       },
       {
@@ -812,6 +844,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.59
        },
+       "code": "# workflow.json\n\"cyan_cyan_approach\": {\"type\": \"subgraph\", \"ref\": \"cyan_approach_sg\"}\n  exit receiver_ready \u2192 cyan_cyan_receiver_close\n  exit error        \u2192 abort\n\n# subgraph cyan_approach_sg\nskill:  modular-rgb-puzzler\nscript: scripts/cyan_approach.py\nsuccess when route \u2208 {receiver_ready};  on_error \u2192 error\n\n# scripts/cyan_approach.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.cyan_vertical_transfer_v2_adapter import approach_receiver\ndef run(ctx, state: ModularState) -> ModularResult:\n    return approach_receiver(ctx, state)\n\n# tool calls in this step (159)\npuzzle.propagate_pyramid_held_belief     \u00d749\nrobot.get_ee_pose                        \u00d724\npuzzle.plan_pose_sequence                \u00d77\nrobot.execution_journal_cursor           \u00d725\nrobot.execute_trajectory                 \u00d724\nrobot.wait_steps                         \u00d713\nrobot.set_grip                           \u00d71\npuzzle.plan_pose                         \u00d79\npuzzle.plan_joint_path                   \u00d74\nvision.observe                           \u00d73",
        "relook": false
       },
       {
@@ -830,6 +863,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.59
        },
+       "code": "# workflow.json\n\"cyan_cyan_receiver_close\": {\"type\": \"subgraph\", \"ref\": \"cyan_receiver_close_sg\"}\n  exit receiver_closed \u2192 cyan_cyan_donor_release\n  exit error        \u2192 abort\n\n# subgraph cyan_receiver_close_sg\nskill:  modular-rgb-puzzler\nscript: scripts/cyan_receiver_close.py\nsuccess when route \u2208 {receiver_closed};  on_error \u2192 error\n\n# scripts/cyan_receiver_close.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.cyan_vertical_transfer_v2_adapter import close_receiver\ndef run(ctx, state: ModularState) -> ModularResult:\n    return close_receiver(ctx, state)\n\n# tool calls in this step (53)\npuzzle.propagate_pyramid_held_belief     \u00d723\nvision.observe                           \u00d76\nrobot.get_ee_pose                        \u00d78\npuzzle.plan_pose_sequence                \u00d71\nrobot.execution_journal_cursor           \u00d75\nrobot.execute_trajectory                 \u00d71\nrobot.wait_steps                         \u00d74\nrobot.set_grip                           \u00d74\npuzzle.capture_conditional_attachment    \u00d71",
        "relook": false
       },
       {
@@ -848,6 +882,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.59
        },
+       "code": "# workflow.json\n\"cyan_cyan_donor_release\": {\"type\": \"subgraph\", \"ref\": \"cyan_donor_release_sg\"}\n  exit donor_released \u2192 cyan_cyan_receiver_bind\n  exit error        \u2192 abort\n\n# subgraph cyan_donor_release_sg\nskill:  modular-rgb-puzzler\nscript: scripts/cyan_donor_release.py\nsuccess when route \u2208 {donor_released};  on_error \u2192 error\n\n# scripts/cyan_donor_release.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.cyan_vertical_transfer_v2_adapter import release_donor\ndef run(ctx, state: ModularState) -> ModularResult:\n    return release_donor(ctx, state)\n\n# tool calls in this step (46)\npuzzle.propagate_conditional_attachment  \u00d714\nrobot.execution_journal_cursor           \u00d75\nrobot.set_grip                           \u00d72\nrobot.get_ee_pose                        \u00d712\npuzzle.plan_pose_sequence                \u00d72\nrobot.execute_trajectory                 \u00d73\nrobot.wait_steps                         \u00d77\nvision.observe                           \u00d71",
        "relook": false
       },
       {
@@ -866,6 +901,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.59
        },
+       "code": "# workflow.json\n\"cyan_cyan_receiver_bind\": {\"type\": \"subgraph\", \"ref\": \"cyan_receiver_bind_sg\"}\n  exit receiver_verified \u2192 cyan_cyan_receiver_transport\n  exit error        \u2192 abort\n\n# subgraph cyan_receiver_bind_sg\nskill:  modular-rgb-puzzler\nscript: scripts/cyan_receiver_bind.py\nsuccess when route \u2208 {receiver_verified};  on_error \u2192 error\n\n# scripts/cyan_receiver_bind.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.cyan_vertical_transfer_v2_adapter import verify_receiver\ndef run(ctx, state: ModularState) -> ModularResult:\n    return verify_receiver(ctx, state)\n\n# tool calls in this step (6)\npuzzle.propagate_conditional_attachment  \u00d71\nvision.observe                           \u00d71\npuzzle.propagate_pyramid_held_belief     \u00d71\nrobot.wait_steps                         \u00d71\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       },
       {
@@ -884,6 +920,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.59
        },
+       "code": "# workflow.json\n\"cyan_cyan_receiver_transport\": {\"type\": \"subgraph\", \"ref\": \"cyan_receiver_transport_sg\"}\n  exit carried      \u2192 cyan_release\n  exit error        \u2192 abort\n\n# subgraph cyan_receiver_transport_sg\nskill:  modular-rgb-puzzler\nscript: scripts/cyan_receiver_transport.py\nsuccess when route \u2208 {carried};  on_error \u2192 error\n\n# scripts/cyan_receiver_transport.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.cyan_receiver_release_feedback_delivery import execute_transport\ndef run(ctx, state: ModularState) -> ModularResult:\n    return execute_transport(ctx, state)\n\n# tool calls in this step (228)\npuzzle.propagate_pyramid_held_belief     \u00d771\nvision.observe                           \u00d77\npuzzle.plan_joint_path                   \u00d74\nrobot.execution_journal_cursor           \u00d757\nrobot.execute_trajectory                 \u00d757\nrobot.get_ee_pose                        \u00d715\nrobot.wait_steps                         \u00d712\npuzzle.plan_pose                         \u00d75",
        "relook": false
       },
       {
@@ -906,6 +943,7 @@
         "earlier_pieces_max_mm": 0.59,
         "stable_s": 16.92
        },
+       "code": "# workflow.json\n\"cyan_release\": {\"type\": \"subgraph\", \"ref\": \"release_sg\"}\n  exit placed       \u2192 cyan_receipt_settle\n  exit uncertain    \u2192 cyan_receipt_settle\n  exit missed       \u2192 cyan_receipt_settle\n  exit error        \u2192 abort\n\n# subgraph release_sg\nskill:  modular-rgb-puzzler\nscript: scripts/release.py\nsuccess when route \u2208 {placed, uncertain, missed};  on_error \u2192 error\n\n# scripts/release.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import carry_and_release\ndef run(ctx, state: ModularState) -> ModularResult:\n    if state['piece'] == 'cyan':\n        parameters = {**state['parameters'], 'release_module': 'puzzler.cyan_receiver_release_feedback_delivery'}\n        state = {**state, 'parameters': parameters}\n    return carry_and_release(ctx, state)\n\n# tool calls in this step (125)\nrobot.execution_journal_cursor           \u00d730\npuzzle.propagate_pyramid_held_belief     \u00d714\nvision.observe                           \u00d78\nrobot.execute_trajectory                 \u00d727\nrobot.wait_steps                         \u00d715\nrobot.get_ee_pose                        \u00d719\npuzzle.plan_pose                         \u00d78\npuzzle.plan_path                         \u00d71\nrobot.set_grip                           \u00d71\npuzzle.plan_joint_path                   \u00d72",
        "relook": false
       },
       {
@@ -928,6 +966,7 @@
         "earlier_pieces_max_mm": 0.58,
         "stable_s": 18.72
        },
+       "code": "# workflow.json\n\"cyan_receipt_settle\": {\"type\": \"subgraph\", \"ref\": \"receipt_settle_sg\"}\n  exit placed       \u2192 cyan_handoff\n  exit executed_visual_unknown \u2192 cyan_handoff\n  exit executed_visual_unverified \u2192 cyan_handoff\n  exit error        \u2192 abort\n  exit unknown      \u2192 abort\n\n# subgraph receipt_settle_sg\nskill:  modular-rgb-puzzler\nscript: scripts/receipt_settle.py\nsuccess when route \u2208 {placed, unknown, executed_visual_unknown, executed_visual_unverified};  on_error \u2192 error\n\n# scripts/receipt_settle.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import settle_placement_evidence\ndef run(ctx, state: ModularState) -> ModularResult:\n    return settle_placement_evidence(ctx, state)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": true
       },
       {
@@ -948,6 +987,7 @@
         "earlier_pieces_max_mm": 0.58,
         "stable_s": 20.32
        },
+       "code": "# workflow.json\n\"cyan_handoff\": {\"type\": \"subgraph\", \"ref\": \"handoff_sg\"}\n  exit advanced     \u2192 mint_perceive_plan\n  exit error        \u2192 abort\n\n# subgraph handoff_sg\nskill:  modular-rgb-puzzler\nscript: scripts/handoff.py\nsuccess when route \u2208 {advanced};  on_error \u2192 error\n\n# scripts/handoff.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import verified_handoff\ndef run(ctx, state: ModularState, expected_piece: str) -> ModularResult:\n    return verified_handoff(ctx, state, expected_piece)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       }
      ],
@@ -991,6 +1031,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 1.47
        },
+       "code": "# workflow.json\n\"mint_perceive_plan\": {\"type\": \"subgraph\", \"ref\": \"perceive_plan_sg\"}\n  exit planned      \u2192 mint_grasp\n  exit error        \u2192 abort\n\n# subgraph perceive_plan_sg\nskill:  modular-rgb-puzzler\nscript: scripts/perceive_plan.py\nsuccess when route \u2208 {planned};  on_error \u2192 error\n\n# scripts/perceive_plan.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import observe_and_plan\ndef run(ctx, state: ModularState) -> ModularResult:\n    return observe_and_plan(ctx, state)\n\n# tool calls in this step (18)\nvision.observe                           \u00d73\nrobot.read_proprioception                \u00d72\nrobot.execute_trajectory                 \u00d72\nrobot.wait_steps                         \u00d72\nrobot.grasp_frame                        \u00d72\npuzzle.plan_pose                         \u00d75\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       },
       {
@@ -1009,6 +1050,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 1.45
        },
+       "code": "# workflow.json\n\"mint_grasp\": {\"type\": \"subgraph\", \"ref\": \"grasp_sg\"}\n  exit verified     \u2192 mint_transport\n  exit error        \u2192 abort\n\n# subgraph grasp_sg\nskill:  modular-rgb-puzzler\nscript: scripts/grasp.py\nsuccess when route \u2208 {verified};  on_error \u2192 error\n\n# scripts/grasp.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import grasp_and_bind\ndef run(ctx, state: ModularState) -> ModularResult:\n    return grasp_and_bind(ctx, state)\n\n# tool calls in this step (29)\nrobot.read_proprioception                \u00d71\nrobot.set_grip                           \u00d72\npuzzle.plan_pose                         \u00d72\nrobot.execute_trajectory                 \u00d73\nrobot.get_ee_pose                        \u00d712\nrobot.wait_steps                         \u00d76\npuzzle.plan_path                         \u00d71\npuzzle.capture_conditional_attachment    \u00d71\nvision.observe                           \u00d71",
        "relook": false
       },
       {
@@ -1027,6 +1069,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 1.42
        },
+       "code": "# workflow.json\n\"mint_transport\": {\"type\": \"subgraph\", \"ref\": \"transport_sg\"}\n  exit carried      \u2192 mint_release\n  exit error        \u2192 abort\n\n# subgraph transport_sg\nskill:  modular-rgb-puzzler\nscript: scripts/transport.py\nsuccess when route \u2208 {carried};  on_error \u2192 error\n\n# scripts/transport.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import transport\ndef run(ctx, state: ModularState) -> ModularResult:\n    return transport(ctx, state)\n\n# tool calls in this step (14)\nrobot.read_proprioception                \u00d71\npuzzle.propagate_pyramid_held_belief     \u00d71\npuzzle.plan_path                         \u00d71\npuzzle.plan_joint_path                   \u00d71\nrobot.execute_trajectory                 \u00d71\nrobot.get_ee_pose                        \u00d76\nrobot.wait_steps                         \u00d72\nrobot.execution_journal_cursor           \u00d71",
        "relook": false
       },
       {
@@ -1049,6 +1092,7 @@
         "earlier_pieces_max_mm": 1.38,
         "stable_s": 13.18
        },
+       "code": "# workflow.json\n\"mint_release\": {\"type\": \"subgraph\", \"ref\": \"release_sg\"}\n  exit placed       \u2192 mint_receipt_settle\n  exit uncertain    \u2192 mint_receipt_settle\n  exit missed       \u2192 mint_receipt_settle\n  exit error        \u2192 abort\n\n# subgraph release_sg\nskill:  modular-rgb-puzzler\nscript: scripts/release.py\nsuccess when route \u2208 {placed, uncertain, missed};  on_error \u2192 error\n\n# scripts/release.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import carry_and_release\ndef run(ctx, state: ModularState) -> ModularResult:\n    if state['piece'] == 'cyan':\n        parameters = {**state['parameters'], 'release_module': 'puzzler.cyan_receiver_release_feedback_delivery'}\n        state = {**state, 'parameters': parameters}\n    return carry_and_release(ctx, state)\n\n# tool calls in this step (51)\npuzzle.propagate_pyramid_held_belief     \u00d72\nrobot.read_proprioception                \u00d72\nrobot.execution_journal_cursor           \u00d71\nvision.observe                           \u00d73\nrobot.get_ee_pose                        \u00d717\npuzzle.plan_pose                         \u00d71\nrobot.execute_trajectory                 \u00d74\nrobot.wait_steps                         \u00d79\nrobot.set_grip                           \u00d73\npuzzle.plan_path                         \u00d72\nrobot.grasp_frame                        \u00d74\nrobot.go_home                            \u00d73",
        "relook": false
       },
       {
@@ -1071,6 +1115,7 @@
         "earlier_pieces_max_mm": 1.36,
         "stable_s": 14.14
        },
+       "code": "# workflow.json\n\"mint_receipt_settle\": {\"type\": \"subgraph\", \"ref\": \"receipt_settle_sg\"}\n  exit placed       \u2192 mint_handoff\n  exit executed_visual_unknown \u2192 mint_handoff\n  exit executed_visual_unverified \u2192 mint_handoff\n  exit error        \u2192 abort\n  exit unknown      \u2192 abort\n\n# subgraph receipt_settle_sg\nskill:  modular-rgb-puzzler\nscript: scripts/receipt_settle.py\nsuccess when route \u2208 {placed, unknown, executed_visual_unknown, executed_visual_unverified};  on_error \u2192 error\n\n# scripts/receipt_settle.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import settle_placement_evidence\ndef run(ctx, state: ModularState) -> ModularResult:\n    return settle_placement_evidence(ctx, state)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": true
       },
       {
@@ -1091,6 +1136,7 @@
         "earlier_pieces_max_mm": 1.36,
         "stable_s": 15.42
        },
+       "code": "# workflow.json\n\"mint_handoff\": {\"type\": \"subgraph\", \"ref\": \"handoff_sg\"}\n  exit advanced     \u2192 lime_perceive_plan\n  exit error        \u2192 abort\n\n# subgraph handoff_sg\nskill:  modular-rgb-puzzler\nscript: scripts/handoff.py\nsuccess when route \u2208 {advanced};  on_error \u2192 error\n\n# scripts/handoff.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import verified_handoff\ndef run(ctx, state: ModularState, expected_piece: str) -> ModularResult:\n    return verified_handoff(ctx, state, expected_piece)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       }
      ],
@@ -1142,6 +1188,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 1.35
        },
+       "code": "# workflow.json\n\"lime_perceive_plan\": {\"type\": \"subgraph\", \"ref\": \"perceive_plan_sg\"}\n  exit planned      \u2192 lime_grasp\n  exit error        \u2192 abort\n\n# subgraph perceive_plan_sg\nskill:  modular-rgb-puzzler\nscript: scripts/perceive_plan.py\nsuccess when route \u2208 {planned};  on_error \u2192 error\n\n# scripts/perceive_plan.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import observe_and_plan\ndef run(ctx, state: ModularState) -> ModularResult:\n    return observe_and_plan(ctx, state)\n\n# tool calls in this step (14)\nvision.observe                           \u00d72\nrobot.read_proprioception                \u00d71\nrobot.execute_trajectory                 \u00d71\nrobot.wait_steps                         \u00d71\nrobot.grasp_frame                        \u00d72\npuzzle.plan_pose                         \u00d75\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       },
       {
@@ -1160,6 +1207,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 1.35
        },
+       "code": "# workflow.json\n\"lime_grasp\": {\"type\": \"subgraph\", \"ref\": \"grasp_sg\"}\n  exit verified     \u2192 lime_transport\n  exit error        \u2192 abort\n\n# subgraph grasp_sg\nskill:  modular-rgb-puzzler\nscript: scripts/grasp.py\nsuccess when route \u2208 {verified};  on_error \u2192 error\n\n# scripts/grasp.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import grasp_and_bind\ndef run(ctx, state: ModularState) -> ModularResult:\n    return grasp_and_bind(ctx, state)\n\n# tool calls in this step (26)\nrobot.read_proprioception                \u00d71\nrobot.set_grip                           \u00d72\npuzzle.plan_pose                         \u00d72\nrobot.execute_trajectory                 \u00d73\nrobot.get_ee_pose                        \u00d710\nrobot.wait_steps                         \u00d75\npuzzle.plan_path                         \u00d71\npuzzle.capture_conditional_attachment    \u00d71\nvision.observe                           \u00d71",
        "relook": false
       },
       {
@@ -1178,6 +1226,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 1.34
        },
+       "code": "# workflow.json\n\"lime_transport\": {\"type\": \"subgraph\", \"ref\": \"transport_sg\"}\n  exit carried      \u2192 lime_release\n  exit error        \u2192 abort\n\n# subgraph transport_sg\nskill:  modular-rgb-puzzler\nscript: scripts/transport.py\nsuccess when route \u2208 {carried};  on_error \u2192 error\n\n# scripts/transport.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import transport\ndef run(ctx, state: ModularState) -> ModularResult:\n    return transport(ctx, state)\n\n# tool calls in this step (11)\nrobot.read_proprioception                \u00d71\npuzzle.propagate_conditional_attachment  \u00d71\npuzzle.plan_path                         \u00d71\nrobot.execute_trajectory                 \u00d71\nrobot.get_ee_pose                        \u00d75\nrobot.wait_steps                         \u00d71\nrobot.execution_journal_cursor           \u00d71",
        "relook": false
       },
       {
@@ -1200,6 +1249,7 @@
         "earlier_pieces_max_mm": 1.33,
         "stable_s": 14.26
        },
+       "code": "# workflow.json\n\"lime_release\": {\"type\": \"subgraph\", \"ref\": \"release_sg\"}\n  exit placed       \u2192 lime_receipt_settle\n  exit uncertain    \u2192 lime_receipt_settle\n  exit missed       \u2192 lime_receipt_settle\n  exit error        \u2192 abort\n\n# subgraph release_sg\nskill:  modular-rgb-puzzler\nscript: scripts/release.py\nsuccess when route \u2208 {placed, uncertain, missed};  on_error \u2192 error\n\n# scripts/release.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import carry_and_release\ndef run(ctx, state: ModularState) -> ModularResult:\n    if state['piece'] == 'cyan':\n        parameters = {**state['parameters'], 'release_module': 'puzzler.cyan_receiver_release_feedback_delivery'}\n        state = {**state, 'parameters': parameters}\n    return carry_and_release(ctx, state)\n\n# tool calls in this step (51)\npuzzle.propagate_conditional_attachment  \u00d72\nrobot.read_proprioception                \u00d72\nrobot.execution_journal_cursor           \u00d71\nvision.observe                           \u00d73\nrobot.get_ee_pose                        \u00d717\npuzzle.plan_pose                         \u00d71\nrobot.execute_trajectory                 \u00d74\nrobot.wait_steps                         \u00d79\nrobot.set_grip                           \u00d73\npuzzle.plan_path                         \u00d72\nrobot.grasp_frame                        \u00d74\nrobot.go_home                            \u00d73",
        "relook": false
       },
       {
@@ -1222,6 +1272,7 @@
         "earlier_pieces_max_mm": 1.33,
         "stable_s": 15.04
        },
+       "code": "# workflow.json\n\"lime_receipt_settle\": {\"type\": \"subgraph\", \"ref\": \"receipt_settle_sg\"}\n  exit placed       \u2192 lime_handoff\n  exit executed_visual_unknown \u2192 lime_handoff\n  exit executed_visual_unverified \u2192 lime_handoff\n  exit error        \u2192 abort\n  exit unknown      \u2192 abort\n\n# subgraph receipt_settle_sg\nskill:  modular-rgb-puzzler\nscript: scripts/receipt_settle.py\nsuccess when route \u2208 {placed, unknown, executed_visual_unknown, executed_visual_unverified};  on_error \u2192 error\n\n# scripts/receipt_settle.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import settle_placement_evidence\ndef run(ctx, state: ModularState) -> ModularResult:\n    return settle_placement_evidence(ctx, state)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": true
       },
       {
@@ -1242,6 +1293,7 @@
         "earlier_pieces_max_mm": 1.33,
         "stable_s": 15.52
        },
+       "code": "# workflow.json\n\"lime_handoff\": {\"type\": \"subgraph\", \"ref\": \"handoff_sg\"}\n  exit advanced     \u2192 maroon_perceive_plan\n  exit error        \u2192 abort\n\n# subgraph handoff_sg\nskill:  modular-rgb-puzzler\nscript: scripts/handoff.py\nsuccess when route \u2208 {advanced};  on_error \u2192 error\n\n# scripts/handoff.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import verified_handoff\ndef run(ctx, state: ModularState, expected_piece: str) -> ModularResult:\n    return verified_handoff(ctx, state, expected_piece)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       }
      ],
@@ -1293,6 +1345,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 1.33
        },
+       "code": "# workflow.json\n\"maroon_perceive_plan\": {\"type\": \"subgraph\", \"ref\": \"perceive_plan_sg\"}\n  exit planned      \u2192 maroon_grasp\n  exit error        \u2192 abort\n\n# subgraph perceive_plan_sg\nskill:  modular-rgb-puzzler\nscript: scripts/perceive_plan.py\nsuccess when route \u2208 {planned};  on_error \u2192 error\n\n# scripts/perceive_plan.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import observe_and_plan\ndef run(ctx, state: ModularState) -> ModularResult:\n    return observe_and_plan(ctx, state)\n\n# tool calls in this step (32)\nvision.observe                           \u00d73\nrobot.read_proprioception                \u00d71\nrobot.execute_trajectory                 \u00d73\nrobot.wait_steps                         \u00d73\nrobot.grasp_frame                        \u00d73\npuzzle.plan_pose                         \u00d711\nrobot.get_ee_pose                        \u00d77\nrobot.set_grip                           \u00d71",
        "relook": false
       },
       {
@@ -1311,6 +1364,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 1.32
        },
+       "code": "# workflow.json\n\"maroon_grasp\": {\"type\": \"subgraph\", \"ref\": \"grasp_sg\"}\n  exit verified     \u2192 maroon_transport\n  exit error        \u2192 abort\n\n# subgraph grasp_sg\nskill:  modular-rgb-puzzler\nscript: scripts/grasp.py\nsuccess when route \u2208 {verified};  on_error \u2192 error\n\n# scripts/grasp.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import grasp_and_bind\ndef run(ctx, state: ModularState) -> ModularResult:\n    return grasp_and_bind(ctx, state)\n\n# tool calls in this step (40)\nrobot.read_proprioception                \u00d71\nrobot.set_grip                           \u00d72\npuzzle.plan_pose                         \u00d74\nrobot.execute_trajectory                 \u00d74\nrobot.get_ee_pose                        \u00d716\nrobot.wait_steps                         \u00d78\npuzzle.plan_path                         \u00d71\npuzzle.capture_conditional_attachment    \u00d71\nvision.observe                           \u00d72\nrobot.go_home                            \u00d71",
        "relook": false
       },
       {
@@ -1329,6 +1383,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 1.32
        },
+       "code": "# workflow.json\n\"maroon_transport\": {\"type\": \"subgraph\", \"ref\": \"transport_sg\"}\n  exit carried      \u2192 maroon_release\n  exit error        \u2192 abort\n\n# subgraph transport_sg\nskill:  modular-rgb-puzzler\nscript: scripts/transport.py\nsuccess when route \u2208 {carried};  on_error \u2192 error\n\n# scripts/transport.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import transport\ndef run(ctx, state: ModularState) -> ModularResult:\n    return transport(ctx, state)\n\n# tool calls in this step (13)\nrobot.read_proprioception                \u00d71\npuzzle.propagate_pyramid_held_belief     \u00d71\npuzzle.plan_path                         \u00d72\npuzzle.plan_joint_path                   \u00d71\nrobot.execute_trajectory                 \u00d71\nrobot.get_ee_pose                        \u00d75\nrobot.wait_steps                         \u00d71\nrobot.execution_journal_cursor           \u00d71",
        "relook": false
       },
       {
@@ -1351,6 +1406,7 @@
         "earlier_pieces_max_mm": 1.33,
         "stable_s": 16.06
        },
+       "code": "# workflow.json\n\"maroon_release\": {\"type\": \"subgraph\", \"ref\": \"release_sg\"}\n  exit placed       \u2192 maroon_receipt_settle\n  exit uncertain    \u2192 maroon_receipt_settle\n  exit missed       \u2192 maroon_receipt_settle\n  exit error        \u2192 abort\n\n# subgraph release_sg\nskill:  modular-rgb-puzzler\nscript: scripts/release.py\nsuccess when route \u2208 {placed, uncertain, missed};  on_error \u2192 error\n\n# scripts/release.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import carry_and_release\ndef run(ctx, state: ModularState) -> ModularResult:\n    if state['piece'] == 'cyan':\n        parameters = {**state['parameters'], 'release_module': 'puzzler.cyan_receiver_release_feedback_delivery'}\n        state = {**state, 'parameters': parameters}\n    return carry_and_release(ctx, state)\n\n# tool calls in this step (202)\npuzzle.propagate_pyramid_held_belief     \u00d72\nvision.observe                           \u00d74\nrobot.read_proprioception                \u00d738\npuzzle.plan_pose                         \u00d74\nrobot.execution_journal_cursor           \u00d71\npuzzle.plan_path                         \u00d720\nrobot.execute_trajectory                 \u00d721\nrobot.get_ee_pose                        \u00d758\nrobot.wait_steps                         \u00d736\nrobot.set_grip                           \u00d715\nrobot.go_home                            \u00d73",
        "relook": false
       },
       {
@@ -1373,6 +1429,7 @@
         "earlier_pieces_max_mm": 1.32,
         "stable_s": 17.38
        },
+       "code": "# workflow.json\n\"maroon_receipt_settle\": {\"type\": \"subgraph\", \"ref\": \"receipt_settle_sg\"}\n  exit placed       \u2192 maroon_handoff\n  exit executed_visual_unknown \u2192 maroon_handoff\n  exit executed_visual_unverified \u2192 maroon_handoff\n  exit error        \u2192 abort\n  exit unknown      \u2192 abort\n\n# subgraph receipt_settle_sg\nskill:  modular-rgb-puzzler\nscript: scripts/receipt_settle.py\nsuccess when route \u2208 {placed, unknown, executed_visual_unknown, executed_visual_unverified};  on_error \u2192 error\n\n# scripts/receipt_settle.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import settle_placement_evidence\ndef run(ctx, state: ModularState) -> ModularResult:\n    return settle_placement_evidence(ctx, state)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": true
       },
       {
@@ -1393,6 +1450,7 @@
         "earlier_pieces_max_mm": 1.32,
         "stable_s": 18.4
        },
+       "code": "# workflow.json\n\"maroon_handoff\": {\"type\": \"subgraph\", \"ref\": \"handoff_sg\"}\n  exit advanced     \u2192 navy_perceive_plan\n  exit error        \u2192 abort\n\n# subgraph handoff_sg\nskill:  modular-rgb-puzzler\nscript: scripts/handoff.py\nsuccess when route \u2208 {advanced};  on_error \u2192 error\n\n# scripts/handoff.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import verified_handoff\ndef run(ctx, state: ModularState, expected_piece: str) -> ModularResult:\n    return verified_handoff(ctx, state, expected_piece)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       }
      ],
@@ -1440,6 +1498,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 1.51
        },
+       "code": "# workflow.json\n\"navy_perceive_plan\": {\"type\": \"subgraph\", \"ref\": \"perceive_plan_sg\"}\n  exit planned      \u2192 navy_grasp\n  exit error        \u2192 abort\n\n# subgraph perceive_plan_sg\nskill:  modular-rgb-puzzler\nscript: scripts/perceive_plan.py\nsuccess when route \u2208 {planned};  on_error \u2192 error\n\n# scripts/perceive_plan.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import observe_and_plan\ndef run(ctx, state: ModularState) -> ModularResult:\n    return observe_and_plan(ctx, state)\n\n# tool calls in this step (13)\nvision.observe                           \u00d72\nrobot.read_proprioception                \u00d71\nrobot.execute_trajectory                 \u00d71\nrobot.wait_steps                         \u00d71\nrobot.grasp_frame                        \u00d71\npuzzle.plan_pose                         \u00d75\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       },
       {
@@ -1458,6 +1517,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 1.52
        },
+       "code": "# workflow.json\n\"navy_grasp\": {\"type\": \"subgraph\", \"ref\": \"grasp_sg\"}\n  exit verified     \u2192 navy_transport\n  exit error        \u2192 abort\n\n# subgraph grasp_sg\nskill:  modular-rgb-puzzler\nscript: scripts/grasp.py\nsuccess when route \u2208 {verified};  on_error \u2192 error\n\n# scripts/grasp.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import grasp_and_bind\ndef run(ctx, state: ModularState) -> ModularResult:\n    return grasp_and_bind(ctx, state)\n\n# tool calls in this step (22)\nrobot.read_proprioception                \u00d71\nrobot.set_grip                           \u00d72\npuzzle.plan_pose                         \u00d72\nrobot.execute_trajectory                 \u00d73\nrobot.get_ee_pose                        \u00d78\nrobot.wait_steps                         \u00d73\npuzzle.plan_path                         \u00d71\npuzzle.capture_conditional_attachment    \u00d71\nvision.observe                           \u00d71",
        "relook": false
       },
       {
@@ -1476,6 +1536,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 1.52
        },
+       "code": "# workflow.json\n\"navy_transport\": {\"type\": \"subgraph\", \"ref\": \"transport_sg\"}\n  exit carried      \u2192 navy_release\n  exit error        \u2192 abort\n\n# subgraph transport_sg\nskill:  modular-rgb-puzzler\nscript: scripts/transport.py\nsuccess when route \u2208 {carried};  on_error \u2192 error\n\n# scripts/transport.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import transport\ndef run(ctx, state: ModularState) -> ModularResult:\n    return transport(ctx, state)\n\n# tool calls in this step (11)\nrobot.read_proprioception                \u00d71\npuzzle.propagate_conditional_attachment  \u00d71\npuzzle.plan_path                         \u00d71\nrobot.execute_trajectory                 \u00d71\nrobot.get_ee_pose                        \u00d75\nrobot.wait_steps                         \u00d71\nrobot.execution_journal_cursor           \u00d71",
        "relook": false
       },
       {
@@ -1498,6 +1559,7 @@
         "earlier_pieces_max_mm": 1.53,
         "stable_s": 15.04
        },
+       "code": "# workflow.json\n\"navy_release\": {\"type\": \"subgraph\", \"ref\": \"release_sg\"}\n  exit placed       \u2192 navy_receipt_settle\n  exit uncertain    \u2192 navy_receipt_settle\n  exit missed       \u2192 navy_receipt_settle\n  exit error        \u2192 abort\n\n# subgraph release_sg\nskill:  modular-rgb-puzzler\nscript: scripts/release.py\nsuccess when route \u2208 {placed, uncertain, missed};  on_error \u2192 error\n\n# scripts/release.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import carry_and_release\ndef run(ctx, state: ModularState) -> ModularResult:\n    if state['piece'] == 'cyan':\n        parameters = {**state['parameters'], 'release_module': 'puzzler.cyan_receiver_release_feedback_delivery'}\n        state = {**state, 'parameters': parameters}\n    return carry_and_release(ctx, state)\n\n# tool calls in this step (51)\npuzzle.propagate_conditional_attachment  \u00d72\nrobot.read_proprioception                \u00d72\nrobot.execution_journal_cursor           \u00d71\nvision.observe                           \u00d73\nrobot.get_ee_pose                        \u00d717\npuzzle.plan_pose                         \u00d71\nrobot.execute_trajectory                 \u00d74\nrobot.wait_steps                         \u00d79\nrobot.set_grip                           \u00d73\npuzzle.plan_path                         \u00d72\nrobot.grasp_frame                        \u00d74\nrobot.go_home                            \u00d73",
        "relook": false
       },
       {
@@ -1520,6 +1582,7 @@
         "earlier_pieces_max_mm": 1.42,
         "stable_s": 17.46
        },
+       "code": "# workflow.json\n\"navy_receipt_settle\": {\"type\": \"subgraph\", \"ref\": \"receipt_settle_sg\"}\n  exit placed       \u2192 navy_handoff\n  exit executed_visual_unknown \u2192 navy_handoff\n  exit executed_visual_unverified \u2192 navy_handoff\n  exit error        \u2192 abort\n  exit unknown      \u2192 abort\n\n# subgraph receipt_settle_sg\nskill:  modular-rgb-puzzler\nscript: scripts/receipt_settle.py\nsuccess when route \u2208 {placed, unknown, executed_visual_unknown, executed_visual_unverified};  on_error \u2192 error\n\n# scripts/receipt_settle.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import settle_placement_evidence\ndef run(ctx, state: ModularState) -> ModularResult:\n    return settle_placement_evidence(ctx, state)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": true
       },
       {
@@ -1540,6 +1603,7 @@
         "earlier_pieces_max_mm": 1.42,
         "stable_s": 18.6
        },
+       "code": "# workflow.json\n\"navy_handoff\": {\"type\": \"subgraph\", \"ref\": \"handoff_sg\"}\n  exit advanced     \u2192 pink_perceive_plan\n  exit error        \u2192 abort\n\n# subgraph handoff_sg\nskill:  modular-rgb-puzzler\nscript: scripts/handoff.py\nsuccess when route \u2208 {advanced};  on_error \u2192 error\n\n# scripts/handoff.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import verified_handoff\ndef run(ctx, state: ModularState, expected_piece: str) -> ModularResult:\n    return verified_handoff(ctx, state, expected_piece)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       }
      ],
@@ -1587,6 +1651,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 2.01
        },
+       "code": "# workflow.json\n\"pink_perceive_plan\": {\"type\": \"subgraph\", \"ref\": \"perceive_plan_sg\"}\n  exit planned      \u2192 pink_grasp\n  exit error        \u2192 abort\n\n# subgraph perceive_plan_sg\nskill:  modular-rgb-puzzler\nscript: scripts/perceive_plan.py\nsuccess when route \u2208 {planned};  on_error \u2192 error\n\n# scripts/perceive_plan.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import observe_and_plan\ndef run(ctx, state: ModularState) -> ModularResult:\n    return observe_and_plan(ctx, state)\n\n# tool calls in this step (13)\nvision.observe                           \u00d72\nrobot.read_proprioception                \u00d71\nrobot.execute_trajectory                 \u00d71\nrobot.wait_steps                         \u00d71\nrobot.grasp_frame                        \u00d71\npuzzle.plan_pose                         \u00d75\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       },
       {
@@ -1605,6 +1670,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 2.01
        },
+       "code": "# workflow.json\n\"pink_grasp\": {\"type\": \"subgraph\", \"ref\": \"grasp_sg\"}\n  exit verified     \u2192 pink_transport\n  exit error        \u2192 abort\n\n# subgraph grasp_sg\nskill:  modular-rgb-puzzler\nscript: scripts/grasp.py\nsuccess when route \u2208 {verified};  on_error \u2192 error\n\n# scripts/grasp.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import grasp_and_bind\ndef run(ctx, state: ModularState) -> ModularResult:\n    return grasp_and_bind(ctx, state)\n\n# tool calls in this step (50)\nrobot.read_proprioception                \u00d714\nrobot.set_grip                           \u00d72\npuzzle.plan_pose                         \u00d72\nrobot.execute_trajectory                 \u00d75\nrobot.get_ee_pose                        \u00d713\nrobot.wait_steps                         \u00d79\npuzzle.plan_path                         \u00d71\npuzzle.capture_conditional_attachment    \u00d71\nvision.observe                           \u00d72\npuzzle.propagate_conditional_attachment  \u00d71",
        "relook": false
       },
       {
@@ -1623,6 +1689,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 2.01
        },
+       "code": "# workflow.json\n\"pink_transport\": {\"type\": \"subgraph\", \"ref\": \"transport_sg\"}\n  exit carried      \u2192 pink_release\n  exit error        \u2192 abort\n\n# subgraph transport_sg\nskill:  modular-rgb-puzzler\nscript: scripts/transport.py\nsuccess when route \u2208 {carried};  on_error \u2192 error\n\n# scripts/transport.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import transport\ndef run(ctx, state: ModularState) -> ModularResult:\n    return transport(ctx, state)\n\n# tool calls in this step (38)\nrobot.read_proprioception                \u00d71\npuzzle.propagate_pyramid_held_belief     \u00d71\npuzzle.plan_path                         \u00d71\nrobot.execute_trajectory                 \u00d72\nrobot.get_ee_pose                        \u00d718\nrobot.wait_steps                         \u00d713\npuzzle.plan_pose                         \u00d71\nrobot.execution_journal_cursor           \u00d71",
        "relook": false
       },
       {
@@ -1645,6 +1712,7 @@
         "earlier_pieces_max_mm": 2.03,
         "stable_s": 13.7
        },
+       "code": "# workflow.json\n\"pink_release\": {\"type\": \"subgraph\", \"ref\": \"release_sg\"}\n  exit placed       \u2192 pink_receipt_settle\n  exit uncertain    \u2192 pink_receipt_settle\n  exit missed       \u2192 pink_receipt_settle\n  exit error        \u2192 abort\n\n# subgraph release_sg\nskill:  modular-rgb-puzzler\nscript: scripts/release.py\nsuccess when route \u2208 {placed, uncertain, missed};  on_error \u2192 error\n\n# scripts/release.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import carry_and_release\ndef run(ctx, state: ModularState) -> ModularResult:\n    if state['piece'] == 'cyan':\n        parameters = {**state['parameters'], 'release_module': 'puzzler.cyan_receiver_release_feedback_delivery'}\n        state = {**state, 'parameters': parameters}\n    return carry_and_release(ctx, state)\n\n# tool calls in this step (78)\npuzzle.propagate_pyramid_held_belief     \u00d72\nrobot.read_proprioception                \u00d72\nrobot.execution_journal_cursor           \u00d71\nvision.observe                           \u00d73\nrobot.get_ee_pose                        \u00d730\npuzzle.plan_pose                         \u00d72\nrobot.execute_trajectory                 \u00d75\nrobot.wait_steps                         \u00d721\nrobot.set_grip                           \u00d73\npuzzle.plan_path                         \u00d72\nrobot.grasp_frame                        \u00d74\nrobot.go_home                            \u00d73",
        "relook": false
       },
       {
@@ -1667,6 +1735,7 @@
         "earlier_pieces_max_mm": 2.03,
         "stable_s": 14.26
        },
+       "code": "# workflow.json\n\"pink_receipt_settle\": {\"type\": \"subgraph\", \"ref\": \"receipt_settle_sg\"}\n  exit placed       \u2192 pink_handoff\n  exit executed_visual_unknown \u2192 pink_handoff\n  exit executed_visual_unverified \u2192 pink_handoff\n  exit error        \u2192 abort\n  exit unknown      \u2192 abort\n\n# subgraph receipt_settle_sg\nskill:  modular-rgb-puzzler\nscript: scripts/receipt_settle.py\nsuccess when route \u2208 {placed, unknown, executed_visual_unknown, executed_visual_unverified};  on_error \u2192 error\n\n# scripts/receipt_settle.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import settle_placement_evidence\ndef run(ctx, state: ModularState) -> ModularResult:\n    return settle_placement_evidence(ctx, state)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": true
       },
       {
@@ -1687,6 +1756,7 @@
         "earlier_pieces_max_mm": 2.03,
         "stable_s": 15.3
        },
+       "code": "# workflow.json\n\"pink_handoff\": {\"type\": \"subgraph\", \"ref\": \"handoff_sg\"}\n  exit advanced     \u2192 red_perceive_plan\n  exit error        \u2192 abort\n\n# subgraph handoff_sg\nskill:  modular-rgb-puzzler\nscript: scripts/handoff.py\nsuccess when route \u2208 {advanced};  on_error \u2192 error\n\n# scripts/handoff.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import verified_handoff\ndef run(ctx, state: ModularState, expected_piece: str) -> ModularResult:\n    return verified_handoff(ctx, state, expected_piece)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       }
      ],
@@ -1738,6 +1808,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 2.55
        },
+       "code": "# workflow.json\n\"red_perceive_plan\": {\"type\": \"subgraph\", \"ref\": \"perceive_plan_sg\"}\n  exit planned      \u2192 red_grasp\n  exit error        \u2192 abort\n\n# subgraph perceive_plan_sg\nskill:  modular-rgb-puzzler\nscript: scripts/perceive_plan.py\nsuccess when route \u2208 {planned};  on_error \u2192 error\n\n# scripts/perceive_plan.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import observe_and_plan\ndef run(ctx, state: ModularState) -> ModularResult:\n    return observe_and_plan(ctx, state)\n\n# tool calls in this step (9)\nvision.observe                           \u00d72\nrobot.read_proprioception                \u00d71\nrobot.execute_trajectory                 \u00d71\nrobot.wait_steps                         \u00d71\npuzzle.plan_pose                         \u00d72\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       },
       {
@@ -1756,6 +1827,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 2.56
        },
+       "code": "# workflow.json\n\"red_grasp\": {\"type\": \"subgraph\", \"ref\": \"grasp_sg\"}\n  exit verified     \u2192 red_red_handoff_prepare\n  exit error        \u2192 abort\n\n# subgraph grasp_sg\nskill:  modular-rgb-puzzler\nscript: scripts/grasp.py\nsuccess when route \u2208 {verified};  on_error \u2192 error\n\n# scripts/grasp.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import grasp_and_bind\ndef run(ctx, state: ModularState) -> ModularResult:\n    return grasp_and_bind(ctx, state)\n\n# tool calls in this step (37)\nrobot.set_grip                           \u00d72\npuzzle.plan_pose                         \u00d74\nrobot.execute_trajectory                 \u00d73\nrobot.get_ee_pose                        \u00d716\nrobot.wait_steps                         \u00d77\nvision.observe                           \u00d74\nrobot.read_proprioception                \u00d71",
        "relook": false
       },
       {
@@ -1774,6 +1846,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 2.58
        },
+       "code": "# workflow.json\n\"red_red_handoff_prepare\": {\"type\": \"subgraph\", \"ref\": \"red_handoff_prepare_sg\"}\n  exit prepared     \u2192 red_red_receiver_close\n  exit error        \u2192 abort\n\n# subgraph red_handoff_prepare_sg\nskill:  modular-rgb-puzzler\nscript: scripts/red_handoff_prepare.py\nsuccess when route \u2208 {prepared};  on_error \u2192 error\n\n# scripts/red_handoff_prepare.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.red_bimanual_handoff import handoff_prepare\ndef run(ctx, state: ModularState) -> ModularResult:\n    return handoff_prepare(ctx, state)\n\n# tool calls in this step (205)\npuzzle.propagate_pyramid_held_belief     \u00d78\nrobot.read_proprioception                \u00d797\nvision.observe                           \u00d76\nrobot.set_grip                           \u00d71\npuzzle.plan_pose_sequence                \u00d76\nrobot.execute_trajectory                 \u00d748\nrobot.get_ee_pose                        \u00d720\nrobot.wait_steps                         \u00d719",
        "relook": false
       },
       {
@@ -1792,6 +1865,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 2.58
        },
+       "code": "# workflow.json\n\"red_red_receiver_close\": {\"type\": \"subgraph\", \"ref\": \"red_receiver_close_sg\"}\n  exit dual_held    \u2192 red_red_sender_release\n  exit error        \u2192 abort\n\n# subgraph red_receiver_close_sg\nskill:  modular-rgb-puzzler\nscript: scripts/red_receiver_close.py\nsuccess when route \u2208 {dual_held};  on_error \u2192 error\n\n# scripts/red_receiver_close.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.red_bimanual_handoff import receiver_close\ndef run(ctx, state: ModularState) -> ModularResult:\n    return receiver_close(ctx, state)\n\n# tool calls in this step (102)\nrobot.read_proprioception                \u00d781\npuzzle.propagate_pyramid_held_belief     \u00d710\nrobot.set_grip                           \u00d74\nvision.observe                           \u00d74\nrobot.wait_steps                         \u00d71\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       },
       {
@@ -1810,6 +1884,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 2.56
        },
+       "code": "# workflow.json\n\"red_red_sender_release\": {\"type\": \"subgraph\", \"ref\": \"red_sender_release_sg\"}\n  exit transferred  \u2192 red_red_receiver_bind\n  exit error        \u2192 abort\n\n# subgraph red_sender_release_sg\nskill:  modular-rgb-puzzler\nscript: scripts/red_sender_release.py\nsuccess when route \u2208 {transferred};  on_error \u2192 error\n\n# scripts/red_sender_release.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.red_bimanual_handoff import sender_release\ndef run(ctx, state: ModularState) -> ModularResult:\n    return sender_release(ctx, state)\n\n# tool calls in this step (39)\npuzzle.propagate_pyramid_held_belief     \u00d74\nrobot.read_proprioception                \u00d719\nrobot.set_grip                           \u00d71\nvision.observe                           \u00d71\npuzzle.plan_pose_sequence                \u00d71\nrobot.execute_trajectory                 \u00d77\nrobot.get_ee_pose                        \u00d74\nrobot.wait_steps                         \u00d72",
        "relook": false
       },
       {
@@ -1828,6 +1903,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 2.54
        },
+       "code": "# workflow.json\n\"red_red_receiver_bind\": {\"type\": \"subgraph\", \"ref\": \"red_receiver_bind_sg\"}\n  exit verified     \u2192 red_red_return_prepare\n  exit error        \u2192 abort\n\n# subgraph red_receiver_bind_sg\nskill:  modular-rgb-puzzler\nscript: scripts/red_receiver_bind.py\nsuccess when route \u2208 {verified};  on_error \u2192 error\n\n# scripts/red_receiver_bind.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.red_bimanual_handoff import receiver_bind\ndef run(ctx, state: ModularState) -> ModularResult:\n    return receiver_bind(ctx, state)\n\n# tool calls in this step (7)\npuzzle.propagate_pyramid_held_belief     \u00d72\nvision.observe                           \u00d71\nrobot.read_proprioception                \u00d71\nrobot.wait_steps                         \u00d71\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       },
       {
@@ -1846,6 +1922,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 2.54
        },
+       "code": "# workflow.json\n\"red_red_return_prepare\": {\"type\": \"subgraph\", \"ref\": \"red_return_prepare_sg\"}\n  exit prepared     \u2192 red_red_return_close\n  exit error        \u2192 abort\n\n# subgraph red_return_prepare_sg\nskill:  modular-rgb-puzzler\nscript: scripts/red_return_prepare.py\nsuccess when route \u2208 {prepared};  on_error \u2192 error\n\n# scripts/red_return_prepare.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.red_bimanual_handoff import return_handoff_prepare\ndef run(ctx, state: ModularState) -> ModularResult:\n    return return_handoff_prepare(ctx, state)\n\n# tool calls in this step (149)\npuzzle.propagate_pyramid_held_belief     \u00d78\nrobot.read_proprioception                \u00d760\nvision.observe                           \u00d75\nrobot.set_grip                           \u00d71\npuzzle.plan_pose_sequence                \u00d717\nrobot.execute_trajectory                 \u00d723\nrobot.get_ee_pose                        \u00d719\nrobot.wait_steps                         \u00d716",
        "relook": false
       },
       {
@@ -1864,6 +1941,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 2.55
        },
+       "code": "# workflow.json\n\"red_red_return_close\": {\"type\": \"subgraph\", \"ref\": \"red_return_close_sg\"}\n  exit dual_held    \u2192 red_red_return_release\n  exit error        \u2192 abort\n\n# subgraph red_return_close_sg\nskill:  modular-rgb-puzzler\nscript: scripts/red_return_close.py\nsuccess when route \u2208 {dual_held};  on_error \u2192 error\n\n# scripts/red_return_close.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.red_bimanual_handoff import receiver_close\ndef run(ctx, state: ModularState) -> ModularResult:\n    return receiver_close(ctx, state)\n\n# tool calls in this step (109)\nrobot.read_proprioception                \u00d785\npuzzle.propagate_pyramid_held_belief     \u00d712\nrobot.set_grip                           \u00d74\nvision.observe                           \u00d75\nrobot.wait_steps                         \u00d71\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       },
       {
@@ -1882,6 +1960,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 2.55
        },
+       "code": "# workflow.json\n\"red_red_return_release\": {\"type\": \"subgraph\", \"ref\": \"red_return_release_sg\"}\n  exit transferred  \u2192 red_red_return_bind\n  exit error        \u2192 abort\n\n# subgraph red_return_release_sg\nskill:  modular-rgb-puzzler\nscript: scripts/red_return_release.py\nsuccess when route \u2208 {transferred};  on_error \u2192 error\n\n# scripts/red_return_release.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.red_bimanual_handoff import sender_release\ndef run(ctx, state: ModularState) -> ModularResult:\n    return sender_release(ctx, state)\n\n# tool calls in this step (44)\npuzzle.propagate_pyramid_held_belief     \u00d75\nrobot.read_proprioception                \u00d720\nvision.observe                           \u00d72\nrobot.set_grip                           \u00d71\npuzzle.plan_pose_sequence                \u00d71\nrobot.execute_trajectory                 \u00d77\nrobot.get_ee_pose                        \u00d75\nrobot.wait_steps                         \u00d73",
        "relook": false
       },
       {
@@ -1900,6 +1979,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 2.55
        },
+       "code": "# workflow.json\n\"red_red_return_bind\": {\"type\": \"subgraph\", \"ref\": \"red_return_bind_sg\"}\n  exit verified     \u2192 red_red_goal_transport\n  exit error        \u2192 abort\n\n# subgraph red_return_bind_sg\nskill:  modular-rgb-puzzler\nscript: scripts/red_return_bind.py\nsuccess when route \u2208 {verified};  on_error \u2192 error\n\n# scripts/red_return_bind.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.red_bimanual_handoff import receiver_bind\ndef run(ctx, state: ModularState) -> ModularResult:\n    return receiver_bind(ctx, state)\n\n# tool calls in this step (7)\npuzzle.propagate_pyramid_held_belief     \u00d72\nvision.observe                           \u00d71\nrobot.read_proprioception                \u00d71\nrobot.wait_steps                         \u00d71\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       },
       {
@@ -1918,6 +1998,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 2.55
        },
+       "code": "# workflow.json\n\"red_red_goal_transport\": {\"type\": \"subgraph\", \"ref\": \"red_goal_transport_sg\"}\n  exit carried      \u2192 red_red_goal_release\n  exit error        \u2192 abort\n\n# subgraph red_goal_transport_sg\nskill:  modular-rgb-puzzler\nscript: scripts/red_goal_transport.py\nsuccess when route \u2208 {carried};  on_error \u2192 error\n\n# scripts/red_goal_transport.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.red_bimanual_goal import carry\ndef run(ctx, state: ModularState) -> ModularResult:\n    return carry(ctx, state)\n\n# tool calls in this step (108)\npuzzle.propagate_pyramid_held_belief     \u00d79\nrobot.read_proprioception                \u00d747\nvision.observe                           \u00d74\npuzzle.plan_pose                         \u00d72\npuzzle.plan_pose_sequence                \u00d72\npuzzle.plan_joint_path                   \u00d73\nrobot.execute_trajectory                 \u00d727\nrobot.get_ee_pose                        \u00d79\nrobot.wait_steps                         \u00d75",
        "relook": false
       },
       {
@@ -1940,6 +2021,7 @@
         "earlier_pieces_max_mm": 2.6,
         "stable_s": 5.22
        },
+       "code": "# workflow.json\n\"red_red_goal_release\": {\"type\": \"subgraph\", \"ref\": \"red_goal_release_sg\"}\n  exit placed       \u2192 red_red_goal_verify\n  exit uncertain    \u2192 red_red_goal_verify\n  exit missed       \u2192 red_red_goal_verify\n  exit error        \u2192 abort\n\n# subgraph red_goal_release_sg\nskill:  modular-rgb-puzzler\nscript: scripts/red_goal_release.py\nsuccess when route \u2208 {placed, uncertain, missed};  on_error \u2192 error\n\n# scripts/red_goal_release.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.red_bimanual_goal import release\ndef run(ctx, state: ModularState) -> ModularResult:\n    return release(ctx, state)\n\n# tool calls in this step (216)\npuzzle.propagate_pyramid_held_belief     \u00d76\nrobot.read_proprioception                \u00d7106\nvision.observe                           \u00d76\nrobot.execute_trajectory                 \u00d746\nrobot.wait_steps                         \u00d723\npuzzle.plan_pose                         \u00d77\npuzzle.plan_pose_sequence                \u00d75\nrobot.get_ee_pose                        \u00d716\nrobot.set_grip                           \u00d71",
        "relook": false
       },
       {
@@ -1960,6 +2042,7 @@
         "earlier_pieces_max_mm": 2.61,
         "stable_s": 7.54
        },
+       "code": "# workflow.json\n\"red_red_goal_verify\": {\"type\": \"subgraph\", \"ref\": \"red_goal_verify_sg\"}\n  exit advanced     \u2192 finish_all12\n  exit error        \u2192 abort\n\n# subgraph red_goal_verify_sg\nskill:  modular-rgb-puzzler\nscript: scripts/red_goal_verify.py\nsuccess when route \u2208 {advanced};  on_error \u2192 error\n\n# scripts/red_goal_verify.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.red_bimanual_goal import verify_release\ndef run(ctx, state: ModularState) -> ModularResult:\n    return verify_release(ctx, state)\n\n# tool calls in this step (4)\nvision.observe                           \u00d71\nrobot.wait_steps                         \u00d71\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       }
      ],
@@ -2013,6 +2096,7 @@
         "earlier_pieces_max_mm": 3.02,
         "stable_s": 4.74
        },
+       "code": "# workflow.json\n\"finish_all12\": {\"type\": \"subgraph\", \"ref\": \"finish_sg\"}\n  exit completed    \u2192 done\n  exit error        \u2192 abort\n\n# subgraph finish_sg\nskill:  modular-rgb-puzzler\nscript: scripts/finish.py\nsuccess when route \u2208 {completed};  on_error \u2192 error\n\n# scripts/finish.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import finish_assembly\ndef run(ctx, state: ModularState) -> ModularResult:\n    return finish_assembly(ctx, state)\n\n# tool calls in this step (21)\nrobot.set_grip                           \u00d72\nrobot.go_home                            \u00d74\nvision.observe                           \u00d74\nrobot.read_proprioception                \u00d74\nrobot.execute_trajectory                 \u00d72\nrobot.wait_steps                         \u00d73\nrobot.get_ee_pose                        \u00d72",
        "relook": true
       }
      ],
@@ -2058,6 +2142,7 @@
        "passed": true,
        "checkpoint": "perceive_plan",
        "metrics": {},
+       "code": "# workflow.json\n\"azure_perceive_plan\": {\"type\": \"subgraph\", \"ref\": \"perceive_plan_sg\"}\n  exit planned      \u2192 azure_grasp\n  exit error        \u2192 abort\n\n# subgraph perceive_plan_sg\nskill:  modular-rgb-puzzler\nscript: scripts/perceive_plan.py\nsuccess when route \u2208 {planned};  on_error \u2192 error\n\n# scripts/perceive_plan.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import observe_and_plan\ndef run(ctx, state: ModularState) -> ModularResult:\n    return observe_and_plan(ctx, state)\n\n# tool calls in this step (9)\nvision.observe                           \u00d71\nrobot.grasp_frame                        \u00d71\npuzzle.plan_pose                         \u00d75\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       },
       {
@@ -2074,6 +2159,7 @@
        "passed": true,
        "checkpoint": "grasp",
        "metrics": {},
+       "code": "# workflow.json\n\"azure_grasp\": {\"type\": \"subgraph\", \"ref\": \"grasp_sg\"}\n  exit verified     \u2192 azure_transport\n  exit error        \u2192 abort\n\n# subgraph grasp_sg\nskill:  modular-rgb-puzzler\nscript: scripts/grasp.py\nsuccess when route \u2208 {verified};  on_error \u2192 error\n\n# scripts/grasp.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import grasp_and_bind\ndef run(ctx, state: ModularState) -> ModularResult:\n    return grasp_and_bind(ctx, state)\n\n# tool calls in this step (25)\nrobot.set_grip                           \u00d72\npuzzle.plan_pose                         \u00d72\nrobot.execute_trajectory                 \u00d73\nrobot.get_ee_pose                        \u00d710\nrobot.wait_steps                         \u00d75\npuzzle.plan_path                         \u00d71\npuzzle.capture_conditional_attachment    \u00d71\nvision.observe                           \u00d71",
        "relook": false
       },
       {
@@ -2090,6 +2176,7 @@
        "passed": true,
        "checkpoint": "transport",
        "metrics": {},
+       "code": "# workflow.json\n\"azure_transport\": {\"type\": \"subgraph\", \"ref\": \"transport_sg\"}\n  exit carried      \u2192 azure_release\n  exit error        \u2192 abort\n\n# subgraph transport_sg\nskill:  modular-rgb-puzzler\nscript: scripts/transport.py\nsuccess when route \u2208 {carried};  on_error \u2192 error\n\n# scripts/transport.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import transport\ndef run(ctx, state: ModularState) -> ModularResult:\n    return transport(ctx, state)\n\n# tool calls in this step (10)\npuzzle.propagate_conditional_attachment  \u00d71\npuzzle.plan_path                         \u00d71\nrobot.execute_trajectory                 \u00d71\nrobot.get_ee_pose                        \u00d75\nrobot.wait_steps                         \u00d71\nrobot.execution_journal_cursor           \u00d71",
        "relook": false
       },
       {
@@ -2111,6 +2198,7 @@
         "placement_error_mm": 0.52,
         "stable_s": 8.9
        },
+       "code": "# workflow.json\n\"azure_release\": {\"type\": \"subgraph\", \"ref\": \"release_sg\"}\n  exit placed       \u2192 azure_receipt_settle\n  exit uncertain    \u2192 azure_receipt_settle\n  exit missed       \u2192 azure_receipt_settle\n  exit error        \u2192 abort\n\n# subgraph release_sg\nskill:  modular-rgb-puzzler\nscript: scripts/release.py\nsuccess when route \u2208 {placed, uncertain, missed};  on_error \u2192 error\n\n# scripts/release.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import carry_and_release\ndef run(ctx, state: ModularState) -> ModularResult:\n    if state['piece'] == 'cyan':\n        parameters = {**state['parameters'], 'release_module': 'puzzler.cyan_receiver_release_feedback_delivery'}\n        state = {**state, 'parameters': parameters}\n    return carry_and_release(ctx, state)\n\n# tool calls in this step (46)\nrobot.execution_journal_cursor           \u00d71\npuzzle.propagate_conditional_attachment  \u00d71\nvision.observe                           \u00d73\nrobot.get_ee_pose                        \u00d717\npuzzle.plan_pose                         \u00d71\nrobot.execute_trajectory                 \u00d73\nrobot.wait_steps                         \u00d79\nrobot.set_grip                           \u00d73\npuzzle.plan_path                         \u00d72\nrobot.grasp_frame                        \u00d74\nrobot.go_home                            \u00d72",
        "relook": false
       },
       {
@@ -2132,6 +2220,7 @@
         "placement_error_mm": 0.52,
         "stable_s": 9.06
        },
+       "code": "# workflow.json\n\"azure_receipt_settle\": {\"type\": \"subgraph\", \"ref\": \"receipt_settle_sg\"}\n  exit placed       \u2192 azure_handoff\n  exit executed_visual_unknown \u2192 azure_handoff\n  exit executed_visual_unverified \u2192 azure_handoff\n  exit error        \u2192 abort\n  exit unknown      \u2192 abort\n\n# subgraph receipt_settle_sg\nskill:  modular-rgb-puzzler\nscript: scripts/receipt_settle.py\nsuccess when route \u2208 {placed, unknown, executed_visual_unknown, executed_visual_unverified};  on_error \u2192 error\n\n# scripts/receipt_settle.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import settle_placement_evidence\ndef run(ctx, state: ModularState) -> ModularResult:\n    return settle_placement_evidence(ctx, state)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": true
       },
       {
@@ -2151,6 +2240,7 @@
         "placement_error_mm": 0.52,
         "stable_s": 9.18
        },
+       "code": "# workflow.json\n\"azure_handoff\": {\"type\": \"subgraph\", \"ref\": \"handoff_sg\"}\n  exit advanced     \u2192 orange_perceive_plan\n  exit error        \u2192 abort\n\n# subgraph handoff_sg\nskill:  modular-rgb-puzzler\nscript: scripts/handoff.py\nsuccess when route \u2208 {advanced};  on_error \u2192 error\n\n# scripts/handoff.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import verified_handoff\ndef run(ctx, state: ModularState, expected_piece: str) -> ModularResult:\n    return verified_handoff(ctx, state, expected_piece)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       }
      ],
@@ -2202,6 +2292,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.52
        },
+       "code": "# workflow.json\n\"orange_perceive_plan\": {\"type\": \"subgraph\", \"ref\": \"perceive_plan_sg\"}\n  exit planned      \u2192 orange_grasp\n  exit error        \u2192 abort\n\n# subgraph perceive_plan_sg\nskill:  modular-rgb-puzzler\nscript: scripts/perceive_plan.py\nsuccess when route \u2208 {planned};  on_error \u2192 error\n\n# scripts/perceive_plan.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import observe_and_plan\ndef run(ctx, state: ModularState) -> ModularResult:\n    return observe_and_plan(ctx, state)\n\n# tool calls in this step (9)\nvision.observe                           \u00d71\nrobot.grasp_frame                        \u00d71\npuzzle.plan_pose                         \u00d75\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       },
       {
@@ -2220,6 +2311,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.52
        },
+       "code": "# workflow.json\n\"orange_grasp\": {\"type\": \"subgraph\", \"ref\": \"grasp_sg\"}\n  exit verified     \u2192 orange_transport\n  exit error        \u2192 abort\n\n# subgraph grasp_sg\nskill:  modular-rgb-puzzler\nscript: scripts/grasp.py\nsuccess when route \u2208 {verified};  on_error \u2192 error\n\n# scripts/grasp.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import grasp_and_bind\ndef run(ctx, state: ModularState) -> ModularResult:\n    return grasp_and_bind(ctx, state)\n\n# tool calls in this step (24)\nrobot.set_grip                           \u00d72\npuzzle.plan_pose                         \u00d72\nrobot.execute_trajectory                 \u00d73\nrobot.get_ee_pose                        \u00d710\nrobot.wait_steps                         \u00d74\npuzzle.plan_path                         \u00d71\npuzzle.capture_conditional_attachment    \u00d71\nvision.observe                           \u00d71",
        "relook": false
       },
       {
@@ -2238,6 +2330,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.52
        },
+       "code": "# workflow.json\n\"orange_transport\": {\"type\": \"subgraph\", \"ref\": \"transport_sg\"}\n  exit carried      \u2192 orange_release\n  exit error        \u2192 abort\n\n# subgraph transport_sg\nskill:  modular-rgb-puzzler\nscript: scripts/transport.py\nsuccess when route \u2208 {carried};  on_error \u2192 error\n\n# scripts/transport.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import transport\ndef run(ctx, state: ModularState) -> ModularResult:\n    return transport(ctx, state)\n\n# tool calls in this step (10)\npuzzle.propagate_pyramid_held_belief     \u00d71\npuzzle.plan_path                         \u00d71\nrobot.execute_trajectory                 \u00d71\nrobot.get_ee_pose                        \u00d75\nrobot.wait_steps                         \u00d71\nrobot.execution_journal_cursor           \u00d71",
        "relook": false
       },
       {
@@ -2260,6 +2353,7 @@
         "earlier_pieces_max_mm": 0.52,
         "stable_s": 9.14
        },
+       "code": "# workflow.json\n\"orange_release\": {\"type\": \"subgraph\", \"ref\": \"release_sg\"}\n  exit placed       \u2192 orange_receipt_settle\n  exit uncertain    \u2192 orange_receipt_settle\n  exit missed       \u2192 orange_receipt_settle\n  exit error        \u2192 abort\n\n# subgraph release_sg\nskill:  modular-rgb-puzzler\nscript: scripts/release.py\nsuccess when route \u2208 {placed, uncertain, missed};  on_error \u2192 error\n\n# scripts/release.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import carry_and_release\ndef run(ctx, state: ModularState) -> ModularResult:\n    if state['piece'] == 'cyan':\n        parameters = {**state['parameters'], 'release_module': 'puzzler.cyan_receiver_release_feedback_delivery'}\n        state = {**state, 'parameters': parameters}\n    return carry_and_release(ctx, state)\n\n# tool calls in this step (46)\nrobot.execution_journal_cursor           \u00d71\npuzzle.propagate_pyramid_held_belief     \u00d71\nvision.observe                           \u00d73\nrobot.get_ee_pose                        \u00d717\npuzzle.plan_pose                         \u00d71\nrobot.execute_trajectory                 \u00d73\nrobot.wait_steps                         \u00d79\nrobot.set_grip                           \u00d73\npuzzle.plan_path                         \u00d72\nrobot.grasp_frame                        \u00d74\nrobot.go_home                            \u00d72",
        "relook": false
       },
       {
@@ -2282,6 +2376,7 @@
         "earlier_pieces_max_mm": 0.4,
         "stable_s": 9.42
        },
+       "code": "# workflow.json\n\"orange_receipt_settle\": {\"type\": \"subgraph\", \"ref\": \"receipt_settle_sg\"}\n  exit placed       \u2192 orange_handoff\n  exit executed_visual_unknown \u2192 orange_handoff\n  exit executed_visual_unverified \u2192 orange_handoff\n  exit error        \u2192 abort\n  exit unknown      \u2192 abort\n\n# subgraph receipt_settle_sg\nskill:  modular-rgb-puzzler\nscript: scripts/receipt_settle.py\nsuccess when route \u2208 {placed, unknown, executed_visual_unknown, executed_visual_unverified};  on_error \u2192 error\n\n# scripts/receipt_settle.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import settle_placement_evidence\ndef run(ctx, state: ModularState) -> ModularResult:\n    return settle_placement_evidence(ctx, state)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": true
       },
       {
@@ -2302,6 +2397,7 @@
         "earlier_pieces_max_mm": 0.4,
         "stable_s": 9.64
        },
+       "code": "# workflow.json\n\"orange_handoff\": {\"type\": \"subgraph\", \"ref\": \"handoff_sg\"}\n  exit advanced     \u2192 yellow_perceive_plan\n  exit error        \u2192 abort\n\n# subgraph handoff_sg\nskill:  modular-rgb-puzzler\nscript: scripts/handoff.py\nsuccess when route \u2208 {advanced};  on_error \u2192 error\n\n# scripts/handoff.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import verified_handoff\ndef run(ctx, state: ModularState, expected_piece: str) -> ModularResult:\n    return verified_handoff(ctx, state, expected_piece)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       }
      ],
@@ -2353,6 +2449,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.49
        },
+       "code": "# workflow.json\n\"yellow_perceive_plan\": {\"type\": \"subgraph\", \"ref\": \"perceive_plan_sg\"}\n  exit planned      \u2192 yellow_grasp\n  exit error        \u2192 abort\n\n# subgraph perceive_plan_sg\nskill:  modular-rgb-puzzler\nscript: scripts/perceive_plan.py\nsuccess when route \u2208 {planned};  on_error \u2192 error\n\n# scripts/perceive_plan.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import observe_and_plan\ndef run(ctx, state: ModularState) -> ModularResult:\n    return observe_and_plan(ctx, state)\n\n# tool calls in this step (9)\nvision.observe                           \u00d71\nrobot.grasp_frame                        \u00d71\npuzzle.plan_pose                         \u00d75\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       },
       {
@@ -2371,6 +2468,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.49
        },
+       "code": "# workflow.json\n\"yellow_grasp\": {\"type\": \"subgraph\", \"ref\": \"grasp_sg\"}\n  exit verified     \u2192 yellow_transport\n  exit error        \u2192 abort\n\n# subgraph grasp_sg\nskill:  modular-rgb-puzzler\nscript: scripts/grasp.py\nsuccess when route \u2208 {verified};  on_error \u2192 error\n\n# scripts/grasp.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import grasp_and_bind\ndef run(ctx, state: ModularState) -> ModularResult:\n    return grasp_and_bind(ctx, state)\n\n# tool calls in this step (29)\nrobot.set_grip                           \u00d72\npuzzle.plan_pose                         \u00d72\nrobot.execute_trajectory                 \u00d73\nrobot.get_ee_pose                        \u00d712\nrobot.wait_steps                         \u00d77\npuzzle.plan_path                         \u00d71\npuzzle.capture_conditional_attachment    \u00d71\nvision.observe                           \u00d71",
        "relook": false
       },
       {
@@ -2389,6 +2487,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.49
        },
+       "code": "# workflow.json\n\"yellow_transport\": {\"type\": \"subgraph\", \"ref\": \"transport_sg\"}\n  exit carried      \u2192 yellow_release\n  exit error        \u2192 abort\n\n# subgraph transport_sg\nskill:  modular-rgb-puzzler\nscript: scripts/transport.py\nsuccess when route \u2208 {carried};  on_error \u2192 error\n\n# scripts/transport.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import transport\ndef run(ctx, state: ModularState) -> ModularResult:\n    return transport(ctx, state)\n\n# tool calls in this step (10)\npuzzle.propagate_conditional_attachment  \u00d71\npuzzle.plan_path                         \u00d71\nrobot.execute_trajectory                 \u00d71\nrobot.get_ee_pose                        \u00d75\nrobot.wait_steps                         \u00d71\nrobot.execution_journal_cursor           \u00d71",
        "relook": false
       },
       {
@@ -2411,6 +2510,7 @@
         "earlier_pieces_max_mm": 0.49,
         "stable_s": 8.76
        },
+       "code": "# workflow.json\n\"yellow_release\": {\"type\": \"subgraph\", \"ref\": \"release_sg\"}\n  exit placed       \u2192 yellow_receipt_settle\n  exit uncertain    \u2192 yellow_receipt_settle\n  exit missed       \u2192 yellow_receipt_settle\n  exit error        \u2192 abort\n\n# subgraph release_sg\nskill:  modular-rgb-puzzler\nscript: scripts/release.py\nsuccess when route \u2208 {placed, uncertain, missed};  on_error \u2192 error\n\n# scripts/release.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import carry_and_release\ndef run(ctx, state: ModularState) -> ModularResult:\n    if state['piece'] == 'cyan':\n        parameters = {**state['parameters'], 'release_module': 'puzzler.cyan_receiver_release_feedback_delivery'}\n        state = {**state, 'parameters': parameters}\n    return carry_and_release(ctx, state)\n\n# tool calls in this step (46)\nrobot.execution_journal_cursor           \u00d71\npuzzle.propagate_conditional_attachment  \u00d71\nvision.observe                           \u00d73\nrobot.get_ee_pose                        \u00d717\npuzzle.plan_pose                         \u00d71\nrobot.execute_trajectory                 \u00d73\nrobot.wait_steps                         \u00d79\nrobot.set_grip                           \u00d73\npuzzle.plan_path                         \u00d72\nrobot.grasp_frame                        \u00d74\nrobot.go_home                            \u00d72",
        "relook": false
       },
       {
@@ -2433,6 +2533,7 @@
         "earlier_pieces_max_mm": 0.49,
         "stable_s": 9.0
        },
+       "code": "# workflow.json\n\"yellow_receipt_settle\": {\"type\": \"subgraph\", \"ref\": \"receipt_settle_sg\"}\n  exit placed       \u2192 yellow_handoff\n  exit executed_visual_unknown \u2192 yellow_handoff\n  exit executed_visual_unverified \u2192 yellow_handoff\n  exit error        \u2192 abort\n  exit unknown      \u2192 abort\n\n# subgraph receipt_settle_sg\nskill:  modular-rgb-puzzler\nscript: scripts/receipt_settle.py\nsuccess when route \u2208 {placed, unknown, executed_visual_unknown, executed_visual_unverified};  on_error \u2192 error\n\n# scripts/receipt_settle.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import settle_placement_evidence\ndef run(ctx, state: ModularState) -> ModularResult:\n    return settle_placement_evidence(ctx, state)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": true
       },
       {
@@ -2453,6 +2554,7 @@
         "earlier_pieces_max_mm": 0.49,
         "stable_s": 9.2
        },
+       "code": "# workflow.json\n\"yellow_handoff\": {\"type\": \"subgraph\", \"ref\": \"handoff_sg\"}\n  exit advanced     \u2192 teal_perceive_plan\n  exit error        \u2192 abort\n\n# subgraph handoff_sg\nskill:  modular-rgb-puzzler\nscript: scripts/handoff.py\nsuccess when route \u2208 {advanced};  on_error \u2192 error\n\n# scripts/handoff.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import verified_handoff\ndef run(ctx, state: ModularState, expected_piece: str) -> ModularResult:\n    return verified_handoff(ctx, state, expected_piece)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       }
      ],
@@ -2504,6 +2606,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 1.47
        },
+       "code": "# workflow.json\n\"teal_perceive_plan\": {\"type\": \"subgraph\", \"ref\": \"perceive_plan_sg\"}\n  exit planned      \u2192 teal_grasp\n  exit error        \u2192 abort\n\n# subgraph perceive_plan_sg\nskill:  modular-rgb-puzzler\nscript: scripts/perceive_plan.py\nsuccess when route \u2208 {planned};  on_error \u2192 error\n\n# scripts/perceive_plan.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import observe_and_plan\ndef run(ctx, state: ModularState) -> ModularResult:\n    return observe_and_plan(ctx, state)\n\n# tool calls in this step (9)\nvision.observe                           \u00d71\nrobot.grasp_frame                        \u00d71\npuzzle.plan_pose                         \u00d75\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       },
       {
@@ -2522,6 +2625,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 1.4
        },
+       "code": "# workflow.json\n\"teal_grasp\": {\"type\": \"subgraph\", \"ref\": \"grasp_sg\"}\n  exit verified     \u2192 teal_transport\n  exit error        \u2192 abort\n\n# subgraph grasp_sg\nskill:  modular-rgb-puzzler\nscript: scripts/grasp.py\nsuccess when route \u2208 {verified};  on_error \u2192 error\n\n# scripts/grasp.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import grasp_and_bind\ndef run(ctx, state: ModularState) -> ModularResult:\n    return grasp_and_bind(ctx, state)\n\n# tool calls in this step (29)\nrobot.set_grip                           \u00d72\npuzzle.plan_pose                         \u00d72\nrobot.execute_trajectory                 \u00d73\nrobot.get_ee_pose                        \u00d712\nrobot.wait_steps                         \u00d77\npuzzle.plan_path                         \u00d71\npuzzle.capture_conditional_attachment    \u00d71\nvision.observe                           \u00d71",
        "relook": false
       },
       {
@@ -2540,6 +2644,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 1.04
        },
+       "code": "# workflow.json\n\"teal_transport\": {\"type\": \"subgraph\", \"ref\": \"transport_sg\"}\n  exit carried      \u2192 teal_release\n  exit error        \u2192 abort\n\n# subgraph transport_sg\nskill:  modular-rgb-puzzler\nscript: scripts/transport.py\nsuccess when route \u2208 {carried};  on_error \u2192 error\n\n# scripts/transport.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import transport\ndef run(ctx, state: ModularState) -> ModularResult:\n    return transport(ctx, state)\n\n# tool calls in this step (10)\npuzzle.propagate_conditional_attachment  \u00d71\npuzzle.plan_path                         \u00d71\nrobot.execute_trajectory                 \u00d71\nrobot.get_ee_pose                        \u00d75\nrobot.wait_steps                         \u00d71\nrobot.execution_journal_cursor           \u00d71",
        "relook": false
       },
       {
@@ -2562,6 +2667,7 @@
         "earlier_pieces_max_mm": 0.88,
         "stable_s": 10.68
        },
+       "code": "# workflow.json\n\"teal_release\": {\"type\": \"subgraph\", \"ref\": \"release_sg\"}\n  exit placed       \u2192 teal_receipt_settle\n  exit uncertain    \u2192 teal_receipt_settle\n  exit missed       \u2192 teal_receipt_settle\n  exit error        \u2192 abort\n\n# subgraph release_sg\nskill:  modular-rgb-puzzler\nscript: scripts/release.py\nsuccess when route \u2208 {placed, uncertain, missed};  on_error \u2192 error\n\n# scripts/release.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import carry_and_release\ndef run(ctx, state: ModularState) -> ModularResult:\n    if state['piece'] == 'cyan':\n        parameters = {**state['parameters'], 'release_module': 'puzzler.cyan_receiver_release_feedback_delivery'}\n        state = {**state, 'parameters': parameters}\n    return carry_and_release(ctx, state)\n\n# tool calls in this step (46)\nrobot.execution_journal_cursor           \u00d71\npuzzle.propagate_conditional_attachment  \u00d71\nvision.observe                           \u00d73\nrobot.get_ee_pose                        \u00d717\npuzzle.plan_pose                         \u00d71\nrobot.execute_trajectory                 \u00d73\nrobot.wait_steps                         \u00d79\nrobot.set_grip                           \u00d73\npuzzle.plan_path                         \u00d72\nrobot.grasp_frame                        \u00d74\nrobot.go_home                            \u00d72",
        "relook": false
       },
       {
@@ -2584,6 +2690,7 @@
         "earlier_pieces_max_mm": 0.4,
         "stable_s": 11.96
        },
+       "code": "# workflow.json\n\"teal_receipt_settle\": {\"type\": \"subgraph\", \"ref\": \"receipt_settle_sg\"}\n  exit placed       \u2192 teal_handoff\n  exit executed_visual_unknown \u2192 teal_handoff\n  exit executed_visual_unverified \u2192 teal_handoff\n  exit error        \u2192 abort\n  exit unknown      \u2192 abort\n\n# subgraph receipt_settle_sg\nskill:  modular-rgb-puzzler\nscript: scripts/receipt_settle.py\nsuccess when route \u2208 {placed, unknown, executed_visual_unknown, executed_visual_unverified};  on_error \u2192 error\n\n# scripts/receipt_settle.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import settle_placement_evidence\ndef run(ctx, state: ModularState) -> ModularResult:\n    return settle_placement_evidence(ctx, state)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": true
       },
       {
@@ -2604,6 +2711,7 @@
         "earlier_pieces_max_mm": 0.4,
         "stable_s": 12.8
        },
+       "code": "# workflow.json\n\"teal_handoff\": {\"type\": \"subgraph\", \"ref\": \"handoff_sg\"}\n  exit advanced     \u2192 purple_perceive_plan\n  exit error        \u2192 abort\n\n# subgraph handoff_sg\nskill:  modular-rgb-puzzler\nscript: scripts/handoff.py\nsuccess when route \u2208 {advanced};  on_error \u2192 error\n\n# scripts/handoff.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import verified_handoff\ndef run(ctx, state: ModularState, expected_piece: str) -> ModularResult:\n    return verified_handoff(ctx, state, expected_piece)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       }
      ],
@@ -2651,6 +2759,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.4
        },
+       "code": "# workflow.json\n\"purple_perceive_plan\": {\"type\": \"subgraph\", \"ref\": \"perceive_plan_sg\"}\n  exit planned      \u2192 purple_grasp\n  exit error        \u2192 abort\n\n# subgraph perceive_plan_sg\nskill:  modular-rgb-puzzler\nscript: scripts/perceive_plan.py\nsuccess when route \u2208 {planned};  on_error \u2192 error\n\n# scripts/perceive_plan.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import observe_and_plan\ndef run(ctx, state: ModularState) -> ModularResult:\n    return observe_and_plan(ctx, state)\n\n# tool calls in this step (10)\nvision.observe                           \u00d71\nrobot.grasp_frame                        \u00d72\npuzzle.plan_pose                         \u00d75\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       },
       {
@@ -2669,6 +2778,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.4
        },
+       "code": "# workflow.json\n\"purple_grasp\": {\"type\": \"subgraph\", \"ref\": \"grasp_sg\"}\n  exit verified     \u2192 purple_transport\n  exit error        \u2192 abort\n\n# subgraph grasp_sg\nskill:  modular-rgb-puzzler\nscript: scripts/grasp.py\nsuccess when route \u2208 {verified};  on_error \u2192 error\n\n# scripts/grasp.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import grasp_and_bind\ndef run(ctx, state: ModularState) -> ModularResult:\n    return grasp_and_bind(ctx, state)\n\n# tool calls in this step (26)\nrobot.set_grip                           \u00d72\npuzzle.plan_pose                         \u00d72\nrobot.execute_trajectory                 \u00d73\nrobot.get_ee_pose                        \u00d711\nrobot.wait_steps                         \u00d75\npuzzle.plan_path                         \u00d71\npuzzle.capture_conditional_attachment    \u00d71\nvision.observe                           \u00d71",
        "relook": false
       },
       {
@@ -2687,6 +2797,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.39
        },
+       "code": "# workflow.json\n\"purple_transport\": {\"type\": \"subgraph\", \"ref\": \"transport_sg\"}\n  exit carried      \u2192 purple_release\n  exit error        \u2192 abort\n\n# subgraph transport_sg\nskill:  modular-rgb-puzzler\nscript: scripts/transport.py\nsuccess when route \u2208 {carried};  on_error \u2192 error\n\n# scripts/transport.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import transport\ndef run(ctx, state: ModularState) -> ModularResult:\n    return transport(ctx, state)\n\n# tool calls in this step (10)\npuzzle.propagate_pyramid_held_belief     \u00d71\npuzzle.plan_path                         \u00d71\nrobot.execute_trajectory                 \u00d71\nrobot.get_ee_pose                        \u00d75\nrobot.wait_steps                         \u00d71\nrobot.execution_journal_cursor           \u00d71",
        "relook": false
       },
       {
@@ -2709,6 +2820,7 @@
         "earlier_pieces_max_mm": 0.54,
         "stable_s": 6.66
        },
+       "code": "# workflow.json\n\"purple_release\": {\"type\": \"subgraph\", \"ref\": \"release_sg\"}\n  exit placed       \u2192 purple_receipt_settle\n  exit uncertain    \u2192 purple_receipt_settle\n  exit missed       \u2192 purple_receipt_settle\n  exit error        \u2192 abort\n\n# subgraph release_sg\nskill:  modular-rgb-puzzler\nscript: scripts/release.py\nsuccess when route \u2208 {placed, uncertain, missed};  on_error \u2192 error\n\n# scripts/release.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import carry_and_release\ndef run(ctx, state: ModularState) -> ModularResult:\n    if state['piece'] == 'cyan':\n        parameters = {**state['parameters'], 'release_module': 'puzzler.cyan_receiver_release_feedback_delivery'}\n        state = {**state, 'parameters': parameters}\n    return carry_and_release(ctx, state)\n\n# tool calls in this step (44)\nrobot.execution_journal_cursor           \u00d71\npuzzle.propagate_pyramid_held_belief     \u00d71\nvision.observe                           \u00d73\nrobot.get_ee_pose                        \u00d716\npuzzle.plan_pose                         \u00d71\nrobot.execute_trajectory                 \u00d73\nrobot.wait_steps                         \u00d78\nrobot.set_grip                           \u00d73\npuzzle.plan_path                         \u00d72\nrobot.grasp_frame                        \u00d74\nrobot.go_home                            \u00d72",
        "relook": false
       },
       {
@@ -2731,6 +2843,7 @@
         "earlier_pieces_max_mm": 0.54,
         "stable_s": 6.84
        },
+       "code": "# workflow.json\n\"purple_receipt_settle\": {\"type\": \"subgraph\", \"ref\": \"receipt_settle_sg\"}\n  exit placed       \u2192 purple_handoff\n  exit executed_visual_unknown \u2192 purple_handoff\n  exit executed_visual_unverified \u2192 purple_handoff\n  exit error        \u2192 abort\n  exit unknown      \u2192 abort\n\n# subgraph receipt_settle_sg\nskill:  modular-rgb-puzzler\nscript: scripts/receipt_settle.py\nsuccess when route \u2208 {placed, unknown, executed_visual_unknown, executed_visual_unverified};  on_error \u2192 error\n\n# scripts/receipt_settle.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import settle_placement_evidence\ndef run(ctx, state: ModularState) -> ModularResult:\n    return settle_placement_evidence(ctx, state)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": true
       },
       {
@@ -2751,6 +2864,7 @@
         "earlier_pieces_max_mm": 0.55,
         "stable_s": 7.1
        },
+       "code": "# workflow.json\n\"purple_handoff\": {\"type\": \"subgraph\", \"ref\": \"handoff_sg\"}\n  exit advanced     \u2192 cyan_perceive_plan\n  exit error        \u2192 abort\n\n# subgraph handoff_sg\nskill:  modular-rgb-puzzler\nscript: scripts/handoff.py\nsuccess when route \u2208 {advanced};  on_error \u2192 error\n\n# scripts/handoff.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import verified_handoff\ndef run(ctx, state: ModularState, expected_piece: str) -> ModularResult:\n    return verified_handoff(ctx, state, expected_piece)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       }
      ],
@@ -2802,6 +2916,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.84
        },
+       "code": "# workflow.json\n\"cyan_perceive_plan\": {\"type\": \"subgraph\", \"ref\": \"perceive_plan_sg\"}\n  exit planned      \u2192 cyan_grasp\n  exit error        \u2192 abort\n\n# subgraph perceive_plan_sg\nskill:  modular-rgb-puzzler\nscript: scripts/perceive_plan.py\nsuccess when route \u2208 {planned};  on_error \u2192 error\n\n# scripts/perceive_plan.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import observe_and_plan\ndef run(ctx, state: ModularState) -> ModularResult:\n    return observe_and_plan(ctx, state)\n\n# tool calls in this step (6)\nvision.observe                           \u00d71\npuzzle.plan_pose                         \u00d73\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       },
       {
@@ -2820,6 +2935,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.84
        },
+       "code": "# workflow.json\n\"cyan_grasp\": {\"type\": \"subgraph\", \"ref\": \"grasp_sg\"}\n  exit verified     \u2192 cyan_cyan_approach\n  exit error        \u2192 abort\n\n# subgraph grasp_sg\nskill:  modular-rgb-puzzler\nscript: scripts/grasp.py\nsuccess when route \u2208 {verified};  on_error \u2192 error\n\n# scripts/grasp.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import grasp_and_bind\ndef run(ctx, state: ModularState) -> ModularResult:\n    return grasp_and_bind(ctx, state)\n\n# tool calls in this step (60)\nrobot.get_ee_pose                        \u00d726\nrobot.grasp_frame                        \u00d71\npuzzle.plan_pose                         \u00d76\nrobot.execute_trajectory                 \u00d75\nrobot.wait_steps                         \u00d712\nrobot.set_grip                           \u00d73\npuzzle.plan_path                         \u00d71\nvision.observe                           \u00d73\nrobot.execution_journal_cursor           \u00d71\npuzzle.capture_conditional_attachment    \u00d71\npuzzle.propagate_conditional_attachment  \u00d71",
        "relook": false
       },
       {
@@ -2838,6 +2954,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.77
        },
+       "code": "# workflow.json\n\"cyan_cyan_approach\": {\"type\": \"subgraph\", \"ref\": \"cyan_approach_sg\"}\n  exit receiver_ready \u2192 cyan_cyan_receiver_close\n  exit error        \u2192 abort\n\n# subgraph cyan_approach_sg\nskill:  modular-rgb-puzzler\nscript: scripts/cyan_approach.py\nsuccess when route \u2208 {receiver_ready};  on_error \u2192 error\n\n# scripts/cyan_approach.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.cyan_vertical_transfer_v2_adapter import approach_receiver\ndef run(ctx, state: ModularState) -> ModularResult:\n    return approach_receiver(ctx, state)\n\n# tool calls in this step (161)\npuzzle.propagate_pyramid_held_belief     \u00d749\nrobot.get_ee_pose                        \u00d727\npuzzle.plan_pose_sequence                \u00d74\nrobot.execution_journal_cursor           \u00d726\nrobot.execute_trajectory                 \u00d725\nrobot.wait_steps                         \u00d717\nrobot.set_grip                           \u00d71\npuzzle.plan_pose                         \u00d76\npuzzle.plan_joint_path                   \u00d73\nvision.observe                           \u00d73",
        "relook": false
       },
       {
@@ -2856,6 +2973,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.77
        },
+       "code": "# workflow.json\n\"cyan_cyan_receiver_close\": {\"type\": \"subgraph\", \"ref\": \"cyan_receiver_close_sg\"}\n  exit receiver_closed \u2192 cyan_cyan_donor_release\n  exit error        \u2192 abort\n\n# subgraph cyan_receiver_close_sg\nskill:  modular-rgb-puzzler\nscript: scripts/cyan_receiver_close.py\nsuccess when route \u2208 {receiver_closed};  on_error \u2192 error\n\n# scripts/cyan_receiver_close.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.cyan_vertical_transfer_v2_adapter import close_receiver\ndef run(ctx, state: ModularState) -> ModularResult:\n    return close_receiver(ctx, state)\n\n# tool calls in this step (51)\npuzzle.propagate_pyramid_held_belief     \u00d723\nvision.observe                           \u00d76\nrobot.get_ee_pose                        \u00d77\npuzzle.plan_pose_sequence                \u00d71\nrobot.execution_journal_cursor           \u00d75\nrobot.execute_trajectory                 \u00d71\nrobot.wait_steps                         \u00d73\nrobot.set_grip                           \u00d74\npuzzle.capture_conditional_attachment    \u00d71",
        "relook": false
       },
       {
@@ -2874,6 +2992,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.77
        },
+       "code": "# workflow.json\n\"cyan_cyan_donor_release\": {\"type\": \"subgraph\", \"ref\": \"cyan_donor_release_sg\"}\n  exit donor_released \u2192 cyan_cyan_receiver_bind\n  exit error        \u2192 abort\n\n# subgraph cyan_donor_release_sg\nskill:  modular-rgb-puzzler\nscript: scripts/cyan_donor_release.py\nsuccess when route \u2208 {donor_released};  on_error \u2192 error\n\n# scripts/cyan_donor_release.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.cyan_vertical_transfer_v2_adapter import release_donor\ndef run(ctx, state: ModularState) -> ModularResult:\n    return release_donor(ctx, state)\n\n# tool calls in this step (48)\npuzzle.propagate_conditional_attachment  \u00d714\nrobot.execution_journal_cursor           \u00d75\nrobot.set_grip                           \u00d72\nrobot.get_ee_pose                        \u00d713\npuzzle.plan_pose_sequence                \u00d72\nrobot.execute_trajectory                 \u00d73\nrobot.wait_steps                         \u00d78\nvision.observe                           \u00d71",
        "relook": false
       },
       {
@@ -2892,6 +3011,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.77
        },
+       "code": "# workflow.json\n\"cyan_cyan_receiver_bind\": {\"type\": \"subgraph\", \"ref\": \"cyan_receiver_bind_sg\"}\n  exit receiver_verified \u2192 cyan_cyan_receiver_transport\n  exit error        \u2192 abort\n\n# subgraph cyan_receiver_bind_sg\nskill:  modular-rgb-puzzler\nscript: scripts/cyan_receiver_bind.py\nsuccess when route \u2208 {receiver_verified};  on_error \u2192 error\n\n# scripts/cyan_receiver_bind.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.cyan_vertical_transfer_v2_adapter import verify_receiver\ndef run(ctx, state: ModularState) -> ModularResult:\n    return verify_receiver(ctx, state)\n\n# tool calls in this step (6)\npuzzle.propagate_conditional_attachment  \u00d71\nvision.observe                           \u00d71\npuzzle.propagate_pyramid_held_belief     \u00d71\nrobot.wait_steps                         \u00d71\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       },
       {
@@ -2910,6 +3030,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 0.77
        },
+       "code": "# workflow.json\n\"cyan_cyan_receiver_transport\": {\"type\": \"subgraph\", \"ref\": \"cyan_receiver_transport_sg\"}\n  exit carried      \u2192 cyan_release\n  exit error        \u2192 abort\n\n# subgraph cyan_receiver_transport_sg\nskill:  modular-rgb-puzzler\nscript: scripts/cyan_receiver_transport.py\nsuccess when route \u2208 {carried};  on_error \u2192 error\n\n# scripts/cyan_receiver_transport.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.cyan_receiver_release_feedback_delivery import execute_transport\ndef run(ctx, state: ModularState) -> ModularResult:\n    return execute_transport(ctx, state)\n\n# tool calls in this step (205)\npuzzle.propagate_pyramid_held_belief     \u00d763\nvision.observe                           \u00d75\nrobot.get_ee_pose                        \u00d715\npuzzle.plan_path                         \u00d71\nrobot.execution_journal_cursor           \u00d753\nrobot.execute_trajectory                 \u00d753\nrobot.wait_steps                         \u00d78\npuzzle.plan_joint_path                   \u00d73\npuzzle.plan_pose                         \u00d74",
        "relook": false
       },
       {
@@ -2932,6 +3053,7 @@
         "earlier_pieces_max_mm": 0.77,
         "stable_s": 15.56
        },
+       "code": "# workflow.json\n\"cyan_release\": {\"type\": \"subgraph\", \"ref\": \"release_sg\"}\n  exit placed       \u2192 cyan_receipt_settle\n  exit uncertain    \u2192 cyan_receipt_settle\n  exit missed       \u2192 cyan_receipt_settle\n  exit error        \u2192 abort\n\n# subgraph release_sg\nskill:  modular-rgb-puzzler\nscript: scripts/release.py\nsuccess when route \u2208 {placed, uncertain, missed};  on_error \u2192 error\n\n# scripts/release.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import carry_and_release\ndef run(ctx, state: ModularState) -> ModularResult:\n    if state['piece'] == 'cyan':\n        parameters = {**state['parameters'], 'release_module': 'puzzler.cyan_receiver_release_feedback_delivery'}\n        state = {**state, 'parameters': parameters}\n    return carry_and_release(ctx, state)\n\n# tool calls in this step (109)\nrobot.execution_journal_cursor           \u00d730\npuzzle.propagate_pyramid_held_belief     \u00d79\nvision.observe                           \u00d77\nrobot.get_ee_pose                        \u00d716\npuzzle.plan_pose                         \u00d76\npuzzle.plan_path                         \u00d71\nrobot.execute_trajectory                 \u00d727\nrobot.wait_steps                         \u00d710\nrobot.set_grip                           \u00d71\npuzzle.plan_joint_path                   \u00d72",
        "relook": false
       },
       {
@@ -2954,6 +3076,7 @@
         "earlier_pieces_max_mm": 0.77,
         "stable_s": 17.54
        },
+       "code": "# workflow.json\n\"cyan_receipt_settle\": {\"type\": \"subgraph\", \"ref\": \"receipt_settle_sg\"}\n  exit placed       \u2192 cyan_handoff\n  exit executed_visual_unknown \u2192 cyan_handoff\n  exit executed_visual_unverified \u2192 cyan_handoff\n  exit error        \u2192 abort\n  exit unknown      \u2192 abort\n\n# subgraph receipt_settle_sg\nskill:  modular-rgb-puzzler\nscript: scripts/receipt_settle.py\nsuccess when route \u2208 {placed, unknown, executed_visual_unknown, executed_visual_unverified};  on_error \u2192 error\n\n# scripts/receipt_settle.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import settle_placement_evidence\ndef run(ctx, state: ModularState) -> ModularResult:\n    return settle_placement_evidence(ctx, state)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": true
       },
       {
@@ -2974,6 +3097,7 @@
         "earlier_pieces_max_mm": 0.77,
         "stable_s": 17.98
        },
+       "code": "# workflow.json\n\"cyan_handoff\": {\"type\": \"subgraph\", \"ref\": \"handoff_sg\"}\n  exit advanced     \u2192 mint_perceive_plan\n  exit error        \u2192 abort\n\n# subgraph handoff_sg\nskill:  modular-rgb-puzzler\nscript: scripts/handoff.py\nsuccess when route \u2208 {advanced};  on_error \u2192 error\n\n# scripts/handoff.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import verified_handoff\ndef run(ctx, state: ModularState, expected_piece: str) -> ModularResult:\n    return verified_handoff(ctx, state, expected_piece)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       }
      ],
@@ -3017,6 +3141,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 1.11
        },
+       "code": "# workflow.json\n\"mint_perceive_plan\": {\"type\": \"subgraph\", \"ref\": \"perceive_plan_sg\"}\n  exit planned      \u2192 mint_grasp\n  exit error        \u2192 abort\n\n# subgraph perceive_plan_sg\nskill:  modular-rgb-puzzler\nscript: scripts/perceive_plan.py\nsuccess when route \u2208 {planned};  on_error \u2192 error\n\n# scripts/perceive_plan.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import observe_and_plan\ndef run(ctx, state: ModularState) -> ModularResult:\n    return observe_and_plan(ctx, state)\n\n# tool calls in this step (9)\nvision.observe                           \u00d71\nrobot.grasp_frame                        \u00d71\npuzzle.plan_pose                         \u00d75\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       },
       {
@@ -3035,6 +3160,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 1.18
        },
+       "code": "# workflow.json\n\"mint_grasp\": {\"type\": \"subgraph\", \"ref\": \"grasp_sg\"}\n  exit verified     \u2192 mint_transport\n  exit error        \u2192 abort\n\n# subgraph grasp_sg\nskill:  modular-rgb-puzzler\nscript: scripts/grasp.py\nsuccess when route \u2208 {verified};  on_error \u2192 error\n\n# scripts/grasp.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import grasp_and_bind\ndef run(ctx, state: ModularState) -> ModularResult:\n    return grasp_and_bind(ctx, state)\n\n# tool calls in this step (28)\nrobot.set_grip                           \u00d72\npuzzle.plan_pose                         \u00d72\nrobot.execute_trajectory                 \u00d73\nrobot.get_ee_pose                        \u00d712\nrobot.wait_steps                         \u00d76\npuzzle.plan_path                         \u00d71\npuzzle.capture_conditional_attachment    \u00d71\nvision.observe                           \u00d71",
        "relook": false
       },
       {
@@ -3053,6 +3179,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 1.18
        },
+       "code": "# workflow.json\n\"mint_transport\": {\"type\": \"subgraph\", \"ref\": \"transport_sg\"}\n  exit carried      \u2192 mint_release\n  exit error        \u2192 abort\n\n# subgraph transport_sg\nskill:  modular-rgb-puzzler\nscript: scripts/transport.py\nsuccess when route \u2208 {carried};  on_error \u2192 error\n\n# scripts/transport.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import transport\ndef run(ctx, state: ModularState) -> ModularResult:\n    return transport(ctx, state)\n\n# tool calls in this step (15)\npuzzle.propagate_pyramid_held_belief     \u00d71\npuzzle.plan_path                         \u00d71\npuzzle.plan_joint_path                   \u00d71\nrobot.execute_trajectory                 \u00d71\nrobot.get_ee_pose                        \u00d77\nrobot.wait_steps                         \u00d73\nrobot.execution_journal_cursor           \u00d71",
        "relook": false
       },
       {
@@ -3075,6 +3202,7 @@
         "earlier_pieces_max_mm": 1.19,
         "stable_s": 7.22
        },
+       "code": "# workflow.json\n\"mint_release\": {\"type\": \"subgraph\", \"ref\": \"release_sg\"}\n  exit placed       \u2192 mint_receipt_settle\n  exit uncertain    \u2192 mint_receipt_settle\n  exit missed       \u2192 mint_receipt_settle\n  exit error        \u2192 abort\n\n# subgraph release_sg\nskill:  modular-rgb-puzzler\nscript: scripts/release.py\nsuccess when route \u2208 {placed, uncertain, missed};  on_error \u2192 error\n\n# scripts/release.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import carry_and_release\ndef run(ctx, state: ModularState) -> ModularResult:\n    if state['piece'] == 'cyan':\n        parameters = {**state['parameters'], 'release_module': 'puzzler.cyan_receiver_release_feedback_delivery'}\n        state = {**state, 'parameters': parameters}\n    return carry_and_release(ctx, state)\n\n# tool calls in this step (46)\nrobot.execution_journal_cursor           \u00d71\npuzzle.propagate_pyramid_held_belief     \u00d71\nvision.observe                           \u00d73\nrobot.get_ee_pose                        \u00d717\npuzzle.plan_pose                         \u00d71\nrobot.execute_trajectory                 \u00d73\nrobot.wait_steps                         \u00d79\nrobot.set_grip                           \u00d73\npuzzle.plan_path                         \u00d72\nrobot.grasp_frame                        \u00d74\nrobot.go_home                            \u00d72",
        "relook": false
       },
       {
@@ -3097,6 +3225,7 @@
         "earlier_pieces_max_mm": 1.18,
         "stable_s": 8.02
        },
+       "code": "# workflow.json\n\"mint_receipt_settle\": {\"type\": \"subgraph\", \"ref\": \"receipt_settle_sg\"}\n  exit placed       \u2192 mint_handoff\n  exit executed_visual_unknown \u2192 mint_handoff\n  exit executed_visual_unverified \u2192 mint_handoff\n  exit error        \u2192 abort\n  exit unknown      \u2192 abort\n\n# subgraph receipt_settle_sg\nskill:  modular-rgb-puzzler\nscript: scripts/receipt_settle.py\nsuccess when route \u2208 {placed, unknown, executed_visual_unknown, executed_visual_unverified};  on_error \u2192 error\n\n# scripts/receipt_settle.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import settle_placement_evidence\ndef run(ctx, state: ModularState) -> ModularResult:\n    return settle_placement_evidence(ctx, state)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": true
       },
       {
@@ -3117,6 +3246,7 @@
         "earlier_pieces_max_mm": 1.18,
         "stable_s": 9.0
        },
+       "code": "# workflow.json\n\"mint_handoff\": {\"type\": \"subgraph\", \"ref\": \"handoff_sg\"}\n  exit advanced     \u2192 lime_perceive_plan\n  exit error        \u2192 abort\n\n# subgraph handoff_sg\nskill:  modular-rgb-puzzler\nscript: scripts/handoff.py\nsuccess when route \u2208 {advanced};  on_error \u2192 error\n\n# scripts/handoff.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import verified_handoff\ndef run(ctx, state: ModularState, expected_piece: str) -> ModularResult:\n    return verified_handoff(ctx, state, expected_piece)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       }
      ],
@@ -3168,6 +3298,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 1.21
        },
+       "code": "# workflow.json\n\"lime_perceive_plan\": {\"type\": \"subgraph\", \"ref\": \"perceive_plan_sg\"}\n  exit planned      \u2192 lime_grasp\n  exit error        \u2192 abort\n\n# subgraph perceive_plan_sg\nskill:  modular-rgb-puzzler\nscript: scripts/perceive_plan.py\nsuccess when route \u2208 {planned};  on_error \u2192 error\n\n# scripts/perceive_plan.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import observe_and_plan\ndef run(ctx, state: ModularState) -> ModularResult:\n    return observe_and_plan(ctx, state)\n\n# tool calls in this step (9)\nvision.observe                           \u00d71\nrobot.grasp_frame                        \u00d71\npuzzle.plan_pose                         \u00d75\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       },
       {
@@ -3186,6 +3317,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 1.22
        },
+       "code": "# workflow.json\n\"lime_grasp\": {\"type\": \"subgraph\", \"ref\": \"grasp_sg\"}\n  exit verified     \u2192 lime_transport\n  exit error        \u2192 abort\n\n# subgraph grasp_sg\nskill:  modular-rgb-puzzler\nscript: scripts/grasp.py\nsuccess when route \u2208 {verified};  on_error \u2192 error\n\n# scripts/grasp.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import grasp_and_bind\ndef run(ctx, state: ModularState) -> ModularResult:\n    return grasp_and_bind(ctx, state)\n\n# tool calls in this step (30)\nrobot.set_grip                           \u00d72\npuzzle.plan_pose                         \u00d72\nrobot.execute_trajectory                 \u00d73\nrobot.get_ee_pose                        \u00d713\nrobot.wait_steps                         \u00d77\npuzzle.plan_path                         \u00d71\npuzzle.capture_conditional_attachment    \u00d71\nvision.observe                           \u00d71",
        "relook": false
       },
       {
@@ -3204,6 +3336,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 1.21
        },
+       "code": "# workflow.json\n\"lime_transport\": {\"type\": \"subgraph\", \"ref\": \"transport_sg\"}\n  exit carried      \u2192 lime_release\n  exit error        \u2192 abort\n\n# subgraph transport_sg\nskill:  modular-rgb-puzzler\nscript: scripts/transport.py\nsuccess when route \u2208 {carried};  on_error \u2192 error\n\n# scripts/transport.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import transport\ndef run(ctx, state: ModularState) -> ModularResult:\n    return transport(ctx, state)\n\n# tool calls in this step (10)\npuzzle.propagate_pyramid_held_belief     \u00d71\npuzzle.plan_path                         \u00d71\nrobot.execute_trajectory                 \u00d71\nrobot.get_ee_pose                        \u00d75\nrobot.wait_steps                         \u00d71\nrobot.execution_journal_cursor           \u00d71",
        "relook": false
       },
       {
@@ -3226,6 +3359,7 @@
         "earlier_pieces_max_mm": 1.35,
         "stable_s": 7.12
        },
+       "code": "# workflow.json\n\"lime_release\": {\"type\": \"subgraph\", \"ref\": \"release_sg\"}\n  exit placed       \u2192 lime_receipt_settle\n  exit uncertain    \u2192 lime_receipt_settle\n  exit missed       \u2192 lime_receipt_settle\n  exit error        \u2192 abort\n\n# subgraph release_sg\nskill:  modular-rgb-puzzler\nscript: scripts/release.py\nsuccess when route \u2208 {placed, uncertain, missed};  on_error \u2192 error\n\n# scripts/release.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import carry_and_release\ndef run(ctx, state: ModularState) -> ModularResult:\n    if state['piece'] == 'cyan':\n        parameters = {**state['parameters'], 'release_module': 'puzzler.cyan_receiver_release_feedback_delivery'}\n        state = {**state, 'parameters': parameters}\n    return carry_and_release(ctx, state)\n\n# tool calls in this step (48)\nrobot.execution_journal_cursor           \u00d71\npuzzle.propagate_pyramid_held_belief     \u00d71\nvision.observe                           \u00d73\nrobot.get_ee_pose                        \u00d718\npuzzle.plan_pose                         \u00d71\nrobot.execute_trajectory                 \u00d73\nrobot.wait_steps                         \u00d710\nrobot.set_grip                           \u00d73\npuzzle.plan_path                         \u00d72\nrobot.grasp_frame                        \u00d74\nrobot.go_home                            \u00d72",
        "relook": false
       },
       {
@@ -3248,6 +3382,7 @@
         "earlier_pieces_max_mm": 1.36,
         "stable_s": 8.34
        },
+       "code": "# workflow.json\n\"lime_receipt_settle\": {\"type\": \"subgraph\", \"ref\": \"receipt_settle_sg\"}\n  exit placed       \u2192 lime_handoff\n  exit executed_visual_unknown \u2192 lime_handoff\n  exit executed_visual_unverified \u2192 lime_handoff\n  exit error        \u2192 abort\n  exit unknown      \u2192 abort\n\n# subgraph receipt_settle_sg\nskill:  modular-rgb-puzzler\nscript: scripts/receipt_settle.py\nsuccess when route \u2208 {placed, unknown, executed_visual_unknown, executed_visual_unverified};  on_error \u2192 error\n\n# scripts/receipt_settle.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import settle_placement_evidence\ndef run(ctx, state: ModularState) -> ModularResult:\n    return settle_placement_evidence(ctx, state)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": true
       },
       {
@@ -3268,6 +3403,7 @@
         "earlier_pieces_max_mm": 1.37,
         "stable_s": 8.9
        },
+       "code": "# workflow.json\n\"lime_handoff\": {\"type\": \"subgraph\", \"ref\": \"handoff_sg\"}\n  exit advanced     \u2192 maroon_perceive_plan\n  exit error        \u2192 abort\n\n# subgraph handoff_sg\nskill:  modular-rgb-puzzler\nscript: scripts/handoff.py\nsuccess when route \u2208 {advanced};  on_error \u2192 error\n\n# scripts/handoff.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import verified_handoff\ndef run(ctx, state: ModularState, expected_piece: str) -> ModularResult:\n    return verified_handoff(ctx, state, expected_piece)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       }
      ],
@@ -3319,6 +3455,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 1.47
        },
+       "code": "# workflow.json\n\"maroon_perceive_plan\": {\"type\": \"subgraph\", \"ref\": \"perceive_plan_sg\"}\n  exit planned      \u2192 maroon_grasp\n  exit error        \u2192 abort\n\n# subgraph perceive_plan_sg\nskill:  modular-rgb-puzzler\nscript: scripts/perceive_plan.py\nsuccess when route \u2208 {planned};  on_error \u2192 error\n\n# scripts/perceive_plan.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import observe_and_plan\ndef run(ctx, state: ModularState) -> ModularResult:\n    return observe_and_plan(ctx, state)\n\n# tool calls in this step (28)\nvision.observe                           \u00d72\nrobot.grasp_frame                        \u00d73\npuzzle.plan_pose                         \u00d711\nrobot.execute_trajectory                 \u00d72\nrobot.get_ee_pose                        \u00d77\nrobot.wait_steps                         \u00d72\nrobot.set_grip                           \u00d71",
        "relook": false
       },
       {
@@ -3337,6 +3474,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 1.47
        },
+       "code": "# workflow.json\n\"maroon_grasp\": {\"type\": \"subgraph\", \"ref\": \"grasp_sg\"}\n  exit verified     \u2192 maroon_transport\n  exit error        \u2192 abort\n\n# subgraph grasp_sg\nskill:  modular-rgb-puzzler\nscript: scripts/grasp.py\nsuccess when route \u2208 {verified};  on_error \u2192 error\n\n# scripts/grasp.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import grasp_and_bind\ndef run(ctx, state: ModularState) -> ModularResult:\n    return grasp_and_bind(ctx, state)\n\n# tool calls in this step (28)\nrobot.set_grip                           \u00d72\npuzzle.plan_pose                         \u00d72\nrobot.execute_trajectory                 \u00d73\nrobot.get_ee_pose                        \u00d712\nrobot.wait_steps                         \u00d76\npuzzle.plan_path                         \u00d71\npuzzle.capture_conditional_attachment    \u00d71\nvision.observe                           \u00d71",
        "relook": false
       },
       {
@@ -3355,6 +3493,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 1.45
        },
+       "code": "# workflow.json\n\"maroon_transport\": {\"type\": \"subgraph\", \"ref\": \"transport_sg\"}\n  exit carried      \u2192 maroon_release\n  exit error        \u2192 abort\n\n# subgraph transport_sg\nskill:  modular-rgb-puzzler\nscript: scripts/transport.py\nsuccess when route \u2208 {carried};  on_error \u2192 error\n\n# scripts/transport.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import transport\ndef run(ctx, state: ModularState) -> ModularResult:\n    return transport(ctx, state)\n\n# tool calls in this step (10)\npuzzle.propagate_pyramid_held_belief     \u00d71\npuzzle.plan_path                         \u00d71\nrobot.execute_trajectory                 \u00d71\nrobot.get_ee_pose                        \u00d75\nrobot.wait_steps                         \u00d71\nrobot.execution_journal_cursor           \u00d71",
        "relook": false
       },
       {
@@ -3377,6 +3516,7 @@
         "earlier_pieces_max_mm": 1.45,
         "stable_s": 10.72
        },
+       "code": "# workflow.json\n\"maroon_release\": {\"type\": \"subgraph\", \"ref\": \"release_sg\"}\n  exit placed       \u2192 maroon_receipt_settle\n  exit uncertain    \u2192 maroon_receipt_settle\n  exit missed       \u2192 maroon_receipt_settle\n  exit error        \u2192 abort\n\n# subgraph release_sg\nskill:  modular-rgb-puzzler\nscript: scripts/release.py\nsuccess when route \u2208 {placed, uncertain, missed};  on_error \u2192 error\n\n# scripts/release.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import carry_and_release\ndef run(ctx, state: ModularState) -> ModularResult:\n    if state['piece'] == 'cyan':\n        parameters = {**state['parameters'], 'release_module': 'puzzler.cyan_receiver_release_feedback_delivery'}\n        state = {**state, 'parameters': parameters}\n    return carry_and_release(ctx, state)\n\n# tool calls in this step (209)\npuzzle.propagate_pyramid_held_belief     \u00d72\nvision.observe                           \u00d74\nrobot.read_proprioception                \u00d737\npuzzle.plan_pose                         \u00d75\nrobot.execution_journal_cursor           \u00d71\npuzzle.plan_path                         \u00d720\nrobot.execute_trajectory                 \u00d720\nrobot.get_ee_pose                        \u00d762\nrobot.wait_steps                         \u00d740\nrobot.set_grip                           \u00d716\nrobot.go_home                            \u00d72",
        "relook": false
       },
       {
@@ -3399,6 +3539,7 @@
         "earlier_pieces_max_mm": 1.42,
         "stable_s": 11.26
        },
+       "code": "# workflow.json\n\"maroon_receipt_settle\": {\"type\": \"subgraph\", \"ref\": \"receipt_settle_sg\"}\n  exit placed       \u2192 maroon_handoff\n  exit executed_visual_unknown \u2192 maroon_handoff\n  exit executed_visual_unverified \u2192 maroon_handoff\n  exit error        \u2192 abort\n  exit unknown      \u2192 abort\n\n# subgraph receipt_settle_sg\nskill:  modular-rgb-puzzler\nscript: scripts/receipt_settle.py\nsuccess when route \u2208 {placed, unknown, executed_visual_unknown, executed_visual_unverified};  on_error \u2192 error\n\n# scripts/receipt_settle.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import settle_placement_evidence\ndef run(ctx, state: ModularState) -> ModularResult:\n    return settle_placement_evidence(ctx, state)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": true
       },
       {
@@ -3419,6 +3560,7 @@
         "earlier_pieces_max_mm": 1.42,
         "stable_s": 11.74
        },
+       "code": "# workflow.json\n\"maroon_handoff\": {\"type\": \"subgraph\", \"ref\": \"handoff_sg\"}\n  exit advanced     \u2192 navy_perceive_plan\n  exit error        \u2192 abort\n\n# subgraph handoff_sg\nskill:  modular-rgb-puzzler\nscript: scripts/handoff.py\nsuccess when route \u2208 {advanced};  on_error \u2192 error\n\n# scripts/handoff.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import verified_handoff\ndef run(ctx, state: ModularState, expected_piece: str) -> ModularResult:\n    return verified_handoff(ctx, state, expected_piece)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       }
      ],
@@ -3466,6 +3608,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 1.7
        },
+       "code": "# workflow.json\n\"navy_perceive_plan\": {\"type\": \"subgraph\", \"ref\": \"perceive_plan_sg\"}\n  exit planned      \u2192 navy_grasp\n  exit error        \u2192 abort\n\n# subgraph perceive_plan_sg\nskill:  modular-rgb-puzzler\nscript: scripts/perceive_plan.py\nsuccess when route \u2208 {planned};  on_error \u2192 error\n\n# scripts/perceive_plan.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import observe_and_plan\ndef run(ctx, state: ModularState) -> ModularResult:\n    return observe_and_plan(ctx, state)\n\n# tool calls in this step (9)\nvision.observe                           \u00d71\nrobot.grasp_frame                        \u00d71\npuzzle.plan_pose                         \u00d75\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       },
       {
@@ -3484,6 +3627,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 1.71
        },
+       "code": "# workflow.json\n\"navy_grasp\": {\"type\": \"subgraph\", \"ref\": \"grasp_sg\"}\n  exit verified     \u2192 navy_transport\n  exit error        \u2192 abort\n\n# subgraph grasp_sg\nskill:  modular-rgb-puzzler\nscript: scripts/grasp.py\nsuccess when route \u2208 {verified};  on_error \u2192 error\n\n# scripts/grasp.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import grasp_and_bind\ndef run(ctx, state: ModularState) -> ModularResult:\n    return grasp_and_bind(ctx, state)\n\n# tool calls in this step (27)\nrobot.set_grip                           \u00d72\npuzzle.plan_pose                         \u00d72\nrobot.execute_trajectory                 \u00d73\nrobot.get_ee_pose                        \u00d711\nrobot.wait_steps                         \u00d76\npuzzle.plan_path                         \u00d71\npuzzle.capture_conditional_attachment    \u00d71\nvision.observe                           \u00d71",
        "relook": false
       },
       {
@@ -3502,6 +3646,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 1.71
        },
+       "code": "# workflow.json\n\"navy_transport\": {\"type\": \"subgraph\", \"ref\": \"transport_sg\"}\n  exit carried      \u2192 navy_release\n  exit error        \u2192 abort\n\n# subgraph transport_sg\nskill:  modular-rgb-puzzler\nscript: scripts/transport.py\nsuccess when route \u2208 {carried};  on_error \u2192 error\n\n# scripts/transport.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import transport\ndef run(ctx, state: ModularState) -> ModularResult:\n    return transport(ctx, state)\n\n# tool calls in this step (10)\npuzzle.propagate_conditional_attachment  \u00d71\npuzzle.plan_path                         \u00d71\nrobot.execute_trajectory                 \u00d71\nrobot.get_ee_pose                        \u00d75\nrobot.wait_steps                         \u00d71\nrobot.execution_journal_cursor           \u00d71",
        "relook": false
       },
       {
@@ -3524,6 +3669,7 @@
         "earlier_pieces_max_mm": 1.74,
         "stable_s": 7.24
        },
+       "code": "# workflow.json\n\"navy_release\": {\"type\": \"subgraph\", \"ref\": \"release_sg\"}\n  exit placed       \u2192 navy_receipt_settle\n  exit uncertain    \u2192 navy_receipt_settle\n  exit missed       \u2192 navy_receipt_settle\n  exit error        \u2192 abort\n\n# subgraph release_sg\nskill:  modular-rgb-puzzler\nscript: scripts/release.py\nsuccess when route \u2208 {placed, uncertain, missed};  on_error \u2192 error\n\n# scripts/release.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import carry_and_release\ndef run(ctx, state: ModularState) -> ModularResult:\n    if state['piece'] == 'cyan':\n        parameters = {**state['parameters'], 'release_module': 'puzzler.cyan_receiver_release_feedback_delivery'}\n        state = {**state, 'parameters': parameters}\n    return carry_and_release(ctx, state)\n\n# tool calls in this step (47)\nrobot.execution_journal_cursor           \u00d71\npuzzle.propagate_conditional_attachment  \u00d71\nvision.observe                           \u00d73\nrobot.get_ee_pose                        \u00d717\npuzzle.plan_pose                         \u00d71\nrobot.execute_trajectory                 \u00d73\nrobot.wait_steps                         \u00d710\nrobot.set_grip                           \u00d73\npuzzle.plan_path                         \u00d72\nrobot.grasp_frame                        \u00d74\nrobot.go_home                            \u00d72",
        "relook": false
       },
       {
@@ -3546,6 +3692,7 @@
         "earlier_pieces_max_mm": 1.74,
         "stable_s": 7.76
        },
+       "code": "# workflow.json\n\"navy_receipt_settle\": {\"type\": \"subgraph\", \"ref\": \"receipt_settle_sg\"}\n  exit placed       \u2192 navy_handoff\n  exit executed_visual_unknown \u2192 navy_handoff\n  exit executed_visual_unverified \u2192 navy_handoff\n  exit error        \u2192 abort\n  exit unknown      \u2192 abort\n\n# subgraph receipt_settle_sg\nskill:  modular-rgb-puzzler\nscript: scripts/receipt_settle.py\nsuccess when route \u2208 {placed, unknown, executed_visual_unknown, executed_visual_unverified};  on_error \u2192 error\n\n# scripts/receipt_settle.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import settle_placement_evidence\ndef run(ctx, state: ModularState) -> ModularResult:\n    return settle_placement_evidence(ctx, state)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": true
       },
       {
@@ -3566,6 +3713,7 @@
         "earlier_pieces_max_mm": 1.74,
         "stable_s": 8.34
        },
+       "code": "# workflow.json\n\"navy_handoff\": {\"type\": \"subgraph\", \"ref\": \"handoff_sg\"}\n  exit advanced     \u2192 pink_perceive_plan\n  exit error        \u2192 abort\n\n# subgraph handoff_sg\nskill:  modular-rgb-puzzler\nscript: scripts/handoff.py\nsuccess when route \u2208 {advanced};  on_error \u2192 error\n\n# scripts/handoff.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import verified_handoff\ndef run(ctx, state: ModularState, expected_piece: str) -> ModularResult:\n    return verified_handoff(ctx, state, expected_piece)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       }
      ],
@@ -3613,6 +3761,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 2.02
        },
+       "code": "# workflow.json\n\"pink_perceive_plan\": {\"type\": \"subgraph\", \"ref\": \"perceive_plan_sg\"}\n  exit planned      \u2192 pink_grasp\n  exit error        \u2192 abort\n\n# subgraph perceive_plan_sg\nskill:  modular-rgb-puzzler\nscript: scripts/perceive_plan.py\nsuccess when route \u2208 {planned};  on_error \u2192 error\n\n# scripts/perceive_plan.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import observe_and_plan\ndef run(ctx, state: ModularState) -> ModularResult:\n    return observe_and_plan(ctx, state)\n\n# tool calls in this step (9)\nvision.observe                           \u00d71\nrobot.grasp_frame                        \u00d71\npuzzle.plan_pose                         \u00d75\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       },
       {
@@ -3631,6 +3780,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 2.03
        },
+       "code": "# workflow.json\n\"pink_grasp\": {\"type\": \"subgraph\", \"ref\": \"grasp_sg\"}\n  exit verified     \u2192 pink_transport\n  exit error        \u2192 abort\n\n# subgraph grasp_sg\nskill:  modular-rgb-puzzler\nscript: scripts/grasp.py\nsuccess when route \u2208 {verified};  on_error \u2192 error\n\n# scripts/grasp.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import grasp_and_bind\ndef run(ctx, state: ModularState) -> ModularResult:\n    return grasp_and_bind(ctx, state)\n\n# tool calls in this step (28)\nrobot.set_grip                           \u00d72\npuzzle.plan_pose                         \u00d72\nrobot.execute_trajectory                 \u00d73\nrobot.get_ee_pose                        \u00d712\nrobot.wait_steps                         \u00d76\npuzzle.plan_path                         \u00d71\npuzzle.capture_conditional_attachment    \u00d71\nvision.observe                           \u00d71",
        "relook": false
       },
       {
@@ -3649,6 +3799,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 2.03
        },
+       "code": "# workflow.json\n\"pink_transport\": {\"type\": \"subgraph\", \"ref\": \"transport_sg\"}\n  exit carried      \u2192 pink_release\n  exit error        \u2192 abort\n\n# subgraph transport_sg\nskill:  modular-rgb-puzzler\nscript: scripts/transport.py\nsuccess when route \u2208 {carried};  on_error \u2192 error\n\n# scripts/transport.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import transport\ndef run(ctx, state: ModularState) -> ModularResult:\n    return transport(ctx, state)\n\n# tool calls in this step (37)\npuzzle.propagate_pyramid_held_belief     \u00d71\npuzzle.plan_path                         \u00d71\nrobot.execute_trajectory                 \u00d72\nrobot.get_ee_pose                        \u00d718\nrobot.wait_steps                         \u00d713\npuzzle.plan_pose                         \u00d71\nrobot.execution_journal_cursor           \u00d71",
        "relook": false
       },
       {
@@ -3671,6 +3822,7 @@
         "earlier_pieces_max_mm": 2.05,
         "stable_s": 7.0
        },
+       "code": "# workflow.json\n\"pink_release\": {\"type\": \"subgraph\", \"ref\": \"release_sg\"}\n  exit placed       \u2192 pink_receipt_settle\n  exit uncertain    \u2192 pink_receipt_settle\n  exit missed       \u2192 pink_receipt_settle\n  exit error        \u2192 abort\n\n# subgraph release_sg\nskill:  modular-rgb-puzzler\nscript: scripts/release.py\nsuccess when route \u2208 {placed, uncertain, missed};  on_error \u2192 error\n\n# scripts/release.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import carry_and_release\ndef run(ctx, state: ModularState) -> ModularResult:\n    if state['piece'] == 'cyan':\n        parameters = {**state['parameters'], 'release_module': 'puzzler.cyan_receiver_release_feedback_delivery'}\n        state = {**state, 'parameters': parameters}\n    return carry_and_release(ctx, state)\n\n# tool calls in this step (72)\nrobot.execution_journal_cursor           \u00d71\npuzzle.propagate_pyramid_held_belief     \u00d71\nvision.observe                           \u00d73\nrobot.get_ee_pose                        \u00d729\npuzzle.plan_pose                         \u00d72\nrobot.execute_trajectory                 \u00d74\nrobot.wait_steps                         \u00d721\nrobot.set_grip                           \u00d73\npuzzle.plan_path                         \u00d72\nrobot.grasp_frame                        \u00d74\nrobot.go_home                            \u00d72",
        "relook": false
       },
       {
@@ -3693,6 +3845,7 @@
         "earlier_pieces_max_mm": 2.05,
         "stable_s": 7.72
        },
+       "code": "# workflow.json\n\"pink_receipt_settle\": {\"type\": \"subgraph\", \"ref\": \"receipt_settle_sg\"}\n  exit placed       \u2192 pink_handoff\n  exit executed_visual_unknown \u2192 pink_handoff\n  exit executed_visual_unverified \u2192 pink_handoff\n  exit error        \u2192 abort\n  exit unknown      \u2192 abort\n\n# subgraph receipt_settle_sg\nskill:  modular-rgb-puzzler\nscript: scripts/receipt_settle.py\nsuccess when route \u2208 {placed, unknown, executed_visual_unknown, executed_visual_unverified};  on_error \u2192 error\n\n# scripts/receipt_settle.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import settle_placement_evidence\ndef run(ctx, state: ModularState) -> ModularResult:\n    return settle_placement_evidence(ctx, state)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": true
       },
       {
@@ -3713,6 +3866,7 @@
         "earlier_pieces_max_mm": 2.05,
         "stable_s": 9.04
        },
+       "code": "# workflow.json\n\"pink_handoff\": {\"type\": \"subgraph\", \"ref\": \"handoff_sg\"}\n  exit advanced     \u2192 red_perceive_plan\n  exit error        \u2192 abort\n\n# subgraph handoff_sg\nskill:  modular-rgb-puzzler\nscript: scripts/handoff.py\nsuccess when route \u2208 {advanced};  on_error \u2192 error\n\n# scripts/handoff.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import verified_handoff\ndef run(ctx, state: ModularState, expected_piece: str) -> ModularResult:\n    return verified_handoff(ctx, state, expected_piece)\n\n# tool calls in this step (2)\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       }
      ],
@@ -3764,6 +3918,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 2.51
        },
+       "code": "# workflow.json\n\"red_perceive_plan\": {\"type\": \"subgraph\", \"ref\": \"perceive_plan_sg\"}\n  exit planned      \u2192 red_grasp\n  exit error        \u2192 abort\n\n# subgraph perceive_plan_sg\nskill:  modular-rgb-puzzler\nscript: scripts/perceive_plan.py\nsuccess when route \u2208 {planned};  on_error \u2192 error\n\n# scripts/perceive_plan.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import observe_and_plan\ndef run(ctx, state: ModularState) -> ModularResult:\n    return observe_and_plan(ctx, state)\n\n# tool calls in this step (5)\nvision.observe                           \u00d71\npuzzle.plan_pose                         \u00d72\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       },
       {
@@ -3782,6 +3937,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 2.52
        },
+       "code": "# workflow.json\n\"red_grasp\": {\"type\": \"subgraph\", \"ref\": \"grasp_sg\"}\n  exit verified     \u2192 red_red_handoff_prepare\n  exit error        \u2192 abort\n\n# subgraph grasp_sg\nskill:  modular-rgb-puzzler\nscript: scripts/grasp.py\nsuccess when route \u2208 {verified};  on_error \u2192 error\n\n# scripts/grasp.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.modular_controller import grasp_and_bind\ndef run(ctx, state: ModularState) -> ModularResult:\n    return grasp_and_bind(ctx, state)\n\n# tool calls in this step (37)\nrobot.set_grip                           \u00d72\npuzzle.plan_pose                         \u00d73\nrobot.execute_trajectory                 \u00d73\nrobot.get_ee_pose                        \u00d717\nrobot.wait_steps                         \u00d78\nvision.observe                           \u00d74",
        "relook": false
       },
       {
@@ -3800,6 +3956,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 2.54
        },
+       "code": "# workflow.json\n\"red_red_handoff_prepare\": {\"type\": \"subgraph\", \"ref\": \"red_handoff_prepare_sg\"}\n  exit prepared     \u2192 red_red_receiver_close\n  exit error        \u2192 abort\n\n# subgraph red_handoff_prepare_sg\nskill:  modular-rgb-puzzler\nscript: scripts/red_handoff_prepare.py\nsuccess when route \u2208 {prepared};  on_error \u2192 error\n\n# scripts/red_handoff_prepare.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.red_bimanual_handoff import handoff_prepare\ndef run(ctx, state: ModularState) -> ModularResult:\n    return handoff_prepare(ctx, state)\n\n# tool calls in this step (190)\npuzzle.propagate_pyramid_held_belief     \u00d78\nrobot.read_proprioception                \u00d785\nvision.observe                           \u00d75\nrobot.set_grip                           \u00d71\npuzzle.plan_pose_sequence                \u00d76\nrobot.execute_trajectory                 \u00d748\nrobot.get_ee_pose                        \u00d720\nrobot.wait_steps                         \u00d717",
        "relook": false
       },
       {
@@ -3818,6 +3975,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 2.54
        },
+       "code": "# workflow.json\n\"red_red_receiver_close\": {\"type\": \"subgraph\", \"ref\": \"red_receiver_close_sg\"}\n  exit dual_held    \u2192 red_red_sender_release\n  exit error        \u2192 abort\n\n# subgraph red_receiver_close_sg\nskill:  modular-rgb-puzzler\nscript: scripts/red_receiver_close.py\nsuccess when route \u2208 {dual_held};  on_error \u2192 error\n\n# scripts/red_receiver_close.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.red_bimanual_handoff import receiver_close\ndef run(ctx, state: ModularState) -> ModularResult:\n    return receiver_close(ctx, state)\n\n# tool calls in this step (102)\nrobot.read_proprioception                \u00d781\npuzzle.propagate_pyramid_held_belief     \u00d710\nrobot.set_grip                           \u00d74\nvision.observe                           \u00d74\nrobot.wait_steps                         \u00d71\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       },
       {
@@ -3836,6 +3994,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 2.54
        },
+       "code": "# workflow.json\n\"red_red_sender_release\": {\"type\": \"subgraph\", \"ref\": \"red_sender_release_sg\"}\n  exit transferred  \u2192 red_red_receiver_bind\n  exit error        \u2192 abort\n\n# subgraph red_sender_release_sg\nskill:  modular-rgb-puzzler\nscript: scripts/red_sender_release.py\nsuccess when route \u2208 {transferred};  on_error \u2192 error\n\n# scripts/red_sender_release.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.red_bimanual_handoff import sender_release\ndef run(ctx, state: ModularState) -> ModularResult:\n    return sender_release(ctx, state)\n\n# tool calls in this step (38)\npuzzle.propagate_pyramid_held_belief     \u00d73\nrobot.read_proprioception                \u00d719\nrobot.set_grip                           \u00d71\nvision.observe                           \u00d71\npuzzle.plan_pose_sequence                \u00d71\nrobot.execute_trajectory                 \u00d77\nrobot.get_ee_pose                        \u00d74\nrobot.wait_steps                         \u00d72",
        "relook": false
       },
       {
@@ -3854,6 +4013,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 2.54
        },
+       "code": "# workflow.json\n\"red_red_receiver_bind\": {\"type\": \"subgraph\", \"ref\": \"red_receiver_bind_sg\"}\n  exit verified     \u2192 red_red_return_prepare\n  exit error        \u2192 abort\n\n# subgraph red_receiver_bind_sg\nskill:  modular-rgb-puzzler\nscript: scripts/red_receiver_bind.py\nsuccess when route \u2208 {verified};  on_error \u2192 error\n\n# scripts/red_receiver_bind.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.red_bimanual_handoff import receiver_bind\ndef run(ctx, state: ModularState) -> ModularResult:\n    return receiver_bind(ctx, state)\n\n# tool calls in this step (7)\npuzzle.propagate_pyramid_held_belief     \u00d72\nvision.observe                           \u00d71\nrobot.read_proprioception                \u00d71\nrobot.wait_steps                         \u00d71\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       },
       {
@@ -3872,6 +4032,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 2.55
        },
+       "code": "# workflow.json\n\"red_red_return_prepare\": {\"type\": \"subgraph\", \"ref\": \"red_return_prepare_sg\"}\n  exit prepared     \u2192 red_red_return_close\n  exit error        \u2192 abort\n\n# subgraph red_return_prepare_sg\nskill:  modular-rgb-puzzler\nscript: scripts/red_return_prepare.py\nsuccess when route \u2208 {prepared};  on_error \u2192 error\n\n# scripts/red_return_prepare.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.red_bimanual_handoff import return_handoff_prepare\ndef run(ctx, state: ModularState) -> ModularResult:\n    return return_handoff_prepare(ctx, state)\n\n# tool calls in this step (160)\npuzzle.propagate_pyramid_held_belief     \u00d78\nrobot.read_proprioception                \u00d771\nvision.observe                           \u00d75\nrobot.set_grip                           \u00d71\npuzzle.plan_pose_sequence                \u00d717\nrobot.execute_trajectory                 \u00d723\nrobot.get_ee_pose                        \u00d719\nrobot.wait_steps                         \u00d716",
        "relook": false
       },
       {
@@ -3890,6 +4051,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 2.56
        },
+       "code": "# workflow.json\n\"red_red_return_close\": {\"type\": \"subgraph\", \"ref\": \"red_return_close_sg\"}\n  exit dual_held    \u2192 red_red_return_release\n  exit error        \u2192 abort\n\n# subgraph red_return_close_sg\nskill:  modular-rgb-puzzler\nscript: scripts/red_return_close.py\nsuccess when route \u2208 {dual_held};  on_error \u2192 error\n\n# scripts/red_return_close.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.red_bimanual_handoff import receiver_close\ndef run(ctx, state: ModularState) -> ModularResult:\n    return receiver_close(ctx, state)\n\n# tool calls in this step (109)\nrobot.read_proprioception                \u00d785\npuzzle.propagate_pyramid_held_belief     \u00d712\nrobot.set_grip                           \u00d74\nvision.observe                           \u00d75\nrobot.wait_steps                         \u00d71\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       },
       {
@@ -3908,6 +4070,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 2.56
        },
+       "code": "# workflow.json\n\"red_red_return_release\": {\"type\": \"subgraph\", \"ref\": \"red_return_release_sg\"}\n  exit transferred  \u2192 red_red_return_bind\n  exit error        \u2192 abort\n\n# subgraph red_return_release_sg\nskill:  modular-rgb-puzzler\nscript: scripts/red_return_release.py\nsuccess when route \u2208 {transferred};  on_error \u2192 error\n\n# scripts/red_return_release.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.red_bimanual_handoff import sender_release\ndef run(ctx, state: ModularState) -> ModularResult:\n    return sender_release(ctx, state)\n\n# tool calls in this step (43)\npuzzle.propagate_pyramid_held_belief     \u00d74\nrobot.read_proprioception                \u00d720\nvision.observe                           \u00d72\nrobot.set_grip                           \u00d71\npuzzle.plan_pose_sequence                \u00d71\nrobot.execute_trajectory                 \u00d77\nrobot.get_ee_pose                        \u00d75\nrobot.wait_steps                         \u00d73",
        "relook": false
       },
       {
@@ -3926,6 +4089,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 2.56
        },
+       "code": "# workflow.json\n\"red_red_return_bind\": {\"type\": \"subgraph\", \"ref\": \"red_return_bind_sg\"}\n  exit verified     \u2192 red_red_goal_transport\n  exit error        \u2192 abort\n\n# subgraph red_return_bind_sg\nskill:  modular-rgb-puzzler\nscript: scripts/red_return_bind.py\nsuccess when route \u2208 {verified};  on_error \u2192 error\n\n# scripts/red_return_bind.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.red_bimanual_handoff import receiver_bind\ndef run(ctx, state: ModularState) -> ModularResult:\n    return receiver_bind(ctx, state)\n\n# tool calls in this step (7)\npuzzle.propagate_pyramid_held_belief     \u00d72\nvision.observe                           \u00d71\nrobot.read_proprioception                \u00d71\nrobot.wait_steps                         \u00d71\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       },
       {
@@ -3944,6 +4108,7 @@
        "metrics": {
         "earlier_pieces_max_mm": 2.57
        },
+       "code": "# workflow.json\n\"red_red_goal_transport\": {\"type\": \"subgraph\", \"ref\": \"red_goal_transport_sg\"}\n  exit carried      \u2192 red_red_goal_release\n  exit error        \u2192 abort\n\n# subgraph red_goal_transport_sg\nskill:  modular-rgb-puzzler\nscript: scripts/red_goal_transport.py\nsuccess when route \u2208 {carried};  on_error \u2192 error\n\n# scripts/red_goal_transport.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.red_bimanual_goal import carry\ndef run(ctx, state: ModularState) -> ModularResult:\n    return carry(ctx, state)\n\n# tool calls in this step (128)\npuzzle.propagate_pyramid_held_belief     \u00d79\nrobot.read_proprioception                \u00d757\nvision.observe                           \u00d75\npuzzle.plan_pose                         \u00d72\npuzzle.plan_pose_sequence                \u00d73\npuzzle.plan_joint_path                   \u00d72\nrobot.execute_trajectory                 \u00d729\nrobot.get_ee_pose                        \u00d713\nrobot.wait_steps                         \u00d78",
        "relook": false
       },
       {
@@ -3966,6 +4131,7 @@
         "earlier_pieces_max_mm": 2.6,
         "stable_s": 4.78
        },
+       "code": "# workflow.json\n\"red_red_goal_release\": {\"type\": \"subgraph\", \"ref\": \"red_goal_release_sg\"}\n  exit placed       \u2192 red_red_goal_verify\n  exit uncertain    \u2192 red_red_goal_verify\n  exit missed       \u2192 red_red_goal_verify\n  exit error        \u2192 abort\n\n# subgraph red_goal_release_sg\nskill:  modular-rgb-puzzler\nscript: scripts/red_goal_release.py\nsuccess when route \u2208 {placed, uncertain, missed};  on_error \u2192 error\n\n# scripts/red_goal_release.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.red_bimanual_goal import release\ndef run(ctx, state: ModularState) -> ModularResult:\n    return release(ctx, state)\n\n# tool calls in this step (184)\npuzzle.propagate_pyramid_held_belief     \u00d74\nrobot.read_proprioception                \u00d786\nvision.observe                           \u00d75\npuzzle.plan_pose                         \u00d76\npuzzle.plan_pose_sequence                \u00d75\nrobot.execute_trajectory                 \u00d744\nrobot.get_ee_pose                        \u00d714\nrobot.wait_steps                         \u00d719\nrobot.set_grip                           \u00d71",
        "relook": false
       },
       {
@@ -3986,6 +4152,7 @@
         "earlier_pieces_max_mm": 2.59,
         "stable_s": 7.02
        },
+       "code": "# workflow.json\n\"red_red_goal_verify\": {\"type\": \"subgraph\", \"ref\": \"red_goal_verify_sg\"}\n  exit advanced     \u2192 finish_all12\n  exit error        \u2192 abort\n\n# subgraph red_goal_verify_sg\nskill:  modular-rgb-puzzler\nscript: scripts/red_goal_verify.py\nsuccess when route \u2208 {advanced};  on_error \u2192 error\n\n# scripts/red_goal_verify.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.red_bimanual_goal import verify_release\ndef run(ctx, state: ModularState) -> ModularResult:\n    return verify_release(ctx, state)\n\n# tool calls in this step (4)\nvision.observe                           \u00d71\nrobot.wait_steps                         \u00d71\nrobot.get_ee_pose                        \u00d72",
        "relook": false
       }
      ],
@@ -4039,6 +4206,7 @@
         "earlier_pieces_max_mm": 2.6,
         "stable_s": 16.44
        },
+       "code": "# workflow.json\n\"finish_all12\": {\"type\": \"subgraph\", \"ref\": \"finish_sg\"}\n  exit completed    \u2192 done\n  exit error        \u2192 abort\n\n# subgraph finish_sg\nskill:  modular-rgb-puzzler\nscript: scripts/finish.py\nsuccess when route \u2208 {completed};  on_error \u2192 error\n\n# scripts/finish.py\nfrom puzzler.modular_controller import ModularState, ModularResult\nfrom puzzler.unified_contract import finish_assembly\ndef run(ctx, state: ModularState) -> ModularResult:\n    return finish_assembly(ctx, state)\n\n# tool calls in this step (10)\nrobot.set_grip                           \u00d72\nrobot.go_home                            \u00d72\nrobot.read_proprioception                \u00d72\nrobot.wait_steps                         \u00d71\nvision.observe                           \u00d71\nrobot.get_ee_pose                        \u00d72",
        "relook": true
       }
      ],

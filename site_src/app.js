@@ -140,6 +140,7 @@ function initPlayer(root, run) {
     const detail = active || current.nodes[current.nodes.length - 1];
     const metric = detail.metrics.placement_error_mm != null ? ` Placed within ${detail.metrics.placement_error_mm.toFixed(1)} mm.` : '';
     q('detail').textContent = detail.detail + metric;
+    if (q('code').dataset.node !== detail.id) { q('code').textContent = detail.code || ''; q('code').dataset.node = detail.id; }
     q('time').textContent = `t = ${(step / run.control_hz).toFixed(1)} s`;
   }
 
@@ -158,6 +159,8 @@ document.querySelectorAll('.player[data-rig]').forEach(root => {
   const run = data.rigs[root.dataset.rig];
   if (run) initPlayer(root, run);
 });
+// On phones the code panel sits above the step graph, so it starts folded there.
+if (matchMedia('(max-width: 900px)').matches) document.querySelectorAll('.code-frame').forEach(d => { d.open = false; });
 
 // Autoplay: every clip is muted and inline, so Safari and iOS allow it. Play only
 // what is on screen and in the shown tab; a browser that still blocks autoplay keeps the controls.
