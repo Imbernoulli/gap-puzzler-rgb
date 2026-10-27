@@ -37,6 +37,15 @@ function el(name, attrs = {}, text) {
   return node;
 }
 
+// Python-ish highlighting for the program panel: keywords and comments only.
+const KEYWORDS = /\b(def|for|in|if|else|return|continue|break|or|and|not|goto)\b/g;
+function highlight(text) {
+  const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const hash = text.search(/(^|\s)#/);
+  const code = hash < 0 ? text : text.slice(0, hash), comment = hash < 0 ? '' : text.slice(hash);
+  return esc(code).replace(KEYWORDS, '<b class="kw">$1</b>') + (comment ? `<span class="c">${esc(comment)}</span>` : '');
+}
+
 // One player per camera rig: video -> control step -> graph node, one step clock.
 function initPlayer(root, run) {
   const q = key => root.querySelector(`[data-k="${key}"]`);
@@ -112,6 +121,37 @@ function initPlayer(root, run) {
     });
   }
 
+  // The policy's program, condensed: the running subgraph's lines are lit and a
+  // cursor walks through them as that subgraph's steps go by.
+  const programLines = (run.program || []).map(line => {
+    const span = document.createElement('span');
+    span.className = 'ln';
+    span.innerHTML = highlight(line.t) || ' ';
+    q('program').append(span);
+    return {span, tags: line.s};
+  });
+  let lit = null, walk = [], cursor = -1;
+  function showProgram(node, step) {
+    if (!programLines.length) return;
+    if (lit !== node.id) {
+      lit = node.id;
+      programLines.forEach(line => { line.span.classList.toggle('on', line.tags.includes(node.ref)); line.span.classList.remove('cur'); });
+      // The cursor skips the graph loop at the top, which every subgraph shares.
+      walk = programLines.filter(line => line.tags.includes(node.ref) && line.tags.length <= 3);
+      cursor = -1;
+      q('running').textContent = node.source ? `Running ${node.source}${node.calls ? ` · ${node.calls} tool calls` : ''}` : '';
+      const body = q('program'), first = walk[0];
+      if (first) body.scrollTo({top: Math.max(0, first.span.offsetTop - body.offsetTop - 24), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+    }
+    if (!walk.length) return;
+    const span = node.end != null && node.end > node.start ? (step - node.start) / (node.end - node.start) : 0;
+    const k = Math.min(walk.length - 1, Math.max(0, Math.floor(span * walk.length)));
+    if (k === cursor) return;
+    if (cursor >= 0) walk[cursor].span.classList.remove('cur');
+    walk[k].span.classList.add('cur');
+    cursor = k;
+  }
+
   function showPiece(piece) {
     if (shown === piece) return;
     shown = piece;
@@ -140,7 +180,7 @@ function initPlayer(root, run) {
     const detail = active || current.nodes[current.nodes.length - 1];
     const metric = detail.metrics.placement_error_mm != null ? ` Placed within ${detail.metrics.placement_error_mm.toFixed(1)} mm.` : '';
     q('detail').textContent = detail.detail + metric;
-    if (q('code').dataset.node !== detail.id) { q('code').textContent = detail.code || ''; q('code').dataset.node = detail.id; }
+    showProgram(detail, step);
     q('time').textContent = `t = ${(step / run.control_hz).toFixed(1)} s`;
   }
 
@@ -159,8 +199,6 @@ document.querySelectorAll('.player[data-rig]').forEach(root => {
   const run = data.rigs[root.dataset.rig];
   if (run) initPlayer(root, run);
 });
-// On phones the code panel sits above the step graph, so it starts folded there.
-if (matchMedia('(max-width: 900px)').matches) document.querySelectorAll('.code-frame').forEach(d => { d.open = false; });
 
 // Autoplay: every clip is muted and inline, so Safari and iOS allow it. Play only
 // what is on screen and in the shown tab; a browser that still blocks autoplay keeps the controls.

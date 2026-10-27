@@ -270,8 +270,16 @@ body[data-rig="official"] [data-rig="custom"], body[data-rig="custom"] [data-rig
 .hero { grid-template-columns: minmax(0, 1fr); }
 .hero h1 { max-width: none; }
 
-.code-frame { min-width: 0; }
-.code-frame summary { cursor: pointer; color: var(--muted, #6b7280); }
-.code-frame pre { margin: 6px 0 0; padding: 10px 12px; max-height: 380px; overflow: auto; font: 11.5px/1.45 'JetBrains Mono', ui-monospace, monospace;
-  background: var(--code-bg, #0f1115); color: #e5e7eb; border-radius: 8px; white-space: pre; }
 .player .graph { align-content: start; }
+
+/* The policy's program under the player: the running subgraph's lines lit, the rest dimmed. */
+.program { grid-column: 1 / -1; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); overflow: hidden; min-width: 0; }
+.program-head { margin: 0; padding: 8px 14px; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+.program-body { margin: 0; padding: 8px 0; height: 280px; overflow: auto; font: 12px/1.6 var(--mono); }
+.program-body .ln { display: block; padding: 0 14px; white-space: pre; border-left: 3px solid transparent; opacity: .38; transition: opacity .25s, background .25s; }
+.program-body .ln.on { opacity: 1; background: var(--pass-bg); border-left-color: var(--pass); }
+.program-body .ln.cur { background: color-mix(in srgb, var(--pass) 26%, transparent); }
+.program-body .kw { font-weight: 700; }
+.program-body .c { color: var(--muted); }
+@media (max-width: 900px) { .program-body { height: 230px; font-size: 11px; } }
+@media (prefers-reduced-motion: reduce) { .program-body .ln { transition: none; } }

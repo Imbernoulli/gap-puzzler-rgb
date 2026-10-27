@@ -124,26 +124,114 @@ def tool_tally(calls, start, end):
     return tally
 
 
-def code_frame(workflow, name, graph_dir, tally=None):
-    """The GaP code behind one node: its workflow entry, the subgraph it calls, that subgraph's script and the tools it used."""
-    node = workflow['nodes'][name]
-    routes = workflow.get('conditional_edges', {}).get(name, {}).get('mapping', {})
-    lines = ['# workflow.json', f'"{name}": {{"type": "{node.get("type")}", "ref": "{node.get("ref")}"}}']
-    lines += [f'  exit {k:<12} → {v}' for k, v in routes.items()]
-    sub = workflow.get('subgraphs', {}).get(node.get('ref'), {})
-    act = next((n for n in sub.get('nodes', {}).values() if n.get('type') == 'script'), {})
-    script = act.get('script')
-    if sub:
-        ok = ', '.join(sub.get('exit', {}).get('success_values', []))
-        lines += ['', f'# subgraph {node.get("ref")}', f'skill:  {sub.get("skill")}', f'script: {script}',
-                  f'success when route ∈ {{{ok}}};  on_error → {sub.get("on_error")}']
-    path = graph_dir / script if script else None
-    if path and path.exists():
-        body = [l for l in path.read_text().splitlines() if l.strip() and not l.startswith('from __future__')]
-        lines += ['', f'# {script}', *body[:8]]
-    if tally:
-        lines += ['', f'# tool calls in this step ({sum(tally.values())})', *(f'{t:<40} ×{n}' for t, n in tally.items())]
-    return '\n'.join(lines)
+# The policy's program, condensed from its own code (workflow.json, puzzler/*.py) with the
+# thresholds it uses; each line names the subgraphs it belongs to, so the player lights the
+# lines of whichever subgraph is running. Tags are subgraph refs without the "_sg" suffix.
+PIECE_STEPS = ('perceive_plan', 'grasp', 'transport', 'release', 'receipt_settle', 'handoff')
+CYAN = ('cyan_approach', 'cyan_receiver_close', 'cyan_donor_release', 'cyan_receiver_bind', 'cyan_receiver_transport')
+RED = ('red_handoff_prepare', 'red_receiver_close', 'red_sender_release', 'red_receiver_bind', 'red_return_prepare',
+       'red_return_close', 'red_return_release', 'red_return_bind', 'red_goal_transport', 'red_goal_release', 'red_goal_verify')
+EVERY = PIECE_STEPS + CYAN + RED
+PROGRAM = (
+    ('# workflow.json: one graph; every error exit goes to abort', EVERY + ('finish',)),
+    ('for piece in ORDER:                        # 12 pieces, in the source video\'s order', EVERY),
+    ('    for node in CHAIN[piece]:              # 6 subgraphs; piece 6 has 10, piece 12 has 13', EVERY),
+    ('        route = node.run(ctx, state)       # a subgraph: one script, typed exits', EVERY),
+    ("        if route == 'error': goto abort", EVERY),
+    ('finish(ctx, state)', ('finish',)),
+    ('', ()),
+    ('def perceive_plan(ctx, state):             # modular_controller.observe_and_plan', ('perceive_plan',)),
+    ('    seen = look_and_observe(ctx, [piece])  # all cameras, then aim a free wrist camera', ('perceive_plan',)),
+    ('    scene = scene_belief(state, seen)      # bead spheres at the RGB fits, public CAD', ('perceive_plan',)),
+    ('    arm = 0 if seen.poses[piece].y >= 0 else 1', ('perceive_plan',)),
+    ('    for g in candidates(piece):            # CAD symmetry x bead x heading 0/90/180/270', ('perceive_plan',)),
+    ('        # tried in order: high in the target pose, short lever, low torque, clearance', ('perceive_plan',)),
+    ('        if descent_clearance(g) < 0.0005: continue    # open hand, 7 heights over 10 cm', ('perceive_plan',)),
+    ('        if not release_opening_clear(g): continue     # at the site: 5 widths x 7 heights', ('perceive_plan',)),
+    ('        if not all(ik_ok(x) for x in key_poses(g)): continue  # 5 poses: 2 mm, 0.03 rad', ('perceive_plan',)),
+    ("        return 'planned', g                # the first that passes, not the best", ('perceive_plan',)),
+    ('    look_at_neighbours(); fallback_grasp(); widen_headings()   # then refuse', ('perceive_plan',)),
+    ('', ()),
+    ('def grasp(ctx, state):                     # grasp_and_bind', ('grasp',)),
+    ('    set_grip(arm, 0.055); move(g + hover, q)', ('grasp',)),
+    ('    move_straight(g, q); set_grip(arm, 0.0)               # close on the bead', ('grasp',)),
+    ('    capture_conditional_attachment(source_rgb, bound=0.008)', ('grasp',)),
+    ('    move(g + [0, 0, 0.085], q)                            # lift', ('grasp',)),
+    ('    seen = vision.observe(hint=predicted)  # hidden: the free hand\'s wrist camera looks', ('grasp',)),
+    ("    if rise < 0.025 or hand_gap > 0.045: refuse   # the image must show it lifted, in hand", ('grasp',)),
+    ("    return 'verified'                      # piece-in-hand pose from RGB + jaw encoders", ('grasp',)),
+    ('', ()),
+    ('def transport(ctx, state):                 # modular_controller.transport', ('transport', 'cyan_receiver_transport', 'red_goal_transport')),
+    ('    held = owned_held_belief(state)        # re-measured once its image is 20 s old', ('transport', 'cyan_receiver_transport', 'red_goal_transport')),
+    ('    for R in symmetry_equivalent(target_R):', ('transport', 'cyan_receiver_transport', 'red_goal_transport')),
+    ('        end = site + case_z * 0.10         # 10 cm above the site, in the case frame', ('transport', 'cyan_receiver_transport', 'red_goal_transport')),
+    ('        path = plan_path(end) or plan_joint_path(end)   # hand line, else joint line', ('transport', 'cyan_receiver_transport', 'red_goal_transport')),
+    ('        if clearance(hand, held, path) >= 0.002: break  # pieces +4 mm, held +6-8 mm', ('transport', 'cyan_receiver_transport', 'red_goal_transport')),
+    ('    execute_trajectory(path)               # must end within 2.5 mm and 0.04 rad', ('transport', 'cyan_receiver_transport', 'red_goal_transport')),
+    ("    return 'carried'", ('transport', 'cyan_receiver_transport', 'red_goal_transport')),
+    ('', ()),
+    ('def release(ctx, state):                   # carry_and_release', ('release', 'red_goal_release')),
+    ('    h = lowest(linspace(0.012, 0.024, 7), opening_clear)  # 9 jaw widths at each height', ('release', 'red_goal_release')),
+    ('    move(site + [0, 0, h], q); set_grip(arm, 0.055); withdraw(arm)', ('release', 'red_goal_release')),
+    ('    go_home(both arms); pair = look_release_pair(piece)   # two new RGB frames', ('release', 'red_goal_release')),
+    ("    return 'placed' if receipt(pair) else 'missed' if both_off(0.008) else 'uncertain'", ('release',)),
+    ('', ()),
+    ('def receipt_settle(ctx, state):            # settle_placement_evidence', ('receipt_settle', 'red_goal_verify')),
+    ("    if outcome == 'placed': return 'placed'", ('receipt_settle', 'red_goal_verify')),
+    ('    if goal_error(seen) >= 0.004: reobserve_and_replan()   # once, then refuse', ('receipt_settle', 'red_goal_verify')),
+    ('def handoff(ctx, state):                   # verified_handoff', ('handoff',)),
+    ("    require_receipt(piece); return 'advanced'   # scene state goes to the next piece", ('handoff',)),
+    ('', ()),
+    ('# piece 6: one hand-to-hand transfer, left hand to right hand', CYAN),
+    ('def cyan_approach(ctx, state):', ('cyan_approach',)),
+    ('    for station in [(.22, .20, .15), (.20, .20, .15)]:    # metres, case frame', ('cyan_approach',)),
+    ('        for g in FAMILY[:3]:               # 34 receiving grasps, searched offline', ('cyan_approach',)),
+    ('            ik_ok(goal hover, goal seat, pregrasp 8 cm back, contact)  # reserve 0.035', ('cyan_approach',)),
+    ('        if donor_exit_reserve(back 15 mm, in 60 mm, up 40 mm) < 0.040: continue', ('cyan_approach',)),
+    ("        move(donor, station); seen = vision.observe()   # replan from the new image", ('cyan_approach',)),
+    ("        move(receiver, pregrasp); return 'receiver ready'", ('cyan_approach',)),
+    ('def cyan_receiver_close(ctx, state):       # close in stages, re-measuring before each', ('cyan_receiver_close',)),
+    ("    for w in (0.030, 0.026, 0.0242, 0.0): set_grip(receiver, w)", ('cyan_receiver_close',)),
+    ("    capture_conditional_attachment(receiver); return 'receiver closed'", ('cyan_receiver_close',)),
+    ('def cyan_donor_release(ctx, state):        # every motion screened on the whole robot', ('cyan_donor_release',)),
+    ("    set_grip(donor, 0.030); back(15 mm); set_grip(donor, 0.055); move(in 60 mm, up 40 mm)", ('cyan_donor_release',)),
+    ("def cyan_receiver_bind(ctx, state):        # re-fit the held pose: new RGB + receiving jaw", ('cyan_receiver_bind',)),
+    ('', ()),
+    ('# piece 12: two transfers, right to left, then back to the right with a new grasp', RED),
+    ('def red_handoff_prepare(ctx, state):       # hop 1; red_return_prepare is hop 2', ('red_handoff_prepare', 'red_return_prepare')),
+    ('    for cand in CANDIDATES:                # 7 routes, searched offline', ('red_handoff_prepare', 'red_return_prepare')),
+    ('        for station in STATIONS:           # 7, then 9 more and turns of 0.3, 0.6 rad', ('red_handoff_prepare', 'red_return_prepare')),
+    ('            paths for both arms, joint reserve >= 0.035     # prefer >= 0.060', ('red_handoff_prepare', 'red_return_prepare')),
+    ('            whole-robot collision check, both arms (GJK on the GPU)', ('red_handoff_prepare', 'red_return_prepare')),
+    ('# red_receiver_close, red_return_close: the receiving jaw closes', ('red_receiver_close', 'red_return_close')),
+    ('# red_sender_release, red_return_release: the giving jaw opens and withdraws', ('red_sender_release', 'red_return_release')),
+    ('# red_receiver_bind, red_return_bind: re-fit the held pose from new RGB', ('red_receiver_bind', 'red_return_bind')),
+    ('', ()),
+    ('def finish(ctx, state):                    # finish_assembly', ('finish',)),
+    ('    for arm in (0, 1): set_grip(arm, 0.055); go_home(arm)', ('finish',)),
+    ('    completion_survey(); wait(2 s); seen = vision.observe()   # wrist looks pooled', ('finish',)),
+    ("    require 12 receipts; return 'completed'", ('finish',)),
+)
+
+
+def align_comment(text, column=46):
+    """Trailing comments start at one column, so the program reads as two columns."""
+    code, hash_, comment = text.partition('  # ')
+    if not hash_ or not code.strip():
+        return text
+    return code.rstrip().ljust(column - 2) + '  # ' + comment
+
+
+def script_source(workflow, name, graph_dir):
+    """'scripts/grasp.py -> modular_controller.grasp_and_bind': the script a node runs and the function it calls."""
+    sub = workflow.get('subgraphs', {}).get(workflow['nodes'][name].get('ref'), {})
+    script = next((n.get('script') for n in sub.get('nodes', {}).values() if n.get('type') == 'script'), None)
+    if not script or not (graph_dir / script).exists():
+        return script or ''
+    text = (graph_dir / script).read_text()
+    called = re.findall(r'return (\w+)\(ctx', text)
+    module = re.search(rf'from puzzler\.(\w+) import [^\n]*\b{called[-1]}\b', text) if called else None
+    return f'{script} → {module.group(1)}.{called[-1]}' if module else script
 
 
 def timeline(run):
@@ -167,8 +255,9 @@ def timeline(run):
                     start=previous, end=row['native_step'] if row else None,
                     passed=bool(row and row.get('passed')), checkpoint=row['phase'] if row else None,
                     metrics=metrics(row, first=piece == order[0]) if row else {},
-                    code=code_frame(workflow, name, graph_dir, tool_tally(calls, previous, row['native_step']) if row else None)
-                    if name in workflow['nodes'] else '')
+                    ref=workflow['nodes'][name].get('ref', '').removesuffix('_sg') if name in workflow['nodes'] else '',
+                    source=script_source(workflow, name, graph_dir) if name in workflow['nodes'] else '',
+                    calls=sum(tool_tally(calls, previous, row['native_step']).values()) if row else 0)
         if row:
             previous = row['native_step']
         if not pieces or pieces[-1]['name'] != piece:
@@ -193,7 +282,8 @@ def timeline(run):
         pieces_placed=sum(1 for p in pieces if p['name'] != 'finish' and p['placed']),
         audit_success=audit.get('success'), audit_max_mm=round(1000 * audit['final_max_bead_error_m'], 2) if audit else None,
         audit_stable_s=round(audit['released_stable_duration_s'], 1) if audit else None,
-        error=str(error) if error else None, pieces=pieces)
+        error=str(error) if error else None, pieces=pieces,
+        program=[dict(t=align_comment(text), s=list(tags)) for text, tags in PROGRAM])
 
 
 def variant_row(run_dir):
@@ -428,13 +518,13 @@ def player_html(rig):
             f'<div class="screen"><video data-k="video" src="media/{rig}/gap_full12.mp4" poster="media/{rig}/gap_full12_poster.jpg" '
             f'{AUTOPLAY} aria-label="Full twelve-piece run, replayed from the recorded episode"></video>'
             f'<div class="track" data-k="track" role="group" aria-label="Jump to a piece"></div>'
-            f'<p class="clock"><span data-k="time">t = 0.0 s</span><span data-k="speed"></span></p>'
-            f'<details class="code-frame" open><summary class="mono small">GaP code for the current step</summary>'
-            f'<pre data-k="code"></pre></details></div>'
+            f'<p class="clock"><span data-k="time">t = 0.0 s</span><span data-k="speed"></span></p></div>'
             f'<aside class="graph" aria-live="polite"><div class="graph-head"><span class="swatch" data-k="swatch"></span>'
             f'<h3 data-k="piece">Azure</h3><span class="mono small muted" data-k="index"></span></div>'
             f'<svg data-k="graph" class="graph-svg" role="img" aria-label="The current piece\'s subgraph"></svg>'
-            f'<p class="node-detail" data-k="detail"></p></aside></div>')
+            f'<p class="node-detail" data-k="detail"></p></aside>'
+            f'<div class="program"><p class="program-head mono" data-k="running"></p>'
+            f'<pre class="program-body" data-k="program" aria-label="The policy\'s program; the running step\'s lines are lit"></pre></div></div>')
 
 
 STANDING = (('cyan', 'Passed from one hand to the other, then stood on edge.'),
