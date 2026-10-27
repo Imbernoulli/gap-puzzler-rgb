@@ -29,7 +29,7 @@ COLORS = dict(yellow=(1., .69, .01), purple=(.31, .04, .46), cyan=(.07, .73, .98
               navy=(.08, .08, .68), pink=(.96, .19, .59), red=(.88, .035, .06), azure=(.015, .43, .91))
 
 LABELS = {
-    'perceive_plan': ('Perceive and plan', 'Fit every visible piece and the case from the four RGB views, then plan a grasp from CAD and the arm\'s kinematics.'),
+    'perceive_plan': ('Perceive and plan', 'Fit every visible piece and the case from the RGB views, then plan a grasp from CAD and the arm\'s kinematics.'),
     'grasp': ('Grasp and lift', 'Close on the planned beads, lift, and confirm the hold from a fresh RGB frame and the jaw encoders.'),
     'transport': ('Carry', 'Move the held piece above its pyramid site, planned from the observed case pose.'),
     'release': ('Release', 'Lower, open the jaw, and back away.'),

@@ -22,7 +22,7 @@
        "id": "azure_perceive_plan",
        "kind": "perceive_plan",
        "label": "Perceive and plan",
-       "detail": "Fit every visible piece and the case from the four RGB views, then plan a grasp from CAD and the arm's kinematics.",
+       "detail": "Fit every visible piece and the case from the RGB views, then plan a grasp from CAD and the arm's kinematics.",
        "exits": [
         "planned"
        ],
@@ -170,7 +170,7 @@
        "id": "orange_perceive_plan",
        "kind": "perceive_plan",
        "label": "Perceive and plan",
-       "detail": "Fit every visible piece and the case from the four RGB views, then plan a grasp from CAD and the arm's kinematics.",
+       "detail": "Fit every visible piece and the case from the RGB views, then plan a grasp from CAD and the arm's kinematics.",
        "exits": [
         "planned"
        ],
@@ -327,7 +327,7 @@
        "id": "yellow_perceive_plan",
        "kind": "perceive_plan",
        "label": "Perceive and plan",
-       "detail": "Fit every visible piece and the case from the four RGB views, then plan a grasp from CAD and the arm's kinematics.",
+       "detail": "Fit every visible piece and the case from the RGB views, then plan a grasp from CAD and the arm's kinematics.",
        "exits": [
         "planned"
        ],
@@ -484,7 +484,7 @@
        "id": "teal_perceive_plan",
        "kind": "perceive_plan",
        "label": "Perceive and plan",
-       "detail": "Fit every visible piece and the case from the four RGB views, then plan a grasp from CAD and the arm's kinematics.",
+       "detail": "Fit every visible piece and the case from the RGB views, then plan a grasp from CAD and the arm's kinematics.",
        "exits": [
         "planned"
        ],
@@ -637,7 +637,7 @@
        "id": "purple_perceive_plan",
        "kind": "perceive_plan",
        "label": "Perceive and plan",
-       "detail": "Fit every visible piece and the case from the four RGB views, then plan a grasp from CAD and the arm's kinematics.",
+       "detail": "Fit every visible piece and the case from the RGB views, then plan a grasp from CAD and the arm's kinematics.",
        "exits": [
         "planned"
        ],
@@ -794,7 +794,7 @@
        "id": "cyan_perceive_plan",
        "kind": "perceive_plan",
        "label": "Perceive and plan",
-       "detail": "Fit every visible piece and the case from the four RGB views, then plan a grasp from CAD and the arm's kinematics.",
+       "detail": "Fit every visible piece and the case from the RGB views, then plan a grasp from CAD and the arm's kinematics.",
        "exits": [
         "planned"
        ],
@@ -1019,7 +1019,7 @@
        "id": "mint_perceive_plan",
        "kind": "perceive_plan",
        "label": "Perceive and plan",
-       "detail": "Fit every visible piece and the case from the four RGB views, then plan a grasp from CAD and the arm's kinematics.",
+       "detail": "Fit every visible piece and the case from the RGB views, then plan a grasp from CAD and the arm's kinematics.",
        "exits": [
         "planned"
        ],
@@ -1176,7 +1176,7 @@
        "id": "lime_perceive_plan",
        "kind": "perceive_plan",
        "label": "Perceive and plan",
-       "detail": "Fit every visible piece and the case from the four RGB views, then plan a grasp from CAD and the arm's kinematics.",
+       "detail": "Fit every visible piece and the case from the RGB views, then plan a grasp from CAD and the arm's kinematics.",
        "exits": [
         "planned"
        ],
@@ -1333,7 +1333,7 @@
        "id": "maroon_perceive_plan",
        "kind": "perceive_plan",
        "label": "Perceive and plan",
-       "detail": "Fit every visible piece and the case from the four RGB views, then plan a grasp from CAD and the arm's kinematics.",
+       "detail": "Fit every visible piece and the case from the RGB views, then plan a grasp from CAD and the arm's kinematics.",
        "exits": [
         "planned"
        ],
@@ -1486,7 +1486,7 @@
        "id": "navy_perceive_plan",
        "kind": "perceive_plan",
        "label": "Perceive and plan",
-       "detail": "Fit every visible piece and the case from the four RGB views, then plan a grasp from CAD and the arm's kinematics.",
+       "detail": "Fit every visible piece and the case from the RGB views, then plan a grasp from CAD and the arm's kinematics.",
        "exits": [
         "planned"
        ],
@@ -1639,7 +1639,7 @@
        "id": "pink_perceive_plan",
        "kind": "perceive_plan",
        "label": "Perceive and plan",
-       "detail": "Fit every visible piece and the case from the four RGB views, then plan a grasp from CAD and the arm's kinematics.",
+       "detail": "Fit every visible piece and the case from the RGB views, then plan a grasp from CAD and the arm's kinematics.",
        "exits": [
         "planned"
        ],
@@ -1796,7 +1796,7 @@
        "id": "red_perceive_plan",
        "kind": "perceive_plan",
        "label": "Perceive and plan",
-       "detail": "Fit every visible piece and the case from the four RGB views, then plan a grasp from CAD and the arm's kinematics.",
+       "detail": "Fit every visible piece and the case from the RGB views, then plan a grasp from CAD and the arm's kinematics.",
        "exits": [
         "planned"
        ],
@@ -2132,7 +2132,7 @@
        "id": "azure_perceive_plan",
        "kind": "perceive_plan",
        "label": "Perceive and plan",
-       "detail": "Fit every visible piece and the case from the four RGB views, then plan a grasp from CAD and the arm's kinematics.",
+       "detail": "Fit every visible piece and the case from the RGB views, then plan a grasp from CAD and the arm's kinematics.",
        "exits": [
         "planned"
        ],
@@ -2280,7 +2280,7 @@
        "id": "orange_perceive_plan",
        "kind": "perceive_plan",
        "label": "Perceive and plan",
-       "detail": "Fit every visible piece and the case from the four RGB views, then plan a grasp from CAD and the arm's kinematics.",
+       "detail": "Fit every visible piece and the case from the RGB views, then plan a grasp from CAD and the arm's kinematics.",
        "exits": [
         "planned"
        ],
@@ -2437,7 +2437,7 @@
        "id": "yellow_perceive_plan",
        "kind": "perceive_plan",
        "label": "Perceive and plan",
-       "detail": "Fit every visible piece and the case from the four RGB views, then plan a grasp from CAD and the arm's kinematics.",
+       "detail": "Fit every visible piece and the case from the RGB views, then plan a grasp from CAD and the arm's kinematics.",
        "exits": [
         "planned"
        ],
@@ -2594,7 +2594,7 @@
        "id": "teal_perceive_plan",
        "kind": "perceive_plan",
        "label": "Perceive and plan",
-       "detail": "Fit every visible piece and the case from the four RGB views, then plan a grasp from CAD and the arm's kinematics.",
+       "detail": "Fit every visible piece and the case from the RGB views, then plan a grasp from CAD and the arm's kinematics.",
        "exits": [
         "planned"
        ],
@@ -2747,7 +2747,7 @@
        "id": "purple_perceive_plan",
        "kind": "perceive_plan",
        "label": "Perceive and plan",
-       "detail": "Fit every visible piece and the case from the four RGB views, then plan a grasp from CAD and the arm's kinematics.",
+       "detail": "Fit every visible piece and the case from the RGB views, then plan a grasp from CAD and the arm's kinematics.",
        "exits": [
         "planned"
        ],
@@ -2904,7 +2904,7 @@
        "id": "cyan_perceive_plan",
        "kind": "perceive_plan",
        "label": "Perceive and plan",
-       "detail": "Fit every visible piece and the case from the four RGB views, then plan a grasp from CAD and the arm's kinematics.",
+       "detail": "Fit every visible piece and the case from the RGB views, then plan a grasp from CAD and the arm's kinematics.",
        "exits": [
         "planned"
        ],
@@ -3129,7 +3129,7 @@
        "id": "mint_perceive_plan",
        "kind": "perceive_plan",
        "label": "Perceive and plan",
-       "detail": "Fit every visible piece and the case from the four RGB views, then plan a grasp from CAD and the arm's kinematics.",
+       "detail": "Fit every visible piece and the case from the RGB views, then plan a grasp from CAD and the arm's kinematics.",
        "exits": [
         "planned"
        ],
@@ -3286,7 +3286,7 @@
        "id": "lime_perceive_plan",
        "kind": "perceive_plan",
        "label": "Perceive and plan",
-       "detail": "Fit every visible piece and the case from the four RGB views, then plan a grasp from CAD and the arm's kinematics.",
+       "detail": "Fit every visible piece and the case from the RGB views, then plan a grasp from CAD and the arm's kinematics.",
        "exits": [
         "planned"
        ],
@@ -3443,7 +3443,7 @@
        "id": "maroon_perceive_plan",
        "kind": "perceive_plan",
        "label": "Perceive and plan",
-       "detail": "Fit every visible piece and the case from the four RGB views, then plan a grasp from CAD and the arm's kinematics.",
+       "detail": "Fit every visible piece and the case from the RGB views, then plan a grasp from CAD and the arm's kinematics.",
        "exits": [
         "planned"
        ],
@@ -3596,7 +3596,7 @@
        "id": "navy_perceive_plan",
        "kind": "perceive_plan",
        "label": "Perceive and plan",
-       "detail": "Fit every visible piece and the case from the four RGB views, then plan a grasp from CAD and the arm's kinematics.",
+       "detail": "Fit every visible piece and the case from the RGB views, then plan a grasp from CAD and the arm's kinematics.",
        "exits": [
         "planned"
        ],
@@ -3749,7 +3749,7 @@
        "id": "pink_perceive_plan",
        "kind": "perceive_plan",
        "label": "Perceive and plan",
-       "detail": "Fit every visible piece and the case from the four RGB views, then plan a grasp from CAD and the arm's kinematics.",
+       "detail": "Fit every visible piece and the case from the RGB views, then plan a grasp from CAD and the arm's kinematics.",
        "exits": [
         "planned"
        ],
@@ -3906,7 +3906,7 @@
        "id": "red_perceive_plan",
        "kind": "perceive_plan",
        "label": "Perceive and plan",
-       "detail": "Fit every visible piece and the case from the four RGB views, then plan a grasp from CAD and the arm's kinematics.",
+       "detail": "Fit every visible piece and the case from the RGB views, then plan a grasp from CAD and the arm's kinematics.",
        "exits": [
         "planned"
        ],
